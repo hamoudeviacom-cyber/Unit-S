@@ -157,20 +157,18 @@ client.commands.set('help', {
   description: 'Show all commands',
   execute: async (message) => {
     const embed = new EmbedBuilder()
-      .setTitle('📚 Unit S - قائمة الأوامر')
+      .setTitle('Unit S - قائمة الأوامر')
       .setColor(COLORS.primary)
       .addFields(
-        { name: '🎫 التذاكر', value: '`!ticket` - فتح قائمة التذاكر\n`!tmanage` - إدارة التذاكر (للمشرفين)', inline: false },
-        { name: '🔒 التشفير', value: '`!shfr` - لوحة التشفير\n`!enc [نص]` - تشفير نص', inline: false },
-        { name: '🛡️ الحماية', value: '`!protect` - لوحة الحماية\n`!protect on/off [type]` - تفعيل/تعطيل', inline: false },
-        { name: '━━━━━━━━━━━', value: '**أنواع الحماية:**\n`filter` - فلتر الكلمات\n`spam` - مضاد السبام\n`link` - منع الروابط', inline: false },
-        { name: '📊 معلومات', value: '`!ping` - سرعة البوت', inline: false }
+        { name: 'التذاكر', value: '`!ticket` - فتح قائمة التذاكر\n`!tmanage` - إدارة التذاكر (للمشرفين)\n`!tmanage addrole @role` - إضافة رول للتذاكر\n`!tmanage removerole @role` - إزالة رول\n`!tmanage roles` - عرض الرولات', inline: false },
+        { name: 'التشفير', value: '`!shfr` - لوحة التشفير\n`!enc [نص]` - تشفير نص', inline: false },
+        { name: 'الحماية', value: '`!protect` - لوحة الحماية\n`!protect on/off [type]` - تفعيل/تعطيل\n`filter` - فلتر الكلمات\n`spam` - مضاد السبام\n`link` - منع الروابط', inline: false },
+        { name: 'معلومات', value: '`!ping` - سرعة البوت', inline: false }
       )
       .setFooter({ text: 'Unit S Bot' })
       .setTimestamp();
 
-    await message.channel.send({ embeds: [embed] });
-    if (!message.deleted) message.delete().catch(() => {});
+    await message.reply({ embeds: [embed], ephemeral: true });
   },
 });
 
