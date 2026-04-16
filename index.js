@@ -1141,13 +1141,12 @@ client.on('messageCreate', async (message) => {
 
       const embed = new EmbedBuilder()
         .setTitle('⚠️ تنبيه!')
-        .setDescription(`تم حذف رسالتك لأنها تحتوي على كلمات ممنوعة!\nتم كتمك لمدة **5 دقائق**`)
-        .setColor(COLORS.warning);
+        .setDescription(`تم حذف رسالتك لأنها تحتوي على كلمات ممنوعة!\nتم كتمك لمدة **5 دقائق**\n\n⚠️ هذه الرسالة مرئية لك فقط!`)
+        .setColor(COLORS.warning)
+        .setTimestamp();
 
-      await message.channel.send({ content: message.author.toString(), embeds: [embed] }).then(async msg => {
-        // حذف الرسالة بعد 3 ثواني
-        setTimeout(() => msg.delete(), 3000);
-      });
+      // إرسال DM للشخص المعني فقط (لا يراها غيره)
+      await message.author.send({ embeds: [embed] }).catch(() => {});
 
       const logChannel = message.guild?.channels.cache.find(ch => ch.name === 'logs');
       if (logChannel) {
@@ -1193,14 +1192,12 @@ client.on('messageCreate', async (message) => {
 
       const embed = new EmbedBuilder()
         .setTitle('🔇 تم كتمك!')
-        .setDescription(`تم حذف رسالتك بسبب السبام!\nتم كتمك لمدة **5 دقائق**\nReason: Spam detected`)
+        .setDescription(`تم حذف رسالتك بسبب السبام!\nتم كتمك لمدة **5 دقائق**\nReason: Spam detected\n\n⚠️ هذه الرسالة مرئية لك فقط!`)
         .setColor(COLORS.danger)
         .setTimestamp();
 
-      await message.channel.send({ content: message.author.toString(), embeds: [embed] }).then(async msg => {
-        // حذف الرسالة بعد 3 ثواني
-        setTimeout(() => msg.delete(), 3000);
-      });
+      // إرسال DM للشخص المعني فقط (لا يراها غيره)
+      await message.author.send({ embeds: [embed] }).catch(() => {});
 
       const logChannel = message.guild?.channels.cache.find(ch => ch.name === 'logs');
       if (logChannel) {
@@ -1212,7 +1209,7 @@ client.on('messageCreate', async (message) => {
   }
 });
 
-// Anti-Link
+// Anti-Link (حظر جميع الروابط)
 client.on('messageCreate', async (message) => {
   if (message.author.bot) return;
   if (!protectionSettings.antiLink.enabled) return;
@@ -1223,39 +1220,28 @@ client.on('messageCreate', async (message) => {
   const urlRegex = /(https?:\/\/[^\s]+)/gi;
   const urls = content.match(urlRegex) || [];
 
-  for (const url of urls) {
+  if (urls.length > 0) {
+    await message.delete();
+
+    // Mute user for 5 minutes
     try {
-      const domain = new URL(url).hostname.replace('www.', '').toLowerCase();
+      await message.member.timeout(5 * 60 * 1000); // 5 minutes
 
-      if (protectionSettings.antiLink.blacklistedDomains.some(d => domain.includes(d))) {
-        await message.delete();
+      const embed = new EmbedBuilder()
+        .setTitle('🔇 تم كتمك!')
+        .setDescription(`تم حذف رسالتك لإرسال رابط!\nتم كتمك لمدة **5 دقائق**\nReason: Posting links is not allowed\n\n⚠️ هذه الرسالة مرئية لك فقط!`)
+        .setColor(COLORS.danger)
+        .setTimestamp();
 
-        // Mute user for 5 minutes
-        try {
-          await message.member.timeout(5 * 60 * 1000); // 5 minutes
+      // إرسال DM للشخص المعني فقط (لا يراها غيره)
+      await message.author.send({ embeds: [embed] }).catch(() => {});
 
-          const embed = new EmbedBuilder()
-            .setTitle('🔇 تم كتمك!')
-            .setDescription(`تم حذف رسالتك بسبب إرسال رابط محظور!\nتم كتمك لمدة **5 دقائق**\nReason: Prohibited link detected`)
-            .setColor(COLORS.danger)
-            .setTimestamp();
-
-          await message.channel.send({ content: message.author.toString(), embeds: [embed] }).then(async msg => {
-            // حذف الرسالة بعد 3 ثواني
-            setTimeout(() => msg.delete(), 3000);
-          });
-
-          const logChannel = message.guild?.channels.cache.find(ch => ch.name === 'logs');
-          if (logChannel) {
-            logChannel.send(`🛡️ [Anti-Link] ${message.author.tag} تم كتمه لمدة 5 دقائق - Prohibited link: ${domain}`);
-          }
-        } catch (err) {
-          console.error('Mute error:', err);
-        }
-        return;
+      const logChannel = message.guild?.channels.cache.find(ch => ch.name === 'logs');
+      if (logChannel) {
+        logChannel.send(`🛡️ [Anti-Link] ${message.author.tag} تم كتمه لمدة 5 دقائق - أرسل رابط`);
       }
-    } catch (e) {
-      // Invalid URL
+    } catch (err) {
+      console.error('Anti-Link Mute error:', err);
     }
   }
 });
