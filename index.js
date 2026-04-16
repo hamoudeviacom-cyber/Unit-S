@@ -34,6 +34,22 @@ const ticketSettings = {
     // مثال: 'Support Team'
     // 'Admin'
   ],
+  // الرولات اللي تقدر تسكر التذكرة (حط الـ Role IDs هنا)
+  ticketAdminRoles: ['1494304967027331102'
+    // مثال: '123456789012345678'
+  ],
+  // أو استخدم اسم الرول
+  ticketAdminRoleNames: [
+    // مثال: 'Admin'
+    // 'Support'
+  ],
+  // قناة اللوجس (حط الـ Channel ID هنا)
+  logsChannelId: null, '1493302161592029184'
+ // مثال: '123456789012345678'
+  // الرول اللي تنذكر تلقائيا عند فتح تذكرة
+  mentionRoleId: null, '1494304967027331102'
+// مثال: ''
+  mentionRoleName: null, // مثال: 'دعم'
 };
 
 // ============ Word Encryption Dictionary ============
@@ -150,6 +166,84 @@ const COLORS = {
   warning: 0xf59e0b,
   danger: 0xef4444,
 };
+
+// ============ TICKET HELPER FUNCTIONS ============
+
+// دالة فحص إذا المستخدم يقدر يسكر التذكرة
+function hasTicketAdminRole(member) {
+  if (!member) return false;
+
+  // فحص الصلاحية الأساسية
+  if (member.permissions.has('ManageChannels')) return true;
+
+  // فحص الرولات من الـ IDs
+  for (const roleId of ticketSettings.ticketAdminRoles) {
+    if (member.roles.cache.has(roleId)) return true;
+  }
+
+  // فحص الرولات من الأسماء
+  for (const roleName of ticketSettings.ticketAdminRoleNames) {
+    const role = member.roles.cache.find(r =>
+      r.name.toLowerCase().includes(roleName.toLowerCase())
+    );
+    if (role) return true;
+  }
+
+  return false;
+}
+
+// دالة حفظ لوجس التذكرة
+async function logTicketTranscript(channel, closedBy, reason = 'لم يذكر') {
+  try {
+    // جلب جميع الرسائل في التذكرة
+    const messages = await channel.messages.fetch({ limit: 100 }).catch(() => new Collection());
+
+    // ترتيب الرسائل من الأقدم للأحدث
+    const sortedMessages = messages.sort((a, b) => a.createdTimestamp - b.createdTimestamp);
+
+    // بناء اللوجس
+    let transcript = `=== لوجس التذكرة: ${channel.name} ===\n`;
+    transcript += `تاريخ الإغلاق: ${new Date().toLocaleString('ar-SA')}\n`;
+    transcript += `مقام من: ${closedBy.tag || closedBy.username || 'غير معروف'}\n`;
+    transcript += `السبب: ${reason}\n`;
+    transcript += `عدد الرسائل: ${messages.size}\n`;
+    transcript += '================================\n\n';
+
+    for (const msg of sortedMessages.values()) {
+      const timestamp = new Date(msg.createdTimestamp).toLocaleString('ar-SA');
+      const author = msg.author.tag;
+      const content = msg.content || '[رسالة بدون نص]';
+
+      // إضافة المرفقات إذا وجدت
+      let attachments = '';
+      if (msg.attachments.size > 0) {
+        attachments = ' [مرفقات: ' + msg.attachments.map(a => a.name).join(', ') + ']';
+      }
+
+      transcript += `[${timestamp}] ${author}: ${content}${attachments}\n`;
+    }
+
+    transcript += '\n=== نهاية اللوجس ===';
+
+    // إرسال اللوجس للقناة المحددة
+    const logsChannel = client.channels.cache.get(ticketSettings.logsChannelId);
+    if (logsChannel) {
+      // إرسال كملف نصي
+      await logsChannel.send({
+        content: `📋 **لوجس تذكرة مغلقة: ${channel.name}**\nتم الإغلاق من: ${closedBy.tag || closedBy.username}\nالسبب: ${reason}`,
+        files: [{
+          attachment: Buffer.from(transcript, 'utf8'),
+          name: `ticket-${channel.name}-${Date.now()}.txt`
+        }]
+      });
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error logging ticket transcript:', error);
+    return false;
+  }
+}
 
 // ============ HELP COMMAND ============
 client.commands.set('help', {
@@ -449,7 +543,17 @@ client.commands.set('tmanage', {
     const action = args[0].toLowerCase();
 
     if (action === 'close') {
+      // التحقق من صلاحية المستخدم
+      if (!hasTicketAdminRole(message.member)) {
+        await message.channel.send('❌ ليس لديك صلاحية لإغلاق التذاكر!');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+
       if (message.channel.name.startsWith('ticket-')) {
+        // حفظ اللوجس قبل حذف القناة
+        await logTicketTranscript(message.channel, message.author, 'تم الإغلاق بأمر !tmanage close');
+
         await message.channel.send('🔒 جاري إغلاق التذكرة...');
         setTimeout(() => message.channel.delete(), 1000);
       } else {
@@ -516,6 +620,191 @@ client.commands.set('tmanage', {
       }
 
       await message.channel.send(rolesList);
+      if (!message.deleted) message.delete().catch(() => {});
+    }
+
+    // أمر إضافة رول أدمن للتذكرة
+    if (action === 'addadmin') {
+      const role = message.mentions.roles.first();
+      if (!role) {
+        await message.channel.send('❌ استخدم: `!tmanage addadmin @رول`');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+
+      if (!ticketSettings.ticketAdminRoles.includes(role.id)) {
+        ticketSettings.ticketAdminRoles.push(role.id);
+        await message.channel.send(`✅ تم إضافة الرول ${role.name} كأدمن للتذاكر!`);
+      } else {
+        await message.channel.send('⚠️ الرول موجودة مسبقاً كأدمن!');
+      }
+      if (!message.deleted) message.delete().catch(() => {});
+    }
+
+    // أمر إزالة رول أدمن للتذكرة
+    if (action === 'removeadmin') {
+      const role = message.mentions.roles.first();
+      if (!role) {
+        await message.channel.send('❌ استخدم: `!tmanage removeadmin @رول`');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+
+      const index = ticketSettings.ticketAdminRoles.indexOf(role.id);
+      if (index > -1) {
+        ticketSettings.ticketAdminRoles.splice(index, 1);
+        await message.channel.send(`✅ تم إزالة الرول ${role.name} من أدمن التذاكر!`);
+      } else {
+        await message.channel.send('⚠️ الرول غير موجودة كأدمن!');
+      }
+      if (!message.deleted) message.delete().catch(() => {});
+    }
+
+    // أمر إضافة رول أدمن بالاسم
+    if (action === 'addadminname') {
+      const roleName = args.slice(1).join(' ');
+      if (!roleName) {
+        await message.channel.send('❌ استخدم: `!tmanage addadminname [اسم الرول]`');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+
+      if (!ticketSettings.ticketAdminRoleNames.includes(roleName)) {
+        ticketSettings.ticketAdminRoleNames.push(roleName);
+        await message.channel.send(`✅ تم إضافة "${roleName}" كأدمن للتذاكر!`);
+      } else {
+        await message.channel.send('⚠️ الاسم موجود مسبقاً!');
+      }
+      if (!message.deleted) message.delete().catch(() => {});
+    }
+
+    // أمر إضافة رول استلام بالتحديد
+    if (action === 'addrolename') {
+      const roleName = args.slice(1).join(' ');
+      if (!roleName) {
+        await message.channel.send('❌ استخدم: `!tmanage addrolename [اسم الرول]`');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+
+      if (!ticketSettings.allowedRoleNames.includes(roleName)) {
+        ticketSettings.allowedRoleNames.push(roleName);
+        await message.channel.send(`✅ تم إضافة "${roleName}" لقائمة المستلمين!`);
+      } else {
+        await message.channel.send('⚠️ الاسم موجود مسبقاً!');
+      }
+      if (!message.deleted) message.delete().catch(() => {});
+    }
+
+    // أمر وضع قناة اللوجس
+    if (action === 'setlogs') {
+      const channel = message.mentions.channels.first();
+      if (!channel) {
+        await message.channel.send('❌ استخدم: `!tmanage setlogs #قناة`');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+
+      ticketSettings.logsChannelId = channel.id;
+      await message.channel.send(`✅ تم تعيين قناة اللوجس: ${channel.name}`);
+      if (!message.deleted) message.delete().catch(() => {});
+    }
+
+    // أمر تعيين رول للمنشن التلقائي
+    if (action === 'setmention') {
+      const role = message.mentions.roles.first();
+      if (!role) {
+        await message.channel.send('❌ استخدم: `!tmanage setmention @رول`');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+
+      ticketSettings.mentionRoleId = role.id;
+      ticketSettings.mentionRoleName = null; // مسح الاسم إذا تم تحديد الرول
+      await message.channel.send(`✅ تم تعيين الرول ${role.name} للمنشن التلقائي!`);
+      if (!message.deleted) message.delete().catch(() => {});
+    }
+
+    // أمر تعيين رول للمنشن التلقائي بالاسم
+    if (action === 'setmentionname') {
+      const roleName = args.slice(1).join(' ');
+      if (!roleName) {
+        await message.channel.send('❌ استخدم: `!tmanage setmentionname [اسم الرول]`');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+
+      // البحث عن الرول
+      const role = message.guild.roles.cache.find(r =>
+        r.name.toLowerCase().includes(roleName.toLowerCase())
+      );
+
+      if (!role) {
+        await message.channel.send(`❌ لم يتم العثور على رول تحتوي على: "${roleName}"`);
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+
+      ticketSettings.mentionRoleId = null; // مسح الـ ID
+      ticketSettings.mentionRoleName = roleName;
+      await message.channel.send(`✅ تم تعيين "${roleName}" للمنشن التلقائي! (الرول: ${role.name})`);
+      if (!message.deleted) message.delete().catch(() => {});
+    }
+
+    // أمر عرض إعدادات المنشن
+    if (action === 'mention') {
+      let mentionInfo = '🎯 إعدادات المنشن التلقائي:\n\n';
+
+      if (ticketSettings.mentionRoleId) {
+        const role = message.guild.roles.cache.get(ticketSettings.mentionRoleId);
+        mentionInfo += `📌 الرول: ${role ? role.name : 'محذوفة'}\n`;
+        mentionInfo += `🔢 ID: ${ticketSettings.mentionRoleId}\n`;
+      } else if (ticketSettings.mentionRoleName) {
+        const role = message.guild.roles.cache.find(r =>
+          r.name.toLowerCase().includes(ticketSettings.mentionRoleName.toLowerCase())
+        );
+        mentionInfo += `📌 الرول: ${role ? role.name : 'غير موجودة'}\n`;
+        mentionInfo += `📝 الاسم: "${ticketSettings.mentionRoleName}"\n`;
+      } else {
+        mentionInfo += '⚠️ لم يتم تعيين رول للمنشن التلقائي.\n';
+        mentionInfo += 'استخدم: `!tmanage setmention @رول` أو `!tmanage setmentionname [اسم]`';
+      }
+
+      await message.channel.send(mentionInfo);
+      if (!message.deleted) message.delete().catch(() => {});
+    }
+
+    // أمر عرض الأدمنز
+    if (action === 'admins') {
+      let adminsList = '👮 أدمنز التذاكر:\n\n';
+
+      // عرض الأدمنز من الـ IDs
+      if (ticketSettings.ticketAdminRoles.length === 0) {
+        adminsList += 'لا توجد أدمنز مضافين.\n';
+      } else {
+        for (const roleId of ticketSettings.ticketAdminRoles) {
+          const role = message.guild.roles.cache.get(roleId);
+          adminsList += `• ${role ? role.name : 'رول محذوفة'}\n`;
+        }
+      }
+
+      // عرض الأدمنز من الأسماء
+      if (ticketSettings.ticketAdminRoleNames.length > 0) {
+        adminsList += '\n📝 بالأسماء:\n';
+        for (const roleName of ticketSettings.ticketAdminRoleNames) {
+          adminsList += `• ${roleName}\n`;
+        }
+      }
+
+      // عرض قناة اللوجس
+      if (ticketSettings.logsChannelId) {
+        const logsChannel = message.guild.channels.cache.get(ticketSettings.logsChannelId);
+        adminsList += `\n📋 قناة اللوجس: ${logsChannel ? logsChannel.name : 'محذوفة'}`;
+      } else {
+        adminsList += '\n📋 قناة اللوجس: غير محددة';
+      }
+
+      await message.channel.send(adminsList);
       if (!message.deleted) message.delete().catch(() => {});
     }
   },
@@ -640,6 +929,27 @@ client.on('interactionCreate', async (interaction) => {
 
           // بناء محتوى الإشعار مع mentioning الرولات
           let channelContent = interaction.user.toString();
+
+          // منشن الرول المحددة تلقائيا
+          if (ticketSettings.mentionRoleId || ticketSettings.mentionRoleName) {
+            let autoMentionRole = null;
+
+            if (ticketSettings.mentionRoleId) {
+              autoMentionRole = guild.roles.cache.get(ticketSettings.mentionRoleId);
+            }
+
+            if (!autoMentionRole && ticketSettings.mentionRoleName) {
+              autoMentionRole = guild.roles.cache.find(r =>
+                r.name.toLowerCase().includes(ticketSettings.mentionRoleName.toLowerCase())
+              );
+            }
+
+            if (autoMentionRole) {
+              channelContent += ' ' + autoMentionRole.toString();
+            }
+          }
+
+          // إضافة الرولات المسموحة من الأسماء إذا موجودة
           if (mentionedRoles.length > 0) {
             channelContent += ' ' + mentionedRoles.map(r => r.toString()).join(' ');
           }
@@ -668,7 +978,22 @@ client.on('interactionCreate', async (interaction) => {
     // Handle Button
     if (interaction.isButton()) {
       if (interaction.customId === 'close_ticket') {
-        await interaction.channel.delete();
+        // التحقق من صلاحية المستخدم
+        if (!hasTicketAdminRole(interaction.member)) {
+          return await interaction.reply({
+            content: '❌ ليس لديك صلاحية لإغلاق هذه التذكرة!',
+            ephemeral: true
+          });
+        }
+
+        const channel = interaction.channel;
+
+        // حفظ اللوجس قبل حذف القناة
+        await logTicketTranscript(channel, interaction.user, 'تم الإغلاق من زر');
+
+        // حذف القناة
+        await interaction.reply('🔒 جاري إغلاق التذكرة...');
+        setTimeout(() => channel.delete(), 1000);
       }
 
       // Encryption Button
