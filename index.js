@@ -252,15 +252,38 @@ client.commands.set('help', {
       .setTitle('Unit S - قائمة الأوامر')
       .setColor(COLORS.primary)
       .addFields(
-        { name: 'التذاكر', value: '`!ticket` - فتح قائمة التذاكر\n`!tmanage` - إدارة التذاكر (للمشرفين)\n`!tmanage addrole @role` - إضافة رول للتذاكر\n`!tmanage removerole @role` - إزالة رول\n`!tmanage roles` - عرض الرولات', inline: false },
-        { name: 'التشفير', value: '`!shfr` - لوحة التشفير\n`!enc [نص]` - تشفير نص', inline: false },
-        { name: 'الحماية', value: '`!protect` - لوحة الحماية\n`!protect on/off [type]` - تفعيل/تعطيل\n`filter` - فلتر الكلمات\n`spam` - مضاد السبام\n`link` - منع الروابط', inline: false },
-        { name: 'معلومات', value: '`!ping` - سرعة البوت', inline: false }
+        { name: '🎫 التذاكر', value:
+          '`!ticket` - فتح قائمة التذاكر\n' +
+          '`!tmanage` - عرض قائمة التذاكر\n' +
+          '`!tmanage close` - إغلاق التذكرة\n' +
+          '`!tmanage addrole @رول` - إضافة رول للتذاكر\n' +
+          '`!tmanage removerole @رول` - إزالة رول\n' +
+          '`!tmanage addadmin @رول` - إضافة أدمن تذاكر\n' +
+          '`!tmanage removeadmin @رول` - إزالة أدمن\n' +
+          '`!tmanage roles` - عرض الرولات\n' +
+          '`!tmanage admins` - عرض الأدمنز\n' +
+          '`!tmanage setlogs #قناة` - تعيين قناة اللوجس\n' +
+          '`!tmanage setmention @رول` - تعيين رول للمنشن\n' +
+          '`!tmanage mention` - عرض إعدادات المنشن', inline: false },
+        { name: '🔒 التشفير', value:
+          '`!shfr` - لوحة التشفير\n' +
+          '`!enc [نص]` - تشفير نص مباشرة', inline: false },
+        { name: '🛡️ الحماية', value:
+          '`!protect` - لوحة الحماية\n' +
+          '`!protect on filter` - تفعيل فلتر الكلمات\n' +
+          '`!protect off filter` - تعطيل فلتر الكلمات\n' +
+          '`!protect on spam` - تفعيل مضاد السبام\n' +
+          '`!protect off spam` - تعطيل مضاد السبام\n' +
+          '`!protect on link` - تفعيل منع الروابط\n' +
+          '`!protect off link` - تعطيل منع الروابط', inline: false },
+        { name: '📊 معلومات', value:
+          '`!ping` - سرعة البوت', inline: false }
       )
       .setFooter({ text: 'Unit S Bot' })
       .setTimestamp();
 
-    await message.reply({ embeds: [embed], ephemeral: true });
+    await message.channel.send({ embeds: [embed] });
+    if (!message.deleted) message.delete().catch(() => {});
   },
 });
 
@@ -419,7 +442,9 @@ client.commands.set('protect', {
   description: 'Protection control panel',
   execute: async (message) => {
     if (!message.member.permissions.has('ManageMessages')) {
-      return message.reply('❌ ليس لديك صلاحية!');
+      await message.channel.send('❌ ليس لديك صلاحية!');
+      if (!message.deleted) message.delete().catch(() => {});
+      return;
     }
 
     const wordFilterStatus = protectionSettings.wordFilter.enabled ? '✅ مفعّل' : '❌ معطّل';
@@ -435,7 +460,7 @@ client.commands.set('protect', {
         { name: '🛑 مضاد السبام:', value: antiSpamStatus, inline: true },
         { name: '🔗 منع الروابط:', value: antiLinkStatus, inline: true },
         { name: '\n📝 الأوامر:', value: '━━━━━━━━━━━━━━━', inline: false },
-        { name: '', value: '`!protect on/off [type]`\n**الأنواع:** `filter`, `spam`, `link`\n**مثال:** `!protect off filter`', inline: false }
+        { name: '', value: '`!protect on filter` - تفعيل فلتر الكلمات\n`!protect off filter` - تعطيل فلتر الكلمات\n`!protect on spam` - تفعيل مضاد السبام\n`!protect off spam` - تعطيل مضاد السبام\n`!protect on link` - تفعيل منع الروابط\n`!protect off link` - تعطيل منع الروابط', inline: false }
       )
       .setFooter({ text: 'Unit S | الإدارة' })
       .setTimestamp();
@@ -451,18 +476,24 @@ client.commands.set('protect_toggle', {
   aliases: ['p'],
   execute: async (message, args) => {
     if (!message.member.permissions.has('ManageMessages')) {
-      return message.reply('❌ ليس لديك صلاحية!');
+      await message.channel.send('❌ ليس لديك صلاحية!');
+      if (!message.deleted) message.delete().catch(() => {});
+      return;
     }
 
     if (args.length < 2) {
-      return message.reply('❌ استخدم: `!protect [on/off] [filter/spam/link]`');
+      await message.channel.send('❌ استخدم: `!protect on/off [filter/spam/link]`');
+      if (!message.deleted) message.delete().catch(() => {});
+      return;
     }
 
     const action = args[0].toLowerCase();
     const type = args[1].toLowerCase();
 
     if (!['on', 'off'].includes(action)) {
-      return message.reply('❌ استخدم: `!protect [on/off] [filter/spam/link]`');
+      await message.channel.send('❌ استخدم: `!protect on/off [filter/spam/link]`');
+      if (!message.deleted) message.delete().catch(() => {});
+      return;
     }
 
     const enable = action === 'on';
@@ -489,7 +520,9 @@ client.commands.set('protect_toggle', {
         featureName = 'منع الروابط';
         break;
       default:
-        return message.reply('❌ نوع غير صالح! استخدم: `filter`, `spam`, `link`');
+        await message.channel.send('❌ نوع غير صالح! استخدم: `filter`, `spam`, `link`');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
     }
 
     if (updated) {
