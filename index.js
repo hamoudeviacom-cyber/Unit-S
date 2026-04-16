@@ -879,12 +879,13 @@ client.on('interactionCreate', async (interaction) => {
           // الحصول على عدد التذاكر الحالية لهذا المستخدم
           const existingTickets = guild.channels.cache.filter(ch =>
             ch.name.startsWith('ticket-') &&
-            ch.topic?.includes(interaction.user.id)
+            ch.topic?.includes(interaction.user.username)
           );
 
           if (existingTickets.size > 0) {
+            const existingTicket = existingTickets.first();
             return await interaction.reply({
-              content: '❌ لديك تذكرة مفتوحة بالفعل!',
+              content: `❌ لديك تذكرة مفتوحة بالفعل!\n${existingTicket.toString()}`,
               ephemeral: true
             });
           }
@@ -954,7 +955,8 @@ client.on('interactionCreate', async (interaction) => {
             .addFields(
               { name: 'نوع التذكرة:', value: typeNames[ticketType], inline: true },
               { name: 'صاحب التذكرة:', value: interaction.user.username, inline: true },
-              { name: 'تاريخ الإنشاء:', value: new Date().toLocaleString('ar-SA'), inline: false }
+              { name: 'تاريخ الإنشاء:', value: new Date().toLocaleString('ar-SA'), inline: false },
+              { name: '⚠️ تنبيه:', value: 'يمكنك فتح **تذكرة واحدة فقط**!\nلفتح تذكرة جديدة، أغلق الحالية أولاً.', inline: false }
             )
             .setDescription(`> مرحباً!\n> ${interaction.user} فتح تذكرة جديدة\n> اكتب سبب التذكرة وانتظر الرد\n> ⚠️ لا تقم بإغلاق هذه القناة بنفسك`);
 
