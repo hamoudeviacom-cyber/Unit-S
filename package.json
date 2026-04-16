@@ -1,1 +1,0 @@
-{"name":"viper-s-bot","version":"1.0.0","type":"module","description":"Discord Bot with Protection & Encryption","main":"src/index.js","dependencies":{"discord.js":"^14.26.3"}}
