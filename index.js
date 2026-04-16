@@ -1089,6 +1089,7 @@ function encryptText(text) {
 client.on('messageCreate', async (message) => {
   if (message.author.bot) return;
   if (!protectionSettings.wordFilter.enabled) return;
+  if (!message.guild) return;
   if (message.member?.permissions.has('ManageMessages')) return;
 
   const content = message.content.toLowerCase();
@@ -1099,18 +1100,26 @@ client.on('messageCreate', async (message) => {
   if (foundWords.length > 0) {
     await message.delete();
 
-    const embed = new EmbedBuilder()
-      .setTitle('⚠️ تنبيه!')
-      .setDescription(`تم حذف رسالة ${message.author} لأنها تحتوي على كلمات ممنوعة!`)
-      .setColor(COLORS.warning);
+    // Mute user for 5 minutes
+    try {
+      await message.member.timeout(5 * 60 * 1000); // 5 minutes
 
-    await message.channel.send({ embeds: [embed] }).then(msg => {
-      setTimeout(() => msg.delete(), 3000);
-    });
+      const embed = new EmbedBuilder()
+        .setTitle('⚠️ تنبيه!')
+        .setDescription(`تم حذف رسالتك لأنها تحتوي على كلمات ممنوعة!\nتم كتمك لمدة **5 دقائق**`)
+        .setColor(COLORS.warning);
 
-    const logChannel = message.guild?.channels.cache.find(ch => ch.name === 'logs');
-    if (logChannel) {
-      logChannel.send(`🛡️ [Word Filter] ${message.author.tag} استخدم كلمات ممنوعة: ${foundWords.join(', ')}`);
+      await message.channel.send({ content: message.author.toString(), embeds: [embed] }).then(async msg => {
+        // حذف الرسالة بعد 3 ثواني
+        setTimeout(() => msg.delete(), 3000);
+      });
+
+      const logChannel = message.guild?.channels.cache.find(ch => ch.name === 'logs');
+      if (logChannel) {
+        logChannel.send(`🛡️ [Word Filter] ${message.author.tag} استخدم كلمات ممنوعة: ${foundWords.join(', ')} - تم كتمه 5 دقائق`);
+      }
+    } catch (err) {
+      console.error('Word Filter Mute error:', err);
     }
   }
 });
@@ -1143,28 +1152,27 @@ client.on('messageCreate', async (message) => {
 
     await message.delete();
 
-    // Mute user for 10 minutes
+    // Mute user for 5 minutes
     try {
-      await message.member.timeout(10 * 60 * 1000); // 10 minutes in milliseconds
+      await message.member.timeout(5 * 60 * 1000); // 5 minutes
 
       const embed = new EmbedBuilder()
         .setTitle('🔇 تم كتمك!')
-        .setDescription(`${message.author} تم كتمك لمدة **10 دقائق** بسبب السبام!\nReason: Spam detected`)
+        .setDescription(`تم حذف رسالتك بسبب السبام!\nتم كتمك لمدة **5 دقائق**\nReason: Spam detected`)
         .setColor(COLORS.danger)
         .setTimestamp();
 
-      await message.channel.send({ embeds: [embed] });
+      await message.channel.send({ content: message.author.toString(), embeds: [embed] }).then(async msg => {
+        // حذف الرسالة بعد 3 ثواني
+        setTimeout(() => msg.delete(), 3000);
+      });
 
-      const logChannel = message.guild.channels.cache.find(ch => ch.name === 'logs');
+      const logChannel = message.guild?.channels.cache.find(ch => ch.name === 'logs');
       if (logChannel) {
-        logChannel.send(`🛡️ [Anti-Spam] ${message.author.tag} تم كتمه لمدة 10 دقائق - Spam detected`);
+        logChannel.send(`🛡️ [Anti-Spam] ${message.author.tag} تم كتمه لمدة 5 دقائق - Spam detected`);
       }
     } catch (err) {
       console.error('Mute error:', err);
-      // Fallback if timeout fails
-      await message.channel.send(`${message.author} تم حذف رسالتك بسبب السبام!`).then(msg => {
-        setTimeout(() => msg.delete(), 3000);
-      });
     }
   }
 });
@@ -1187,33 +1195,27 @@ client.on('messageCreate', async (message) => {
       if (protectionSettings.antiLink.blacklistedDomains.some(d => domain.includes(d))) {
         await message.delete();
 
-        // Mute user for 10 minutes
+        // Mute user for 5 minutes
         try {
-          await message.member.timeout(10 * 60 * 1000); // 10 minutes in milliseconds
+          await message.member.timeout(5 * 60 * 1000); // 5 minutes
 
           const embed = new EmbedBuilder()
             .setTitle('🔇 تم كتمك!')
-            .setDescription(`${message.author} تم كتمك لمدة **10 دقائق** بسبب إرسال رابط محظور!\nReason: Prohibited link detected`)
+            .setDescription(`تم حذف رسالتك بسبب إرسال رابط محظور!\nتم كتمك لمدة **5 دقائق**\nReason: Prohibited link detected`)
             .setColor(COLORS.danger)
             .setTimestamp();
 
-          await message.channel.send({ embeds: [embed] });
+          await message.channel.send({ content: message.author.toString(), embeds: [embed] }).then(async msg => {
+            // حذف الرسالة بعد 3 ثواني
+            setTimeout(() => msg.delete(), 3000);
+          });
 
-          const logChannel = message.guild.channels.cache.find(ch => ch.name === 'logs');
+          const logChannel = message.guild?.channels.cache.find(ch => ch.name === 'logs');
           if (logChannel) {
-            logChannel.send(`🛡️ [Anti-Link] ${message.author.tag} تم كتمه لمدة 10 دقائق - Prohibited link: ${domain}`);
+            logChannel.send(`🛡️ [Anti-Link] ${message.author.tag} تم كتمه لمدة 5 دقائق - Prohibited link: ${domain}`);
           }
         } catch (err) {
           console.error('Mute error:', err);
-          // Fallback if timeout fails
-          const embed = new EmbedBuilder()
-            .setTitle('🔗 رابط محظور!')
-            .setDescription(`${message.author} لا يمكنك إرسال روابط من هذا الموقع!`)
-            .setColor(COLORS.danger);
-
-          await message.channel.send({ embeds: [embed] }).then(msg => {
-            setTimeout(() => msg.delete(), 3000);
-          });
         }
         return;
       }
