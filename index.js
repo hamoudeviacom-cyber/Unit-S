@@ -1135,13 +1135,13 @@ client.on('messageCreate', async (message) => {
   if (foundWords.length > 0) {
     await message.delete();
 
-    // Mute user for 5 minutes
+    // Mute user for 10 minutes (Word Filter only)
     try {
-      await message.member.timeout(5 * 60 * 1000); // 5 minutes
+      await message.member.timeout(10 * 60 * 1000); // 10 minutes
 
       const embed = new EmbedBuilder()
-        .setTitle('⚠️ تنبيه!')
-        .setDescription(`تم حذف رسالتك لأنها تحتوي على كلمات ممنوعة!\nتم كتمك لمدة **5 دقائق**\n\n⚠️ هذه الرسالة مرئية لك فقط!`)
+        .setTitle('🛡️ UNIT S -SECURITY ADMINISTRATION')
+        .setDescription(`تم تقييد صلاحياتك لمدة 10 دقائق لرصد سلوك غير لائق (سب او شتم) في أحد الرومات\n\nنظام الحماية لا يسمح بالإساءة أو التلفظ نرجو الالتزام بالمعايير والأخلاق\n\nنثق بوعيك لتجنب تكرار المخالفة`)
         .setColor(COLORS.warning)
         .setTimestamp();
 
@@ -1150,7 +1150,7 @@ client.on('messageCreate', async (message) => {
 
       const logChannel = message.guild?.channels.cache.find(ch => ch.name === 'logs');
       if (logChannel) {
-        logChannel.send(`🛡️ [Word Filter] ${message.author.tag} استخدم كلمات ممنوعة: ${foundWords.join(', ')} - تم كتمه 5 دقائق`);
+        logChannel.send(`🛡️ [Word Filter] ${message.author.tag} استخدم كلمات ممنوعة: ${foundWords.join(', ')} - تم كتمه 10 دقائق`);
       }
     } catch (err) {
       console.error('Word Filter Mute error:', err);
@@ -1191,8 +1191,8 @@ client.on('messageCreate', async (message) => {
       await message.member.timeout(5 * 60 * 1000); // 5 minutes
 
       const embed = new EmbedBuilder()
-        .setTitle('🔇 تم كتمك!')
-        .setDescription(`تم حذف رسالتك بسبب السبام!\nتم كتمك لمدة **5 دقائق**\nReason: Spam detected\n\n⚠️ هذه الرسالة مرئية لك فقط!`)
+        .setTitle('🛡️ UNIT S -SECURITY ADMINISTRATION')
+        .setDescription(`تم تقييد صلاحياتك لمدة 5 دقائق الرصد نشاط (سبام) في احد الرومات\n\nنظام الحماية لا يسمح بتكرار الرسائل المفرط نرجو الألتزام بالمعايير\n\nنثق بوعيك لتجنب تكرار المخالفة `)
         .setColor(COLORS.danger)
         .setTimestamp();
 
@@ -1228,8 +1228,8 @@ client.on('messageCreate', async (message) => {
       await message.member.timeout(5 * 60 * 1000); // 5 minutes
 
       const embed = new EmbedBuilder()
-        .setTitle('🔇 تم كتمك!')
-        .setDescription(`تم حذف رسالتك لإرسال رابط!\nتم كتمك لمدة **5 دقائق**\nReason: Posting links is not allowed\n\n⚠️ هذه الرسالة مرئية لك فقط!`)
+        .setTitle('🛡️ Unit S -SECURITY ADMINISTRATION')
+        .setDescription(`تم تقييد صلاحياتك لمدة 5 دقائق لرصد رابط في أحد الرومات\n\nنظام الحماية لا يسمح بالروابط ألخارجية نرجو ألألتزام بالمعايير\n\nنثق بوعيك لتجنب تكرار المخالفة`)
         .setColor(COLORS.danger)
         .setTimestamp();
 
