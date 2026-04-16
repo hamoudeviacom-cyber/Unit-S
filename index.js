@@ -35,7 +35,7 @@ const ticketSettings = {
     // 'Admin'
   ],
   // الرولات اللي تقدر تسكر التذكرة (حط الـ Role IDs هنا)
-  ticketAdminRoles: ['1494304967027331102'
+  ticketAdminRoles: [
     // مثال: '123456789012345678'
   ],
   // أو استخدم اسم الرول
@@ -44,11 +44,9 @@ const ticketSettings = {
     // 'Support'
   ],
   // قناة اللوجس (حط الـ Channel ID هنا)
-  logsChannelId: null, '1493302161592029184'
- // مثال: '123456789012345678'
+  logsChannelId: null, // مثال: '123456789012345678'
   // الرول اللي تنذكر تلقائيا عند فتح تذكرة
-  mentionRoleId: null, '1494304967027331102'
-// مثال: ''
+  mentionRoleId: null, // مثال: '123456789012345678'
   mentionRoleName: null, // مثال: 'دعم'
 };
 
