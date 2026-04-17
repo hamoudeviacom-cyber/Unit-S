@@ -34,13 +34,32 @@ const COLORS = {
   primary: 0x667eea,
 };
 
+// ============ Log Channels Settings ============
+const logSettings = {
+  allLog: null,          // # all-log
+  banLog: null,          // # ban-log
+  kickLog: null,         // # kick-log
+  timeoutLog: null,      // # timeout-log
+  messagesLog: null,     // # messages-log
+  roomsLog: null,        // # rooms-log
+  joinLeaveLog: null,    // # join-leave
+  rolesLog: null,        // # roles-log
+};
+
+// Admin roles for moderation commands
+const modSettings = {
+  adminRoles: [],           // الرولات المسموح لها بالحظر والطرد
+  adminRoleNames: ['عمر', 'ا'],  // بالأسماء
+  adminUsers: ['عمر'],     // المستخدمين المسموح لهم
+};
+
 const ticketSettings = {
   allowedRoles: [],
   allowedRoleNames: [],
   ticketAdminRoles: [],
   ticketAdminRoleNames: ['عمر', 'ا'],
   ticketAdminUsers: ['عمر'], // المستخدمين المسموح لهم بإدارة التذاكر
-  logsChannelId: [],
+  logsChannelId: null,
   mentionRoleId: null,
   mentionRoleName: null,
   // إعدادات التكت
@@ -131,13 +150,6 @@ const wordDictionary = {
     "ثمن": "ثـmـن",
     "كاش": "كـ1ش",
     "خاص": "خ1ص"
-   "و": "9",
-      "ت": "t",
-         "د": "D",
-            "ا": "1",
-               "ع": "3",
-                  "م": "m",
-                     "س": "s",
 };
 
 // ============ Protection Settings ============
@@ -432,6 +444,222 @@ function hasTicketAdminRole(member) {
   return false;
 }
 
+// ============ MODERATION HELPER FUNCTIONS ============
+function hasModRole(member) {
+  if (!member) return false;
+
+  // صلاحيات المودريشن
+  if (member.permissions.has('BanMembers')) return true;
+  if (member.permissions.has('KickMembers')) return true;
+
+  // التحقق من الرولات بالأيدي
+  for (const roleId of modSettings.adminRoles) {
+    if (member.roles.cache.has(roleId)) return true;
+  }
+
+  // التحقق من الرولات بالأسماء
+  for (const roleName of modSettings.adminRoleNames) {
+    const role = member.roles.cache.find(r =>
+      r.name.toLowerCase().includes(roleName.toLowerCase())
+    );
+    if (role) return true;
+  }
+
+  // التحقق من اسم المستخدم مباشرة
+  if (modSettings.adminUsers && modSettings.adminUsers.length > 0) {
+    const userName = member.user?.username?.toLowerCase() || '';
+    const displayName = member.displayName?.toLowerCase() || '';
+
+    for (const adminName of modSettings.adminUsers) {
+      if (userName.includes(adminName.toLowerCase()) || displayName.includes(adminName.toLowerCase())) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+// ============ LOGGING FUNCTIONS ============
+async function sendLog(guild, logType, embed) {
+  const channelMap = {
+    all: logSettings.allLog,
+    ban: logSettings.banLog,
+    kick: logSettings.kickLog,
+    timeout: logSettings.timeoutLog,
+    messages: logSettings.messagesLog,
+    rooms: logSettings.roomsLog,
+    joinLeave: logSettings.joinLeaveLog,
+    roles: logSettings.rolesLog,
+  };
+
+  const channelId = channelMap[logType];
+  if (channelId) {
+    const channel = guild.channels.cache.get(channelId);
+    if (channel) {
+      await channel.send({ embeds: [embed] });
+    }
+  }
+
+  // Send to all-log if set
+  if (logSettings.allLog && logType !== 'all') {
+    const allChannel = guild.channels.cache.get(logSettings.allLog);
+    if (allChannel) {
+      await allChannel.send({ embeds: [embed] });
+    }
+  }
+}
+
+async function logBan(guild, moderator, target, reason) {
+  const embed = new EmbedBuilder()
+    .setTitle('🔨 BAN LOG')
+    .setColor(0xDC2626)
+    .addFields(
+      { name: '🔨 Admin', value: moderator.tag || moderator.username, inline: true },
+      { name: '👤 Banned User', value: target.tag || target.username, inline: true },
+      { name: '🆔 User ID', value: target.id, inline: true },
+      { name: '📝 Reason', value: reason || 'No reason provided', inline: false },
+      { name: '⏰ Time', value: new Date().toLocaleString('ar-SA'), inline: false }
+    )
+    .setFooter({ text: 'Unit S - Moderation' })
+    .setTimestamp();
+
+  await sendLog(guild, 'ban', embed);
+}
+
+async function logKick(guild, moderator, target, reason) {
+  const embed = new EmbedBuilder()
+    .setTitle('🦵 KICK LOG')
+    .setColor(0xF59E0B)
+    .addFields(
+      { name: '🦵 Admin', value: moderator.tag || moderator.username, inline: true },
+      { name: '👤 Kicked User', value: target.tag || target.username, inline: true },
+      { name: '🆔 User ID', value: target.id, inline: true },
+      { name: '📝 Reason', value: reason || 'No reason provided', inline: false },
+      { name: '⏰ Time', value: new Date().toLocaleString('ar-SA'), inline: false }
+    )
+    .setFooter({ text: 'Unit S - Moderation' })
+    .setTimestamp();
+
+  await sendLog(guild, 'kick', embed);
+}
+
+async function logTimeout(guild, moderator, target, duration, reason) {
+  const embed = new EmbedBuilder()
+    .setTitle('⏱️ TIMEOUT LOG')
+    .setColor(0x8B5CF6)
+    .addFields(
+      { name: '👮 Admin', value: moderator.tag || moderator.username, inline: true },
+      { name: '👤 User', value: target.tag || target.username, inline: true },
+      { name: '🆔 User ID', value: target.id, inline: true },
+      { name: '⏱️ Duration', value: duration || 'Unknown', inline: true },
+      { name: '📝 Reason', value: reason || 'No reason provided', inline: false },
+      { name: '⏰ Time', value: new Date().toLocaleString('ar-SA'), inline: false }
+    )
+    .setFooter({ text: 'Unit S - Moderation' })
+    .setTimestamp();
+
+  await sendLog(guild, 'timeout', embed);
+}
+
+async function logRoleChange(guild, moderator, target, action, role) {
+  const embed = new EmbedBuilder()
+    .setTitle('🎭 ROLE LOG')
+    .setColor(0x10B981)
+    .addFields(
+      { name: '👮 Admin', value: moderator.tag || moderator.username, inline: true },
+      { name: '👤 User', value: target.tag || target.username, inline: true },
+      { name: '🆔 User ID', value: target.id, inline: true },
+      { name: '🔄 Action', value: action, inline: true },
+      { name: '🎭 Role', value: role.name, inline: true },
+      { name: '⏰ Time', value: new Date().toLocaleString('ar-SA'), inline: false }
+    )
+    .setFooter({ text: 'Unit S - Moderation' })
+    .setTimestamp();
+
+  await sendLog(guild, 'roles', embed);
+}
+
+async function logMessageDelete(guild, message) {
+  const embed = new EmbedBuilder()
+    .setTitle('🗑️ MESSAGE DELETED')
+    .setColor(0xDC2626)
+    .addFields(
+      { name: '👤 Author', value: message.author?.tag || 'Unknown', inline: true },
+      { name: '📝 Content', value: message.content?.substring(0, 1024) || '[No text/Embed/Attachment]', inline: false },
+      { name: '#️⃣ Channel', value: message.channel?.name || 'Unknown', inline: true },
+      { name: '⏰ Time', value: new Date().toLocaleString('ar-SA'), inline: false }
+    )
+    .setFooter({ text: 'Unit S - Moderation' })
+    .setTimestamp();
+
+  await sendLog(guild, 'messages', embed);
+}
+
+async function logChannelCreate(guild, channel, creator) {
+  const embed = new EmbedBuilder()
+    .setTitle('📁 CHANNEL CREATED')
+    .setColor(0x10B981)
+    .addFields(
+      { name: '📁 Channel', value: channel.name, inline: true },
+      { name: '🆔 Channel ID', value: channel.id, inline: true },
+      { name: '👤 Created By', value: creator?.tag || 'Unknown', inline: true },
+      { name: '⏰ Time', value: new Date().toLocaleString('ar-SA'), inline: false }
+    )
+    .setFooter({ text: 'Unit S - Moderation' })
+    .setTimestamp();
+
+  await sendLog(guild, 'rooms', embed);
+}
+
+async function logChannelDelete(guild, channel, deleter) {
+  const embed = new EmbedBuilder()
+    .setTitle('📁 CHANNEL DELETED')
+    .setColor(0xDC2626)
+    .addFields(
+      { name: '📁 Channel', value: channel.name, inline: true },
+      { name: '🆔 Channel ID', value: channel.id, inline: true },
+      { name: '👤 Deleted By', value: deleter?.tag || 'Unknown', inline: true },
+      { name: '⏰ Time', value: new Date().toLocaleString('ar-SA'), inline: false }
+    )
+    .setFooter({ text: 'Unit S - Moderation' })
+    .setTimestamp();
+
+  await sendLog(guild, 'rooms', embed);
+}
+
+async function logMemberJoin(guild, member) {
+  const embed = new EmbedBuilder()
+    .setTitle('✅ MEMBER JOINED')
+    .setColor(0x10B981)
+    .addFields(
+      { name: '👤 User', value: member.user?.tag || 'Unknown', inline: true },
+      { name: '🆔 User ID', value: member.id, inline: true },
+      { name: '📅 Joined Server', value: new Date(member.joinedTimestamp).toLocaleString('ar-SA'), inline: false },
+      { name: '⏰ Time', value: new Date().toLocaleString('ar-SA'), inline: false }
+    )
+    .setFooter({ text: 'Unit S - Moderation' })
+    .setTimestamp();
+
+  await sendLog(guild, 'joinLeave', embed);
+}
+
+async function logMemberLeave(guild, member, kicker) {
+  const embed = new EmbedBuilder()
+    .setTitle('👋 MEMBER LEFT')
+    .setColor(0xF59E0B)
+    .addFields(
+      { name: '👤 User', value: member.user?.tag || 'Unknown', inline: true },
+      { name: '🆔 User ID', value: member.id, inline: true },
+      { name: '👮 Removed By', value: kicker ? `${kicker.tag || kicker.username}` : 'Left voluntarily', inline: true },
+      { name: '⏰ Time', value: new Date().toLocaleString('ar-SA'), inline: false }
+    )
+    .setFooter({ text: 'Unit S - Moderation' })
+    .setTimestamp();
+
+  await sendLog(guild, 'joinLeave', embed);
+}
+
 function hasAllowedRole(member) {
   if (!member) return false;
 
@@ -520,6 +748,13 @@ client.commands.set('help', {
       .setTitle('Unit S - قائمة الأوامر')
       .setColor(0xDC2626)
       .addFields(
+        { name: '🔨 الأدمن', value:
+          '`!ban @user [reason]` - حظر عضو\n' +
+          '`!unban [user_id]` - إلغاء الحظر\n' +
+          '`!kick @user [reason]` - طرد عضو\n' +
+          '`!logs` - إعدادات اللوج\n' +
+          '`!logs set [type] #channel` - تعيين قناة اللوج\n' +
+          '`!modsettings` - إعدادات الأدمن', inline: false },
         { name: '🎫 التذاكر', value:
           '`!ticket` - فتح قائمة التذاكر\n' +
           '`!tmanage` - عرض قائمة التذاكر\n' +
@@ -573,6 +808,594 @@ client.commands.set('ping', {
       .setTimestamp();
 
     await message.channel.send({ embeds: [embed] });
+    if (!message.deleted) message.delete().catch(() => {});
+  },
+});
+
+// ============ BAN COMMAND ============
+client.commands.set('ban', {
+  name: 'ban',
+  description: 'Ban a user from the server',
+  execute: async (message, args) => {
+    // Check permissions
+    if (!message.member.permissions.has('BanMembers')) {
+      if (!hasModRole(message.member)) {
+        await message.channel.send('❌ ليس لديك صلاحية!');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+    }
+
+    // Parse arguments
+    const user = message.mentions.users.first();
+    const userId = args.find(arg => !arg.startsWith('<@') && !arg.startsWith('!'));
+    let reason = args.slice(user ? 1 : 0).join(' ') || 'No reason provided';
+
+    let targetUser = user;
+
+    // If no mention, try to fetch by ID
+    if (!targetUser && userId) {
+      try {
+        targetUser = await client.users.fetch(userId);
+      } catch (err) {
+        await message.channel.send('❌ لم يتم العثور على المستخدم!');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+    }
+
+    if (!targetUser) {
+      const embed = new EmbedBuilder()
+        .setTitle('🔨 BAN COMMAND')
+        .setColor(0xDC2626)
+        .addFields(
+          { name: 'Usage:', value: '`!ban @user [reason]` or `!ban [user_id] [reason]`', inline: false },
+          { name: 'Example:', value: '`!ban @username spamming`\n`!ban 123456789 spamming`', inline: false }
+        )
+        .setFooter({ text: 'Unit S - Moderation' });
+      await message.channel.send({ embeds: [embed] });
+      if (!message.deleted) message.delete().catch(() => {});
+      return;
+    }
+
+    // Get member from guild
+    const guild = message.guild;
+    let targetMember;
+    try {
+      targetMember = await guild.members.fetch(targetUser.id);
+    } catch (err) {
+      // User not in server
+    }
+
+    // Check if trying to ban higher role
+    if (targetMember) {
+      if (targetMember.roles.highest.position >= message.member.roles.highest.position && message.guild.ownerId !== message.member.id) {
+        await message.channel.send('❌ لا يمكنك حظر هذا العضو!');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+    }
+
+    // Ban the user
+    try {
+      await guild.members.ban(targetUser.id, { reason: `By: ${message.author.tag} | Reason: ${reason}` });
+
+      // Log the ban
+      await logBan(guild, message.author, targetUser, reason);
+
+      // Confirmation message
+      const embed = new EmbedBuilder()
+        .setTitle('🔨 USER BANNED')
+        .setColor(0xDC2626)
+        .addFields(
+          { name: '👤 Banned User', value: `${targetUser.tag}`, inline: true },
+          { name: '📝 Reason', value: reason, inline: true },
+          { name: '🔨 By Admin', value: message.author.tag, inline: true }
+        )
+        .setFooter({ text: 'Unit S - Moderation' })
+        .setTimestamp();
+
+      await message.channel.send({ embeds: [embed] });
+      if (!message.deleted) message.delete().catch(() => {});
+
+    } catch (err) {
+      console.error('Ban error:', err);
+      await message.channel.send(`❌ حدث خطأ أثناء الحظر: ${err.message}`);
+      if (!message.deleted) message.delete().catch(() => {});
+    }
+  },
+});
+
+// ============ UNBAN COMMAND ============
+client.commands.set('unban', {
+  name: 'unban',
+  description: 'Unban a user from the server',
+  execute: async (message, args) => {
+    // Check permissions
+    if (!message.member.permissions.has('BanMembers')) {
+      if (!hasModRole(message.member)) {
+        await message.channel.send('❌ ليس لديك صلاحية!');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+    }
+
+    if (args.length === 0) {
+      const embed = new EmbedBuilder()
+        .setTitle('🔓 UNBAN COMMAND')
+        .setColor(0x10B981)
+        .addFields(
+          { name: 'Usage:', value: '`!unban [user_id]`', inline: false },
+          { name: 'Example:', value: '`!unban 123456789`', inline: false }
+        )
+        .setFooter({ text: 'Unit S - Moderation' });
+      await message.channel.send({ embeds: [embed] });
+      if (!message.deleted) message.delete().catch(() => {});
+      return;
+    }
+
+    const userId = args[0];
+
+    try {
+      const user = await client.users.fetch(userId);
+      await message.guild.members.unban(userId);
+
+      // Log the unban
+      const embed = new EmbedBuilder()
+        .setTitle('🔓 USER UNBANNED')
+        .setColor(0x10B981)
+        .addFields(
+          { name: '👤 Unbanned User', value: user.tag, inline: true },
+          { name: '🔓 By Admin', value: message.author.tag, inline: true }
+        )
+        .setFooter({ text: 'Unit S - Moderation' })
+        .setTimestamp();
+
+      await message.channel.send({ embeds: [embed] });
+
+      // Send to ban log
+      const banLogEmbed = new EmbedBuilder()
+        .setTitle('🔓 UNBAN LOG')
+        .setColor(0x10B981)
+        .addFields(
+          { name: '🔓 Admin', value: message.author.tag, inline: true },
+          { name: '👤 Unbanned User', value: user.tag, inline: true },
+          { name: '🆔 User ID', value: userId, inline: true },
+          { name: '⏰ Time', value: new Date().toLocaleString('ar-SA'), inline: false }
+        )
+        .setFooter({ text: 'Unit S - Moderation' })
+        .setTimestamp();
+
+      await sendLog(message.guild, 'ban', banLogEmbed);
+
+      if (!message.deleted) message.delete().catch(() => {});
+
+    } catch (err) {
+      console.error('Unban error:', err);
+      await message.channel.send('❌ لم يتم العثور على المستخدم أو حدث خطأ!');
+      if (!message.deleted) message.delete().catch(() => {});
+    }
+  },
+});
+
+// ============ KICK COMMAND ============
+client.commands.set('kick', {
+  name: 'kick',
+  description: 'Kick a user from the server',
+  execute: async (message, args) => {
+    // Check permissions
+    if (!message.member.permissions.has('KickMembers')) {
+      if (!hasModRole(message.member)) {
+        await message.channel.send('❌ ليس لديك صلاحية!');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+    }
+
+    // Parse arguments
+    const user = message.mentions.users.first();
+    const userId = args.find(arg => !arg.startsWith('<@') && !arg.startsWith('!'));
+    let reason = args.slice(user ? 1 : 0).join(' ') || 'No reason provided';
+
+    let targetUser = user;
+
+    // If no mention, try to fetch by ID
+    if (!targetUser && userId) {
+      try {
+        targetUser = await client.users.fetch(userId);
+      } catch (err) {
+        await message.channel.send('❌ لم يتم العثور على المستخدم!');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+    }
+
+    if (!targetUser) {
+      const embed = new EmbedBuilder()
+        .setTitle('🦵 KICK COMMAND')
+        .setColor(0xF59E0B)
+        .addFields(
+          { name: 'Usage:', value: '`!kick @user [reason]` or `!kick [user_id] [reason]`', inline: false },
+          { name: 'Example:', value: '`!kick @username rule break`\n`!kick 123456789 rule break`', inline: false }
+        )
+        .setFooter({ text: 'Unit S - Moderation' });
+      await message.channel.send({ embeds: [embed] });
+      if (!message.deleted) message.delete().catch(() => {});
+      return;
+    }
+
+    // Get member from guild
+    const guild = message.guild;
+    let targetMember;
+    try {
+      targetMember = await guild.members.fetch(targetUser.id);
+    } catch (err) {
+      await message.channel.send('❌ هذا العضو غير موجود في السيرفر!');
+      if (!message.deleted) message.delete().catch(() => {});
+      return;
+    }
+
+    // Check if trying to kick higher role
+    if (targetMember.roles.highest.position >= message.member.roles.highest.position && message.guild.ownerId !== message.member.id) {
+      await message.channel.send('❌ لا يمكنك طرد هذا العضو!');
+      if (!message.deleted) message.delete().catch(() => {});
+      return;
+    }
+
+    // Kick the user
+    try {
+      await targetMember.kick(`By: ${message.author.tag} | Reason: ${reason}`);
+
+      // Log the kick
+      await logKick(guild, message.author, targetUser, reason);
+
+      // Confirmation message
+      const embed = new EmbedBuilder()
+        .setTitle('🦵 USER KICKED')
+        .setColor(0xF59E0B)
+        .addFields(
+          { name: '👤 Kicked User', value: `${targetUser.tag}`, inline: true },
+          { name: '📝 Reason', value: reason, inline: true },
+          { name: '🦵 By Admin', value: message.author.tag, inline: true }
+        )
+        .setFooter({ text: 'Unit S - Moderation' })
+        .setTimestamp();
+
+      await message.channel.send({ embeds: [embed] });
+      if (!message.deleted) message.delete().catch(() => {});
+
+    } catch (err) {
+      console.error('Kick error:', err);
+      await message.channel.send(`❌ حدث خطأ أثناء الطرد: ${err.message}`);
+      if (!message.deleted) message.delete().catch(() => {});
+    }
+  },
+});
+
+// ============ LOGS COMMAND ============
+client.commands.set('logs', {
+  name: 'logs',
+  description: 'Manage log channels',
+  execute: async (message, args) => {
+    // Check permissions
+    if (!message.member.permissions.has('ManageChannels')) {
+      if (!hasModRole(message.member)) {
+        await message.channel.send('❌ ليس لديك صلاحية!');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+    }
+
+    if (args.length === 0) {
+      // Show current settings
+      const showChannel = (id) => id ? `<#${id}>` : '❌ Not set';
+
+      const embed = new EmbedBuilder()
+        .setTitle('📋 LOG CHANNELS SETTINGS')
+        .setColor(0x3B82F6)
+        .addFields(
+          { name: '📁 All Logs', value: showChannel(logSettings.allLog), inline: true },
+          { name: '🔨 Ban Logs', value: showChannel(logSettings.banLog), inline: true },
+          { name: '🦵 Kick Logs', value: showChannel(logSettings.kickLog), inline: true },
+          { name: '⏱️ Timeout Logs', value: showChannel(logSettings.timeoutLog), inline: true },
+          { name: '💬 Message Logs', value: showChannel(logSettings.messagesLog), inline: true },
+          { name: '📂 Room Logs', value: showChannel(logSettings.roomsLog), inline: true },
+          { name: '👋 Join/Leave Logs', value: showChannel(logSettings.joinLeaveLog), inline: true },
+          { name: '🎭 Role Logs', value: showChannel(logSettings.rolesLog), inline: true }
+        )
+        .addFields(
+          { name: '\n📝 Commands:', value:
+            '`!logs set all #channel` - Set all-log\n' +
+            '`!logs set ban #channel` - Set ban-log\n' +
+            '`!logs set kick #channel` - Set kick-log\n' +
+            '`!logs set timeout #channel` - Set timeout-log\n' +
+            '`!logs set messages #channel` - Set messages-log\n' +
+            '`!logs set rooms #channel` - Set rooms-log\n' +
+            '`!logs set joinleave #channel` - Set join-leave-log\n' +
+            '`!logs set roles #channel` - Set roles-log\n' +
+            '`!logs clear [type]` - Clear a log channel\n' +
+            '`!logs clear all` - Clear all log channels', inline: false }
+        )
+        .setFooter({ text: 'Unit S - Moderation' })
+        .setTimestamp();
+
+      await message.channel.send({ embeds: [embed] });
+      if (!message.deleted) message.delete().catch(() => {});
+      return;
+    }
+
+    const action = args[0].toLowerCase();
+
+    // SET command
+    if (action === 'set') {
+      const type = args[1]?.toLowerCase();
+      const channel = message.mentions.channels.first();
+
+      if (!type || !channel) {
+        await message.channel.send('❌ الاستخدام: `!logs set [type] #channel`');
+        await message.channel.send('📋 الأنواع: `all`, `ban`, `kick`, `timeout`, `messages`, `rooms`, `joinleave`, `roles`');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+
+      const typeMap = {
+        all: 'allLog',
+        ban: 'banLog',
+        kick: 'kickLog',
+        timeout: 'timeoutLog',
+        messages: 'messagesLog',
+        rooms: 'roomsLog',
+        joinleave: 'joinLeaveLog',
+        roles: 'rolesLog',
+      };
+
+      const settingKey = typeMap[type];
+      if (!settingKey) {
+        await message.channel.send('❌ نوع غير صالح! الأنواع: `all`, `ban`, `kick`, `timeout`, `messages`, `rooms`, `joinleave`, `roles`');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+
+      logSettings[settingKey] = channel.id;
+
+      const embed = new EmbedBuilder()
+        .setTitle('✅ LOG CHANNEL SET')
+        .setColor(0x10B981)
+        .addFields(
+          { name: 'Type', value: type.toUpperCase(), inline: true },
+          { name: 'Channel', value: channel.name, inline: true }
+        )
+        .setFooter({ text: 'Unit S - Moderation' })
+        .setTimestamp();
+
+      await message.channel.send({ embeds: [embed] });
+      if (!message.deleted) message.delete().catch(() => {});
+      return;
+    }
+
+    // CLEAR command
+    if (action === 'clear') {
+      const type = args[1]?.toLowerCase();
+
+      if (!type) {
+        await message.channel.send('❌ الاستخدام: `!logs clear [type]` أو `!logs clear all`');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+
+      if (type === 'all') {
+        logSettings.allLog = null;
+        logSettings.banLog = null;
+        logSettings.kickLog = null;
+        logSettings.timeoutLog = null;
+        logSettings.messagesLog = null;
+        logSettings.roomsLog = null;
+        logSettings.joinLeaveLog = null;
+        logSettings.rolesLog = null;
+
+        await message.channel.send('✅ تم مسح جميع قنوات اللوج!');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+
+      const typeMap = {
+        all: 'allLog',
+        ban: 'banLog',
+        kick: 'kickLog',
+        timeout: 'timeoutLog',
+        messages: 'messagesLog',
+        rooms: 'roomsLog',
+        joinleave: 'joinLeaveLog',
+        roles: 'rolesLog',
+      };
+
+      const settingKey = typeMap[type];
+      if (!settingKey) {
+        await message.channel.send('❌ نوع غير صالح!');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+
+      logSettings[settingKey] = null;
+      await message.channel.send(`✅ تم مسح قناة ${type.toUpperCase()} log!`);
+      if (!message.deleted) message.delete().catch(() => {});
+      return;
+    }
+
+    // Unknown command
+    await message.channel.send('❌ أمر غير معروف! استخدم `!logs` لعرض الأوامر.');
+    if (!message.deleted) message.delete().catch(() => {});
+  },
+});
+
+// ============ MODSETTINGS COMMAND ============
+client.commands.set('modsettings', {
+  name: 'modsettings',
+  description: 'Manage moderation settings',
+  execute: async (message, args) => {
+    // Check permissions
+    if (!message.member.permissions.has('ManageChannels')) {
+      if (!hasModRole(message.member)) {
+        await message.channel.send('❌ ليس لديك صلاحية!');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+    }
+
+    if (args.length === 0) {
+      // Show current settings
+      let rolesList = modSettings.adminRoles.length > 0
+        ? modSettings.adminRoles.map(id => `<@&${id}>`).join('\n')
+        : 'No roles set';
+      let roleNamesList = modSettings.adminRoleNames.length > 0
+        ? modSettings.adminRoleNames.join('\n')
+        : 'No role names set';
+
+      const embed = new EmbedBuilder()
+        .setTitle('⚙️ MODERATION SETTINGS')
+        .setColor(0x8B5CF6)
+        .addFields(
+          { name: '👮 Admin Roles', value: rolesList, inline: false },
+          { name: '📝 Admin Role Names', value: roleNamesList, inline: false },
+          { name: '👤 Admin Users', value: modSettings.adminUsers.join('\n') || 'None', inline: false }
+        )
+        .addFields(
+          { name: '\n📝 Commands:', value:
+            '`!modsettings addrole @role` - Add admin role\n' +
+            '`!modsettings removerole @role` - Remove admin role\n' +
+            '`!modsettings addadminname [name]` - Add role name\n' +
+            '`!modsettings removeadminname [name]` - Remove role name\n' +
+            '`!modsettings adduser [name]` - Add admin user\n' +
+            '`!modsettings removeuser [name]` - Remove admin user', inline: false }
+        )
+        .setFooter({ text: 'Unit S - Moderation' })
+        .setTimestamp();
+
+      await message.channel.send({ embeds: [embed] });
+      if (!message.deleted) message.delete().catch(() => {});
+      return;
+    }
+
+    const action = args[0].toLowerCase();
+
+    // Add role
+    if (action === 'addrole') {
+      const role = message.mentions.roles.first();
+      if (!role) {
+        await message.channel.send('❌ الاستخدام: `!modsettings addrole @role`');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+
+      if (!modSettings.adminRoles.includes(role.id)) {
+        modSettings.adminRoles.push(role.id);
+        await message.channel.send(`✅ تم إضافة ${role.name} كأدمن!`);
+      } else {
+        await message.channel.send('⚠️ الرول موجودة مسبقاً!');
+      }
+      if (!message.deleted) message.delete().catch(() => {});
+      return;
+    }
+
+    // Remove role
+    if (action === 'removerole') {
+      const role = message.mentions.roles.first();
+      if (!role) {
+        await message.channel.send('❌ الاستخدام: `!modsettings removerole @role`');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+
+      const index = modSettings.adminRoles.indexOf(role.id);
+      if (index > -1) {
+        modSettings.adminRoles.splice(index, 1);
+        await message.channel.send(`✅ تم إزالة ${role.name} من الأدمن!`);
+      } else {
+        await message.channel.send('⚠️ الرول غير موجودة!');
+      }
+      if (!message.deleted) message.delete().catch(() => {});
+      return;
+    }
+
+    // Add admin name
+    if (action === 'addadminname') {
+      const name = args.slice(1).join(' ');
+      if (!name) {
+        await message.channel.send('❌ الاستخدام: `!modsettings addadminname [name]`');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+
+      if (!modSettings.adminRoleNames.includes(name)) {
+        modSettings.adminRoleNames.push(name);
+        await message.channel.send(`✅ تم إضافة "${name}" كأدمن!`);
+      } else {
+        await message.channel.send('⚠️ الاسم موجود مسبقاً!');
+      }
+      if (!message.deleted) message.delete().catch(() => {});
+      return;
+    }
+
+    // Remove admin name
+    if (action === 'removeadminname') {
+      const name = args.slice(1).join(' ');
+      if (!name) {
+        await message.channel.send('❌ الاستخدام: `!modsettings removeadminname [name]`');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+
+      const index = modSettings.adminRoleNames.indexOf(name);
+      if (index > -1) {
+        modSettings.adminRoleNames.splice(index, 1);
+        await message.channel.send(`✅ تم إزالة "${name}" من الأدمن!`);
+      } else {
+        await message.channel.send('⚠️ الاسم غير موجود!');
+      }
+      if (!message.deleted) message.delete().catch(() => {});
+      return;
+    }
+
+    // Add user
+    if (action === 'adduser') {
+      const name = args.slice(1).join(' ');
+      if (!name) {
+        await message.channel.send('❌ الاستخدام: `!modsettings adduser [name]`');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+
+      if (!modSettings.adminUsers.includes(name)) {
+        modSettings.adminUsers.push(name);
+        await message.channel.send(`✅ تم إضافة "${name}" كأدمن!`);
+      } else {
+        await message.channel.send('⚠️ المستخدم موجود مسبقاً!');
+      }
+      if (!message.deleted) message.delete().catch(() => {});
+      return;
+    }
+
+    // Remove user
+    if (action === 'removeuser') {
+      const name = args.slice(1).join(' ');
+      if (!name) {
+        await message.channel.send('❌ الاستخدام: `!modsettings removeuser [name]`');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+
+      const index = modSettings.adminUsers.indexOf(name);
+      if (index > -1) {
+        modSettings.adminUsers.splice(index, 1);
+        await message.channel.send(`✅ تم إزالة "${name}" من الأدمن!`);
+      } else {
+        await message.channel.send('⚠️ المستخدم غير موجود!');
+      }
+      if (!message.deleted) message.delete().catch(() => {});
+      return;
+    }
+
+    await message.channel.send('❌ أمر غير معروف! استخدم `!modsettings` لعرض الأوامر.');
     if (!message.deleted) message.delete().catch(() => {});
   },
 });
@@ -1695,6 +2518,115 @@ client.on('clientReady', () => {
   console.log(`👤 Logged as: ${client.user.tag}`);
   console.log(`📊 Servers: ${client.guilds.cache.size}`);
   client.user.setActivity('Unit S | !help', { type: 'WATCHING' });
+});
+
+// ============ MEMBER JOIN EVENT ============
+client.on('guildMemberAdd', async (member) => {
+  if (member.user.bot) return;
+  await logMemberJoin(member.guild, member);
+});
+
+// ============ MEMBER LEAVE EVENT ============
+client.on('guildMemberRemove', async (member) => {
+  if (member.user.bot) return;
+  await logMemberLeave(member.guild, member, null);
+});
+
+// ============ CHANNEL CREATE EVENT ============
+client.on('channelCreate', async (channel) => {
+  if (channel.isVoiceBased()) return;
+  if (channel.name === 'ticket-') return; // Ignore ticket channels
+
+  const auditLogs = await channel.guild.fetchAuditLogs({
+    type: 'CHANNEL_CREATE',
+    limit: 1
+  }).catch(() => null);
+
+  const creator = auditLogs?.entries.first()?.executor;
+  await logChannelCreate(channel.guild, channel, creator);
+});
+
+// ============ CHANNEL DELETE EVENT ============
+client.on('channelDelete', async (channel) => {
+  if (channel.isVoiceBased()) return;
+  if (channel.name.startsWith('ticket-')) return; // Ignore ticket channels
+
+  const auditLogs = await channel.guild.fetchAuditLogs({
+    type: 'CHANNEL_DELETE',
+    limit: 1
+  }).catch(() => null);
+
+  const deleter = auditLogs?.entries.first()?.executor;
+  await logChannelDelete(channel.guild, channel, deleter);
+});
+
+// ============ ROLE CREATE EVENT ============
+client.on('roleCreate', async (role) => {
+  const auditLogs = await role.guild.fetchAuditLogs({
+    type: 'ROLE_CREATE',
+    limit: 1
+  }).catch(() => null);
+
+  const creator = auditLogs?.entries.first()?.executor;
+  if (creator) {
+    const embed = new EmbedBuilder()
+      .setTitle('🎭 ROLE CREATED')
+      .setColor(0x10B981)
+      .addFields(
+        { name: '🎭 Role', value: role.name, inline: true },
+        { name: '🆔 Role ID', value: role.id, inline: true },
+        { name: '👤 Created By', value: creator.tag || 'Unknown', inline: true },
+        { name: '⏰ Time', value: new Date().toLocaleString('ar-SA'), inline: false }
+      )
+      .setFooter({ text: 'Unit S - Moderation' })
+      .setTimestamp();
+
+    await sendLog(role.guild, 'roles', embed);
+  }
+});
+
+// ============ ROLE DELETE EVENT ============
+client.on('roleDelete', async (role) => {
+  const auditLogs = await role.guild.fetchAuditLogs({
+    type: 'ROLE_DELETE',
+    limit: 1
+  }).catch(() => null);
+
+  const deleter = auditLogs?.entries.first()?.executor;
+  const embed = new EmbedBuilder()
+    .setTitle('🎭 ROLE DELETED')
+    .setColor(0xDC2626)
+    .addFields(
+      { name: '🎭 Role', value: role.name, inline: true },
+      { name: '🆔 Role ID', value: role.id, inline: true },
+      { name: '👤 Deleted By', value: deleter?.tag || 'Unknown', inline: true },
+      { name: '⏰ Time', value: new Date().toLocaleString('ar-SA'), inline: false }
+    )
+    .setFooter({ text: 'Unit S - Moderation' })
+    .setTimestamp();
+
+  await sendLog(role.guild, 'roles', embed);
+});
+
+// ============ ROLE UPDATE EVENT ============
+client.on('guildMemberUpdate', async (oldMember, newMember) => {
+  const addedRoles = newMember.roles.cache.filter(role => !oldMember.roles.cache.has(role.id));
+  const removedRoles = oldMember.roles.cache.filter(role => !newMember.roles.cache.has(role.id));
+
+  for (const role of addedRoles) {
+    await logRoleChange(newMember.guild, newMember.guild.me, newMember.user, 'ADDED', role);
+  }
+
+  for (const role of removedRoles) {
+    await logRoleChange(newMember.guild, newMember.guild.me, newMember.user, 'REMOVED', role);
+  }
+});
+
+// ============ MESSAGE DELETE EVENT ============
+client.on('messageDelete', async (message) => {
+  if (message.author?.bot) return;
+  if (!message.guild) return;
+  await logMessageDelete(message.guild, message);
 });
 
 // ============ ERROR HANDLER ============
