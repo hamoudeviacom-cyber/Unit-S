@@ -1,7 +1,7 @@
 // Unit S - Discord Bot
 // نظام الحماية والتشفير وتذكرة بانيل
 
-import { Client, GatewayIntentBits, Collection, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, ComponentType } from 'discord.js';
+import { Client, GatewayIntentBits, Collection, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, SelectMenuBuilder, SelectMenuOptionBuilder } from 'discord.js';
 
 const TOKEN = process.env.DISCORD_TOKEN || 'YOUR_BOT_TOKEN';
 const PREFIX = '!';
@@ -20,32 +20,34 @@ const client = new Client({
 // Collections
 client.commands = new Collection();
 client.encryptedPosts = new Collection();
-client.ticketCounter = 0;
-client.ticketClaims = new Collection(); // لتتبع من استلم التذكرة
+client.ticketCounter = 0; // عداد التذاكر التسلسلي
 
 // ============ Ticket Settings ============
-const COLORS = {
-  unitS: 0x8B5CF6,
-  unitSDark: 0x1E1B4B,
-  danger: 0xDC2626,
-  success: 0x10B981,
-  warning: 0xF59E0B,
-  info: 0x3B82F6,
-};
-
 const ticketSettings = {
-  allowedRoles: [],
-  allowedRoleNames: [],
-  ticketAdminRoles: [],
-  ticketAdminRoleNames: [],
-  logsChannelId: null,
-  mentionRoleId: null,
-  mentionRoleName: null,
-  // إعدادات التكت
-  ticketPanelTitle: 'Unit S Tickets',
-  welcomeTitle: 'Welcome To Unit S support',
-  welcomeSubtitle: 'Choose The Ticket That You Want To Open',
-  ticketPrefix: 'Unit S Tickets',
+  // الرولات اللي تستلم إشعار التذكرة (حط الـ Role IDs هنا)
+  allowedRoles: [
+    // مثال: '123456789012345678'
+    // 'another_role_id_here'
+  ],
+  // أو استخدم اسم الرول (حط الاسم هنا)
+  allowedRoleNames: [
+    // مثال: 'Support Team'
+    // 'Admin'
+  ],
+  // الرولات اللي تقدر تسكر التذكرة (حط الـ Role IDs هنا)
+  ticketAdminRoles: [
+    // مثال: '123456789012345678'
+  ],
+  // أو استخدم اسم الرول
+  ticketAdminRoleNames: [
+    // مثال: 'Admin'
+    // 'Support'
+  ],
+  // قناة اللوجس (حط الـ Channel ID هنا)
+  logsChannelId: null, // مثال: '123456789012345678'
+  // الرول اللي تنذكر تلقائيا عند فتح تذكرة
+  mentionRoleId: null, // مثال: '123456789012345678'
+  mentionRoleName: null, // مثال: 'دعم'
 };
 
 // ============ Word Encryption Dictionary ============
@@ -136,6 +138,7 @@ const protectionSettings = {
   wordFilter: {
     enabled: true,
     words: [
+      // ===== السب والشتم العامي =====
       'كلب', 'كلابة', 'كلبي', 'كلب انت', 'كلب انتم', 'كلاب',
       'حمار', 'حمارة', 'حمير', 'حمار انت', 'حمار انتم',
       'بغل', 'بغلة', 'بغال', 'بغل انت',
@@ -196,14 +199,21 @@ const protectionSettings = {
       'ناهب', 'ناهبة', 'ناهب انت', 'ناهب انتم',
       'لقيط', 'لقيطة', 'لقط', 'لقيط انت',
       'وساخ', 'وساخ انت', 'وسيخ', 'وسيخ انت',
+      'لقيط', 'لقيطة', 'لقيط انت', 'لقيطة انت',
       'زنديق', 'زنديقة', 'زنديق انت', 'زنديقة انت',
       'فساد', 'فساد انت', 'فساد انتم',
       'مستحيل', 'مستحيلة', 'مستحيل انت',
       'بلطجي', 'بلطجية', 'بلطجي انت', 'بلطجية انت',
       'عتل', 'عتلة', 'عتلين', 'عتل انت',
+      'زمخ', 'زمخة', 'زمخ انت',
+      'زنخ', 'زنخة', 'زنخ انت',
+      'طمخ', 'طمخة', 'طمخ انت',
       'ضرس', 'ضرس انت', 'ضرسين', 'ضرس انت',
       'بشع', 'بشعة', 'بشع انت', 'بشعة انت',
       'لزج', 'لزجة', 'لزج انت', 'لزجة انت',
+      'كريك', 'كريكة', 'كريك انت',
+      'مقرف', 'مقرفة', 'مقرفين', 'مقرف انت',
+      'قذار', 'قذارة', 'قذار انت', 'قذار انتم',
       'زبالة', 'زبال', 'زبالة انت', 'زبال انت',
       'قمامة', 'قمامة انت', 'قمامة انتم',
       'نفاية', 'نفايات', 'نفاية انت',
@@ -211,6 +221,12 @@ const protectionSettings = {
       'مشنقة', 'مشنقات', 'مشنقة انت',
       'زنقة', 'زنقات', 'زنقة انت',
       'بوش', 'بوشة', 'بوش انت', 'بوشة انت',
+      'خرف', 'خرفة', 'خرف انت', 'خرفة انت',
+      'متناك', 'متناكة', 'متناك انت', 'متناكة انت',
+      'خرفان', 'خرفانة', 'خرفان انت', 'خرفانة انت',
+      'منيوج', 'منيوج انت', 'منيوجة', 'منيوجة انت',
+      'معتوه', 'معتوهة', 'معتوه انت', 'معتوهة انت',
+      'مختال', 'مختالة', 'مختال انت', 'مختالة انت',
       'جبان', 'جبانة', 'جبان انت', 'جبانة انت',
       'لؤيم', 'لؤيمة', 'لؤيم انت', 'لؤيمة انت',
       'بغيض', 'بغيضة', 'بغيض انت', 'بغيضة انت',
@@ -235,6 +251,7 @@ const protectionSettings = {
       'نخ', 'نخة', 'نخ انت', 'انخ',
       'زخ', 'زخة', 'زخ انت', 'ازخ',
       'خخ', 'خة', 'خخ انت', 'خة انت',
+      'حخ', 'حدة', 'حخ انت', 'احخ',
       'اخرس', 'اخرس انت', 'اسكت', 'اسكت انت',
       'ابصق', 'ابصق انت', 'ابصق فيك', 'ابصق بوجهك',
       'اطحن', 'اطحنك', 'اطحنه', 'اطحنت',
@@ -252,6 +269,7 @@ const protectionSettings = {
       'اذاك', 'اذاكك', 'اذاكه', 'اذاهم',
       'نكت', 'نكتك', 'نكتهم', 'انكت',
       'سخ', 'سخة', 'سخ انت', 'اسخ',
+      'سفس', 'سفست', 'سفس انت',
       'زهق', 'زهقة', 'زهق انت', 'ازهق',
       'مش', 'مش انت', 'مش انتما', 'مش انتم',
       'بلا', 'بلاش', 'بلا حياء', 'بلا عرض',
@@ -277,6 +295,12 @@ const protectionSettings = {
       'فساد', 'فساد انت', 'افساد', 'فسد',
       'سحق', 'سحق انت', 'اسحق', 'سحاق',
       'زنق', 'زنقة', 'زنق انت', 'ازنق',
+      'طخ', 'طخة', 'طخ انت', 'اطخ',
+      'شنخ', 'شنخة', 'شنخ انت', 'اشنخ',
+      'زمخ', 'زمخة', 'زمخ انت', 'ازمخ',
+      'زنخ', 'زنخة', 'زنخ انت', 'ازنخ',
+      'طمخ', 'طمخة', 'طمخ انت', 'اطمخ',
+      'ضرس', 'ضرس انت', 'اضرس', 'ضرسين',
       'سب', 'سبك', 'سبه', 'سبها', 'سبوني',
       'شتم', 'شتمك', 'شتمه', 'شتمها', 'شتموني',
       'هن', 'هنك', 'هنه', 'اهن',
@@ -290,6 +314,7 @@ const protectionSettings = {
       'قبح', 'قبحك', 'قبحه', 'اقبح',
       'قذور', 'قذور انت', 'اقذور',
       'رجس', 'رجس انت', 'ارجس', 'رجس',
+      'رجس', 'رجست', 'رجس انت', 'ارجس',
       'خبث', 'خبث', 'خبث انت', 'خبثكم',
       'نتن', 'نتنت', 'نتن انت', 'انتان',
       'سموم', 'سموم انت', 'سميم', 'سميمة',
@@ -329,11 +354,17 @@ const protectionSettings = {
       'لقيط', 'لقيطة', 'لقيط انت', 'لقيطة انت',
       'وسخ', 'وسخة', 'وسخ انت', 'وسخة انت',
       'وساخ', 'وسيخ', 'وساخ انت', 'وسيخ انت',
+      'لقيط', 'لقيطة', 'لقيط انت', 'لقيطة انت',
       'زنديق', 'زنديقة', 'زنديق انت', 'زنديقة انت',
       'بلطجي', 'بلطجية', 'بلطجي انت', 'بلطجية انت',
       'عتل', 'عتلة', 'عتلين', 'عتل انت',
+      'زمخ', 'زمخة', 'زمخ انت', 'ازمخ انت',
+      'زنخ', 'زنخة', 'زنخ انت', 'ازنخ انت',
+      'طمخ', 'طمخة', 'طمخ انت', 'اطمخ انت',
+      'ضرس', 'ضرسين', 'ضرس انت', 'اضرس انت',
       'بشع', 'بشعة', 'بشع انت', 'بشعة انت',
       'لزج', 'لزجة', 'لزج انت', 'لزجة انت',
+      'كريك', 'كريكة', 'كريك انت', 'كريكة انت',
       'زبالة', 'زبال', 'زبالة انت', 'زبال انت',
       'قمامة', 'قمامة انت', 'قمامة انتم',
       'نفاية', 'نفايات', 'نفاية انت', 'نفايات انت',
@@ -358,6 +389,43 @@ const protectionSettings = {
       'قبح', 'قبحك', 'قبحه', 'اقبح',
       'قذور', 'قذور انت', 'اقذور',
       'رجس', 'رجس انت', 'ارجس', 'رجس',
+      'نجس', 'نجسة', 'نجس انت', 'انجس',
+      'خبث', 'خبث انت', 'اخبث', 'خبثان',
+      'فسق', 'فسق انت', 'افسق', 'فسوق',
+      'فساد', 'فساد انت', 'افساد', 'فسد',
+      'سحق', 'سحق انت', 'اسحق', 'سحاق',
+      'زنق', 'زنقة', 'زنق انت', 'ازنق',
+      'سب', 'سبك', 'سبه', 'سبها', 'سبوني',
+      'شتم', 'شتمك', 'شتمه', 'شتمها', 'شتموني',
+      'هن', 'هنك', 'هنه', 'اهن',
+      'ذل', 'ذلك', 'ذله', 'اذل',
+      'ذل', 'ذلت', 'ذلت انت', 'اذلتك',
+      'سباكة', 'سباك', 'سباكة انت',
+      'فسخ', 'فسخة', 'فسخ انت', 'افسخ',
+      'زنخ', 'زنخة', 'زنخ انت', 'ازنخ',
+      'خبل', 'خبل انت', 'اخبل', 'خبلان',
+      'خدر', 'خدر انت', 'اخدر', 'خدران',
+      'زن', 'زنة', 'زن انت', 'ازن',
+      'عرص', 'عرصك', 'عرصه', 'عرصها',
+      'طمث', 'طمثة', 'طمث انت', 'اطمث',
+      'سمم', 'سممت', 'سمم انت', 'اسمم',
+      'سم', 'سمك', 'سمك انت', 'سممه',
+      'نجس', 'نجسة', 'نجس انت', 'انجس',
+      'خبث', 'خبث انت', 'اخبث', 'خبثان',
+      'فسق', 'فسق انت', 'افسق', 'فسوق',
+      'فساد', 'فساد انت', 'افساد', 'فسد',
+      'سحق', 'سحق انت', 'اسحق', 'سحاق',
+      'زنق', 'زنقة', 'زنق انت', 'ازنق',
+      'سباكة', 'سباك', 'سباكة انت',
+      'فسخ', 'فسخة', 'فسخ انت', 'افسخ',
+      'زنخ', 'زنخة', 'زنخ انت', 'ازنخ',
+      'خبل', 'خبل انت', 'اخبل', 'خبلان',
+      'خدر', 'خدر انت', 'اخدر', 'خدران',
+      'زن', 'زنة', 'زن انت', 'ازن',
+      'عرص', 'عرصك', 'عرصه', 'عرصها',
+      'طمث', 'طمثة', 'طمث انت', 'اطمث',
+      'سمم', 'سممت', 'سمم انت', 'اسمم',
+      'سم', 'سمك', 'سمك انت', 'سممه',
       'نجس', 'نجسة', 'نجس انت', 'انجس',
       'خبث', 'خبث انت', 'اخبث', 'خبثان',
       'فسق', 'فسق انت', 'افسق', 'فسوق',
@@ -390,21 +458,23 @@ const COLORS = {
   success: 0x10b981,
   warning: 0xf59e0b,
   danger: 0xef4444,
-  unitS: 0x6366f1, // Unit S brand color
-  unitSDark: 0x1e1e2e, // Dark background
 };
 
 // ============ TICKET HELPER FUNCTIONS ============
 
+// دالة فحص إذا المستخدم يقدر يسكر التذكرة
 function hasTicketAdminRole(member) {
   if (!member) return false;
 
+  // فحص الصلاحية الأساسية
   if (member.permissions.has('ManageChannels')) return true;
 
+  // فحص الرولات من الـ IDs
   for (const roleId of ticketSettings.ticketAdminRoles) {
     if (member.roles.cache.has(roleId)) return true;
   }
 
+  // فحص الرولات من الأسماء
   for (const roleName of ticketSettings.ticketAdminRoleNames) {
     const role = member.roles.cache.find(r =>
       r.name.toLowerCase().includes(roleName.toLowerCase())
@@ -415,17 +485,21 @@ function hasTicketAdminRole(member) {
   return false;
 }
 
+// دالة فحص إذا المستخدم يقدر يفتح/يراها التذكرة
 function hasAllowedRole(member) {
   if (!member) return false;
 
+  // إذا ما فيه رولات محددة، كل واحد يقدر
   if (ticketSettings.allowedRoles.length === 0 && ticketSettings.allowedRoleNames.length === 0) {
     return true;
   }
 
+  // فحص الرولات من الـ IDs
   for (const roleId of ticketSettings.allowedRoles) {
     if (member.roles.cache.has(roleId)) return true;
   }
 
+  // فحص الرولات من الأسماء
   for (const roleName of ticketSettings.allowedRoleNames) {
     const role = member.roles.cache.find(r =>
       r.name.toLowerCase().includes(roleName.toLowerCase())
@@ -436,24 +510,16 @@ function hasAllowedRole(member) {
   return false;
 }
 
-function formatTimeAgo(timestamp) {
-  const now = Date.now();
-  const diff = now - timestamp;
-  const minutes = Math.floor(diff / 60000);
-  const hours = Math.floor(diff / 3600000);
-  const days = Math.floor(diff / 86400000);
-
-  if (days > 0) return `${days} day${days > 1 ? 's' : ''} ago`;
-  if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
-  if (minutes > 0) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
-  return 'Just now';
-}
-
+// دالة حفظ لوجس التذكرة
 async function logTicketTranscript(channel, closedBy, reason = 'لم يذكر') {
   try {
+    // جلب جميع الرسائل في التذكرة
     const messages = await channel.messages.fetch({ limit: 100 }).catch(() => new Collection());
+
+    // ترتيب الرسائل من الأقدم للأحدث
     const sortedMessages = messages.sort((a, b) => a.createdTimestamp - b.createdTimestamp);
 
+    // بناء اللوجس
     let transcript = `=== لوجس التذكرة: ${channel.name} ===\n`;
     transcript += `تاريخ الإغلاق: ${new Date().toLocaleString('ar-SA')}\n`;
     transcript += `مقام من: ${closedBy.tag || closedBy.username || 'غير معروف'}\n`;
@@ -466,6 +532,7 @@ async function logTicketTranscript(channel, closedBy, reason = 'لم يذكر') 
       const author = msg.author.tag;
       const content = msg.content || '[رسالة بدون نص]';
 
+      // إضافة المرفقات إذا وجدت
       let attachments = '';
       if (msg.attachments.size > 0) {
         attachments = ' [مرفقات: ' + msg.attachments.map(a => a.name).join(', ') + ']';
@@ -476,8 +543,10 @@ async function logTicketTranscript(channel, closedBy, reason = 'لم يذكر') 
 
     transcript += '\n=== نهاية اللوجس ===';
 
+    // إرسال اللوجس للقناة المحددة
     const logsChannel = client.channels.cache.get(ticketSettings.logsChannelId);
     if (logsChannel) {
+      // إرسال كملف نصي
       await logsChannel.send({
         content: `📋 **لوجس تذكرة مغلقة: ${channel.name}**\nتم الإغلاق من: ${closedBy.tag || closedBy.username}\nالسبب: ${reason}`,
         files: [{
@@ -501,7 +570,7 @@ client.commands.set('help', {
   execute: async (message) => {
     const embed = new EmbedBuilder()
       .setTitle('Unit S - قائمة الأوامر')
-      .setColor(COLORS.unitS)
+      .setColor(COLORS.primary)
       .addFields(
         { name: '🎫 التذاكر', value:
           '`!ticket` - فتح قائمة التذاكر\n' +
@@ -560,77 +629,70 @@ client.commands.set('ping', {
   },
 });
 
-// ============ TICKET MENU - Hollywood Style (Message + Select Menu) ============
+// ============ TICKET MENU (3 خيارات) ============
 client.commands.set('ticket', {
   name: 'ticket',
-  description: 'Open ticket menu - Hollywood style (message + select menu)',
+  description: 'Open ticket menu',
   execute: async (message) => {
+    // التحقق إذا المستخدم عنده رول مسموح
     if (!hasAllowedRole(message.member)) {
       await message.channel.send('❌ ليس لديك صلاحية لفتح تذكرة!');
       if (!message.deleted) message.delete().catch(() => {});
       return;
     }
 
-    // Hollywood Style - Message with decorative header + Select Menu
-    const ticketMessage = `━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🎫 **${ticketSettings.ticketPanelTitle}**
-━━━━━━━━━━━━━━━━━━━━━━━━━━━
-${ticketSettings.welcomeTitle}
-${ticketSettings.welcomeSubtitle}
-━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
+    const embed = new EmbedBuilder()
+      .setTitle('🎫 نظام التذاكر')
+      .setDescription('اختر نوع التذكرة من القائمة أدناه')
+      .setColor(COLORS.primary)
+      .addFields(
+        { name: '📋 أنواع التذاكر:', value: '> **دعم فني** - للمشاكل التقنية\n> **الشكاوي** - للشكاوي ضد أعضاء\n> **استفسار** - لأسئلة عامة' },
+        { name: '⚠️ ملاحظات:', value: '> **يمنع** فتح تذكرة لأسباب خارج السيرفر\n> **يمنع** Mention أو سبام للموظفين\n> **يمنع** العبث أو عدم النشاط في التذكرة\n> ⚠️ المخالفة قد تؤدي لـ Mute أو Timeout' }
+      )
+      .setFooter({ text: 'Unit S | اختر من القائمة' })
+      .setTimestamp();
 
-    const selectMenu = new StringSelectMenuBuilder()
+    const selectMenu = new SelectMenuBuilder()
       .setCustomId('ticket_select')
-      .setPlaceholder('🎫 Choose The Ticket...')
+      .setPlaceholder('اختر نوع التذكرة...')
       .addOptions([
-        new StringSelectMenuOptionBuilder({
+        new SelectMenuOptionBuilder({
           label: 'دعم فني',
-          description: 'الدعم الفني للمشاكل التقنية',
+          description: 'مشاكل تقنية وحلول',
           value: 'support',
           emoji: '🔧',
         }),
-        new StringSelectMenuOptionBuilder({
-          label: 'شكاوي',
-          description: 'للتقدم بشكوى',
+        new SelectMenuOptionBuilder({
+          label: 'الشكاوي',
+          description: 'شكاوي ضد أعضاء الإدارة',
           value: 'complaint',
-          emoji: '⚠️',
+          emoji: '🎧',
         }),
-        new StringSelectMenuOptionBuilder({
+        new SelectMenuOptionBuilder({
           label: 'استفسار',
-          description: 'للاستفسار عن أي موضوع',
+          description: 'أسئلة ومعلومات عامة',
           value: 'inquiry',
           emoji: '❓',
-        }),
-        new StringSelectMenuOptionBuilder({
-          label: 'شراكة',
-          description: 'للاستفسار عن الشراكة',
-          value: 'partnership',
-          emoji: '🤝',
         }),
       ]);
 
     const row = new ActionRowBuilder().addComponents(selectMenu);
-
-    // Send as regular message with components (not embed)
-    await message.channel.send({
-      content: ticketMessage,
-      components: [row]
-    });
-
+    // إرسال بدون mention - اللوحة فقط
+    await message.channel.send({ embeds: [embed], components: [row] });
     if (!message.deleted) message.delete().catch(() => {});
   },
 });
 
-// ============ ENCRYPT PANEL COMMAND ============
+// ============ ENCRYPT PANEL COMMAND (!shfr) ============
 client.commands.set('shfr', {
   name: 'shfr',
   description: 'Open encryption panel',
   execute: async (message) => {
     try {
       const embed = new EmbedBuilder()
-        .setTitle('🔒 Unit S | التشفير')
+        .setTitle('~ Unit S | التشفير')
         .setDescription('لتشفير منشورك، اضغط على الزر أدناه')
-        .setColor(COLORS.unitS)
+        .setColor(COLORS.primary)
         .addFields(
           { name: '✨ المميزات:', value: '• تشفير الكلمات المحظورة\n• يعمل بكفاءة عالية\n• آمن وسريع', inline: false }
         )
@@ -651,7 +713,7 @@ client.commands.set('shfr', {
   },
 });
 
-// ============ ENCRYPT COMMAND ============
+// ============ ENCRYPT COMMAND (!enc) ============
 client.commands.set('enc', {
   name: 'enc',
   description: 'Encrypt text directly',
@@ -696,7 +758,7 @@ client.commands.set('protect', {
 
     const embed = new EmbedBuilder()
       .setTitle('🛡️ لوحة التحكم - الحماية')
-      .setColor(COLORS.unitS)
+      .setColor(COLORS.primary)
       .addFields(
         { name: 'حالة الحماية:', value: '━━━━━━━━━━━━━━━', inline: false },
         { name: '🔤 فلتر الكلمات:', value: wordFilterStatus, inline: true },
@@ -787,6 +849,7 @@ client.commands.set('tmanage', {
     }
 
     if (args.length === 0) {
+      // عرض قائمة التذاكر المفتوحة
       const tickets = message.guild.channels.cache.filter(ch => ch.name.startsWith('ticket-'));
 
       if (tickets.size === 0) {
@@ -805,7 +868,7 @@ client.commands.set('tmanage', {
 
       const embed = new EmbedBuilder()
         .setTitle('🎫 قائمة التذاكر المفتوحة')
-        .setColor(COLORS.unitS)
+        .setColor(COLORS.primary)
         .setDescription(ticketList)
         .setFooter({ text: `عدد التذاكر: ${tickets.size}` })
         .setTimestamp();
@@ -817,7 +880,7 @@ client.commands.set('tmanage', {
 
     const action = args[0].toLowerCase();
 
-    // Close ticket
+    // ===== أمر إغلاق التذكرة =====
     if (action === 'close') {
       if (!hasTicketAdminRole(message.member)) {
         await message.channel.send('❌ ليس لديك صلاحية لإغلاق التذاكر!');
@@ -836,7 +899,7 @@ client.commands.set('tmanage', {
       return;
     }
 
-    // Add role
+    // ===== أمر إضافة رول =====
     if (action === 'addrole') {
       const role = message.mentions.roles.first();
       if (!role) {
@@ -855,7 +918,7 @@ client.commands.set('tmanage', {
       return;
     }
 
-    // Add role by name
+    // ===== أمر إضافة رول بالاسم =====
     if (action === 'addrolename') {
       const roleName = args.slice(1).join(' ');
       if (!roleName) {
@@ -874,7 +937,7 @@ client.commands.set('tmanage', {
       return;
     }
 
-    // Remove role
+    // ===== أمر إزالة رول =====
     if (action === 'removerole') {
       const role = message.mentions.roles.first();
       if (!role) {
@@ -894,7 +957,7 @@ client.commands.set('tmanage', {
       return;
     }
 
-    // Show roles
+    // ===== أمر عرض الرولات =====
     if (action === 'roles') {
       let rolesList = '📋 الرولات المسموحة:\n\n';
 
@@ -921,7 +984,7 @@ client.commands.set('tmanage', {
       return;
     }
 
-    // Add admin role
+    // ===== أمر إضافة رول أدمن للتذكرة =====
     if (action === 'addadmin') {
       const role = message.mentions.roles.first();
       if (!role) {
@@ -940,7 +1003,7 @@ client.commands.set('tmanage', {
       return;
     }
 
-    // Add admin by name
+    // ===== أمر إضافة أدمن بالاسم =====
     if (action === 'addadminname') {
       const roleName = args.slice(1).join(' ');
       if (!roleName) {
@@ -959,7 +1022,7 @@ client.commands.set('tmanage', {
       return;
     }
 
-    // Remove admin role
+    // ===== أمر إزالة رول أدمن للتذكرة =====
     if (action === 'removeadmin') {
       const role = message.mentions.roles.first();
       if (!role) {
@@ -979,7 +1042,7 @@ client.commands.set('tmanage', {
       return;
     }
 
-    // Set logs channel
+    // ===== أمر وضع قناة اللوجس =====
     if (action === 'setlogs') {
       const channel = message.mentions.channels.first();
       if (!channel) {
@@ -994,7 +1057,7 @@ client.commands.set('tmanage', {
       return;
     }
 
-    // Set mention role
+    // ===== أمر تعيين رول للمنشن التلقائي =====
     if (action === 'setmention') {
       const role = message.mentions.roles.first();
       if (!role) {
@@ -1010,7 +1073,7 @@ client.commands.set('tmanage', {
       return;
     }
 
-    // Set mention role by name
+    // ===== أمر تعيين رول للمنشن التلقائي بالاسم =====
     if (action === 'setmentionname') {
       const roleName = args.slice(1).join(' ');
       if (!roleName) {
@@ -1036,7 +1099,7 @@ client.commands.set('tmanage', {
       return;
     }
 
-    // Show mention settings
+    // ===== أمر عرض إعدادات المنشن =====
     if (action === 'mention') {
       let mentionInfo = '🎯 إعدادات المنشن التلقائي:\n\n';
 
@@ -1060,7 +1123,7 @@ client.commands.set('tmanage', {
       return;
     }
 
-    // Show admins
+    // ===== أمر عرض الأدمنز =====
     if (action === 'admins') {
       let adminsList = '👮 أدمنز التذاكر:\n\n';
 
@@ -1094,11 +1157,11 @@ client.commands.set('tmanage', {
       return;
     }
 
-    // Help
+    // ===== أمر المساعدة =====
     if (action === 'help' || action === '?') {
       const embed = new EmbedBuilder()
         .setTitle('🎫 أوامر إدارة التذاكر')
-        .setColor(COLORS.unitS)
+        .setColor(COLORS.primary)
         .addFields(
           { name: 'الأوامر الأساسية:', value:
             '`!tmanage` - عرض التذاكر المفتوحة\n' +
@@ -1128,7 +1191,7 @@ client.commands.set('tmanage', {
       return;
     }
 
-    // Unknown command
+    // ===== أمر غير معروف =====
     await message.channel.send(`❌ أمر غير معروف: \`${action}\`\n💡 استخدم \`!tmanage help\` لعرض قائمة الأوامر.`);
     if (!message.deleted) message.delete().catch(() => {});
   },
@@ -1137,29 +1200,30 @@ client.commands.set('tmanage', {
 // ============ INTERACTION HANDLER ============
 client.on('interactionCreate', async (interaction) => {
   try {
-    // Handle Select Menu - Ticket Selection
-    if (interaction.isStringSelectMenu()) {
+    // Handle Select Menu
+    if (interaction.isSelectMenu()) {
       if (interaction.customId === 'ticket_select') {
         const ticketType = interaction.values[0];
 
         const typeNames = {
           support: 'دعم فني',
           complaint: 'شكاوي',
-          inquiry: 'استفسار',
-          partnership: 'شراكة'
+          inquiry: 'استفسار'
         };
 
         const guild = interaction.guild;
 
         try {
+          // التحقق من وجود البوت في السيرفر
           const botMember = await guild.members.fetch(client.user.id);
           if (!botMember.permissions.has('ManageChannels')) {
             return await interaction.reply({
               content: '❌ لا توجد لدي الصلاحية اللازمة لإنشاء قناة!',
-              flags: 64
+              ephemeral: true
             });
           }
 
+          // الحصول على عدد التذاكر الحالية لهذا المستخدم
           const existingTickets = guild.channels.cache.filter(ch =>
             ch.name.startsWith('ticket-') &&
             ch.topic?.includes(interaction.user.username)
@@ -1169,10 +1233,11 @@ client.on('interactionCreate', async (interaction) => {
             const existingTicket = existingTickets.first();
             return await interaction.reply({
               content: `❌ لديك تذكرة مفتوحة بالفعل!\n${existingTicket.toString()}`,
-              flags: 64
+              ephemeral: true
             });
           }
 
+          // الحصول على عدد التذاكر الحالية و إنشاء رقم فريد
           const existingTicketCount = guild.channels.cache.filter(ch =>
             ch.name.startsWith('ticket-')
           ).size;
@@ -1180,33 +1245,21 @@ client.on('interactionCreate', async (interaction) => {
           const ticketNum = String(existingTicketCount + 1).padStart(3, '0');
           const channelName = `ticket-${ticketNum}`;
 
-          // أزرار التذكرة
-          const claimButton = new ButtonBuilder()
-            .setCustomId('claim_ticket')
-            .setLabel('Claim')
-            .setStyle(ButtonStyle.Success)
-            .setEmoji('✅');
-
-          const unclaimButton = new ButtonBuilder()
-            .setCustomId('unclaim_ticket')
-            .setLabel('Unclaim')
-            .setStyle(ButtonStyle.Primary);
-
           const closeButton = new ButtonBuilder()
             .setCustomId('close_ticket')
-            .setLabel('Close')
+            .setLabel('إغلاق التذكرة')
             .setStyle(ButtonStyle.Danger);
 
-          const row = new ActionRowBuilder().addComponents(claimButton, unclaimButton, closeButton);
+          const row = new ActionRowBuilder().addComponents(closeButton);
 
-          // صلاحيات القناة
+          // تحديد من يستلم الإشعار
+          const mentionedRoles = [];
           const permissionOverwrites = [
             { id: guild.id, deny: ['ViewChannel', 'SendMessages', 'ReadMessageHistory'] },
             { id: interaction.user.id, allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory', 'AttachFiles'] },
           ];
 
-          // إضافة الرولات المسموحة
-          const mentionedRoles = [];
+          // إضافة الرولات المسموحة من الـ Role IDs
           if (ticketSettings.allowedRoles.length > 0) {
             for (const roleId of ticketSettings.allowedRoles) {
               const role = guild.roles.cache.get(roleId);
@@ -1220,6 +1273,7 @@ client.on('interactionCreate', async (interaction) => {
             }
           }
 
+          // إضافة الرولات المسموحة من الأسماء
           if (ticketSettings.allowedRoleNames.length > 0) {
             for (const roleName of ticketSettings.allowedRoleNames) {
               const role = guild.roles.cache.find(r =>
@@ -1237,55 +1291,45 @@ client.on('interactionCreate', async (interaction) => {
 
           const ticketChannel = await guild.channels.create({
             name: channelName,
-            type: 0,
-            topic: `🎫 ${typeNames[ticketType]} | ${interaction.user.tag}`,
+            type: 0, // GUILD_TEXT
+            topic: `🎫 تذكرة ${typeNames[ticketType]} | المستخدم: ${interaction.user.tag}`,
             permissionOverwrites: permissionOverwrites,
           });
 
-          // حفظ وقت فتح التذكرة
-          client.ticketClaims.set(ticketChannel.id, {
-            claimedBy: null,
-            openedAt: Date.now(),
-            ticketType: ticketType,
-            user: interaction.user
-          });
-
-          // Unit S Ticket Embed - تصميم Hollywood
           const embed = new EmbedBuilder()
-            .setTitle(`${ticketSettings.ticketPrefix} | #${ticketNum} — ${typeNames[ticketType]}`)
-            .setColor(COLORS.unitSDark)
-            .setDescription(`<@${interaction.user.id}>\nThank you for opening a ticket. A staff member will be with you shortly.`)
+            .setTitle(`🎫 تذكرة #${ticketNum}`)
+            .setColor(COLORS.primary)
             .addFields(
-              {
-                name: '⏰ Opened',
-                value: `${formatTimeAgo(Date.now())}`,
-                inline: true
-              },
-              {
-                name: '📌 Status',
-                value: '🟡 Unclaimed',
-                inline: true
-              }
+              { name: 'نوع التذكرة:', value: typeNames[ticketType], inline: true },
+              { name: 'صاحب التذكرة:', value: interaction.user.username, inline: true },
+              { name: 'تاريخ الإنشاء:', value: new Date().toLocaleString('ar-SA'), inline: false },
+              { name: '⚠️ تنبيه:', value: 'يمكنك فتح **تذكرة واحدة فقط**!\nلفتح تذكرة جديدة، أغلق الحالية أولاً.', inline: false }
             )
-            .setFooter({ text: 'Unit S Support System' })
-            .setTimestamp();
+            .setDescription(`> مرحباً!\n> ${interaction.user} فتح تذكرة جديدة\n> اكتب سبب التذكرة وانتظر الرد\n> ⚠️ لا تقم بإغلاق هذه القناة بنفسك`);
 
-          // منشن الرولات
+          // بناء محتوى الإشعار مع mentioning الرولات
           let channelContent = interaction.user.toString();
+
+          // منشن الرول المحددة تلقائيا
           if (ticketSettings.mentionRoleId || ticketSettings.mentionRoleName) {
             let autoMentionRole = null;
+
             if (ticketSettings.mentionRoleId) {
               autoMentionRole = guild.roles.cache.get(ticketSettings.mentionRoleId);
             }
+
             if (!autoMentionRole && ticketSettings.mentionRoleName) {
               autoMentionRole = guild.roles.cache.find(r =>
                 r.name.toLowerCase().includes(ticketSettings.mentionRoleName.toLowerCase())
               );
             }
+
             if (autoMentionRole) {
               channelContent += ' ' + autoMentionRole.toString();
             }
           }
+
+          // إضافة الرولات المسموحة من الأسماء إذا موجودة
           if (mentionedRoles.length > 0) {
             channelContent += ' ' + mentionedRoles.map(r => r.toString()).join(' ');
           }
@@ -1298,172 +1342,36 @@ client.on('interactionCreate', async (interaction) => {
 
           await interaction.reply({
             content: `✅ تم إنشاء التذكرة #${ticketNum} بنجاح! <#${ticketChannel.id}>`,
-            flags: 64
+            ephemeral: true
           });
 
         } catch (error) {
           console.error('Ticket creation error:', error);
           await interaction.reply({
             content: `❌ حدث خطأ أثناء إنشاء التذكرة!\nالخطأ: \`${error.message}\``,
-            flags: 64
+            ephemeral: true
           });
         }
       }
     }
 
-    // Handle Button Interactions
+    // Handle Button
     if (interaction.isButton()) {
-      const channel = interaction.channel;
-      if (!channel || !channel.name.startsWith('ticket-')) return;
-
-      const ticketData = client.ticketClaims.get(channel.id);
-      if (!ticketData) return;
-
-      // Claim Button
-      if (interaction.customId === 'claim_ticket') {
-        if (!hasTicketAdminRole(interaction.member)) {
-          return await interaction.reply({
-            content: '❌ ليس لديك صلاحية لاستلام التذكرة!',
-            flags: 64
-          });
-        }
-
-        if (ticketData.claimedBy) {
-          return await interaction.reply({
-            content: '❌ هذه التذكرة تم استلامها مسبقاً!',
-            flags: 64
-          });
-        }
-
-        // تحديث بيانات التذكرة
-        ticketData.claimedBy = interaction.user;
-        client.ticketClaims.set(channel.id, ticketData);
-
-        // تحديث الأزرار - تعطيل Claim
-        const claimButton = new ButtonBuilder()
-          .setCustomId('claim_ticket')
-          .setLabel('Claim')
-          .setStyle(ButtonStyle.Success)
-          .setEmoji('✅')
-          .setDisabled(true);
-
-        const unclaimButton = new ButtonBuilder()
-          .setCustomId('unclaim_ticket')
-          .setLabel('Unclaim')
-          .setStyle(ButtonStyle.Primary);
-
-        const closeButton = new ButtonBuilder()
-          .setCustomId('close_ticket')
-          .setLabel('Close')
-          .setStyle(ButtonStyle.Danger);
-
-        const row = new ActionRowBuilder().addComponents(claimButton, unclaimButton, closeButton);
-
-        // Unit S Ticket Embed - تحديث
-        const embed = new EmbedBuilder()
-          .setTitle(channel.topic?.split('|')[0]?.trim()?.replace('🎫 ', '') || 'Unit S Tickets')
-          .setColor(COLORS.unitSDark)
-          .setDescription(`Welcome ${interaction.user}.\nThank you for opening a ticket. A staff member will be with you shortly.`)
-          .addFields(
-            {
-              name: '⏰ Opened',
-              value: `${formatTimeAgo(ticketData.openedAt)}`,
-              inline: true
-            },
-            {
-              name: '📌 Status',
-              value: `🟢 Claimed by ${interaction.user.username}`,
-              inline: true
-            }
-          )
-          .setFooter({ text: 'Unit S Support System' })
-          .setTimestamp();
-
-        // رسالة التأكيد
-        const confirmEmbed = new EmbedBuilder()
-          .setDescription(`✅ تم استلام التكت من قِبَل ${interaction.user}`)
-          .setColor(0x14b8a6)
-          .setTimestamp();
-
-        await interaction.reply({ embeds: [embed, confirmEmbed], components: [row] });
-
-        // منشن الأدمن
-        await channel.send(`${interaction.user}`);
-      }
-
-      // Unclaim Button
-      if (interaction.customId === 'unclaim_ticket') {
-        if (!hasTicketAdminRole(interaction.member)) {
-          return await interaction.reply({
-            content: '❌ ليس لديك صلاحية!',
-            flags: 64
-          });
-        }
-
-        if (ticketData.claimedBy?.id !== interaction.user.id) {
-          return await interaction.reply({
-            content: '❌ يمكنك فقط إلغاء استلام التذكرة التي استلمتها أنت!',
-            flags: 64
-          });
-        }
-
-        // تحديث بيانات التذكرة
-        ticketData.claimedBy = null;
-        client.ticketClaims.set(channel.id, ticketData);
-
-        // تحديث الأزرار
-        const claimButton = new ButtonBuilder()
-          .setCustomId('claim_ticket')
-          .setLabel('Claim')
-          .setStyle(ButtonStyle.Success)
-          .setEmoji('✅');
-
-        const unclaimButton = new ButtonBuilder()
-          .setCustomId('unclaim_ticket')
-          .setLabel('Unclaim')
-          .setStyle(ButtonStyle.Primary)
-          .setDisabled(true);
-
-        const closeButton = new ButtonBuilder()
-          .setCustomId('close_ticket')
-          .setLabel('Close')
-          .setStyle(ButtonStyle.Danger);
-
-        const row = new ActionRowBuilder().addComponents(claimButton, unclaimButton, closeButton);
-
-        // Unit S Ticket Embed - تحديث
-        const embed = new EmbedBuilder()
-          .setTitle(channel.topic?.split('|')[0]?.trim()?.replace('🎫 ', '') || 'Unit S Tickets')
-          .setColor(COLORS.unitSDark)
-          .setDescription(`Welcome ${ticketData.user}.\nThank you for opening a ticket. A staff member will be with you shortly.`)
-          .addFields(
-            {
-              name: '⏰ Opened',
-              value: `${formatTimeAgo(ticketData.openedAt)}`,
-              inline: true
-            },
-            {
-              name: '📌 Status',
-              value: '🟡 Unclaimed',
-              inline: true
-            }
-          )
-          .setFooter({ text: 'Unit S Support System' })
-          .setTimestamp();
-
-        await interaction.reply({ embeds: [embed], components: [row] });
-      }
-
-      // Close Button
       if (interaction.customId === 'close_ticket') {
+        // التحقق من صلاحية المستخدم
         if (!hasTicketAdminRole(interaction.member)) {
           return await interaction.reply({
-            content: '❌ ليس لديك صلاحية لإغلاق التذكرة!',
-            flags: 64
+            content: '❌ ليس لديك صلاحية لإغلاق هذه التذكرة!',
+            ephemeral: true
           });
         }
 
+        const channel = interaction.channel;
+
+        // حفظ اللوجس قبل حذف القناة
         await logTicketTranscript(channel, interaction.user, 'تم الإغلاق من زر');
+
+        // حذف القناة
         await interaction.reply('🔒 جاري إغلاق التذكرة...');
         setTimeout(() => channel.delete(), 1000);
       }
@@ -1504,13 +1412,13 @@ client.on('interactionCreate', async (interaction) => {
           .setFooter({ text: 'Unit S | التشفير' })
           .setTimestamp();
 
-        await interaction.reply({ embeds: [embed], flags: 64 });
+        await interaction.reply({ embeds: [embed], ephemeral: true });
       }
     }
   } catch (error) {
     console.error('Interaction error:', error);
     if (interaction.isRepliable()) {
-      await interaction.reply({ content: '❌ حدث خطأ!', flags: 64 }).catch(() => {});
+      await interaction.reply({ content: '❌ حدث خطأ!', ephemeral: true }).catch(() => {});
     }
   }
 });
@@ -1546,6 +1454,7 @@ client.on('messageCreate', async (message) => {
 function encryptText(text) {
   let result = text;
 
+  // Sort words by length (longest first) to avoid partial replacements
   const sortedWords = Object.keys(wordDictionary).sort((a, b) => b.length - a.length);
 
   for (const word of sortedWords) {
@@ -1573,8 +1482,9 @@ client.on('messageCreate', async (message) => {
   if (foundWords.length > 0) {
     await message.delete();
 
+    // Mute user for 10 minutes (Word Filter only)
     try {
-      await message.member.timeout(10 * 60 * 1000);
+      await message.member.timeout(10 * 60 * 1000); // 10 minutes
 
       const embed = new EmbedBuilder()
         .setTitle('🛡️ UNIT S -SECURITY ADMINISTRATION')
@@ -1582,6 +1492,7 @@ client.on('messageCreate', async (message) => {
         .setColor(COLORS.danger)
         .setTimestamp();
 
+      // إرسال DM للشخص المعني فقط (لا يراها غيره)
       await message.author.send({ embeds: [embed] }).catch(() => {});
 
       const logChannel = message.guild?.channels.cache.find(ch => ch.name === 'logs');
@@ -1622,8 +1533,9 @@ client.on('messageCreate', async (message) => {
 
     await message.delete();
 
+    // Mute user for 5 minutes
     try {
-      await message.member.timeout(5 * 60 * 1000);
+      await message.member.timeout(5 * 60 * 1000); // 5 minutes
 
       const embed = new EmbedBuilder()
         .setTitle('🛡️ UNIT S -SECURITY ADMINISTRATION')
@@ -1631,6 +1543,7 @@ client.on('messageCreate', async (message) => {
         .setColor(COLORS.danger)
         .setTimestamp();
 
+      // إرسال DM للشخص المعني فقط (لا يراها غيره)
       await message.author.send({ embeds: [embed] }).catch(() => {});
 
       const logChannel = message.guild?.channels.cache.find(ch => ch.name === 'logs');
@@ -1643,7 +1556,7 @@ client.on('messageCreate', async (message) => {
   }
 });
 
-// Anti-Link
+// Anti-Link (حظر جميع الروابط)
 client.on('messageCreate', async (message) => {
   if (message.author.bot) return;
   if (!protectionSettings.antiLink.enabled) return;
@@ -1657,8 +1570,9 @@ client.on('messageCreate', async (message) => {
   if (urls.length > 0) {
     await message.delete();
 
+    // Mute user for 5 minutes
     try {
-      await message.member.timeout(5 * 60 * 1000);
+      await message.member.timeout(5 * 60 * 1000); // 5 minutes
 
       const embed = new EmbedBuilder()
         .setTitle('🛡️ Unit S -SECURITY ADMINISTRATION')
@@ -1666,6 +1580,7 @@ client.on('messageCreate', async (message) => {
         .setColor(COLORS.danger)
         .setTimestamp();
 
+      // إرسال DM للشخص المعني فقط (لا يراها غيره)
       await message.author.send({ embeds: [embed] }).catch(() => {});
 
       const logChannel = message.guild?.channels.cache.find(ch => ch.name === 'logs');
@@ -1679,7 +1594,7 @@ client.on('messageCreate', async (message) => {
 });
 
 // ============ READY EVENT ============
-client.on('clientReady', () => {
+client.on('ready', () => {
   console.log(`✅ Unit S Bot is online!`);
   console.log(`👤 Logged as: ${client.user.tag}`);
   console.log(`📊 Servers: ${client.guilds.cache.size}`);
