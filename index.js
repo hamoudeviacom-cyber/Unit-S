@@ -23,14 +23,25 @@ client.encryptedPosts = new Collection();
 client.ticketCounter = 0;
 client.ticketClaims = new Collection(); // لتتبع من استلم التذكرة
 
+// ============ Ticket Settings ============
+const COLORS = {
+  unitS: 0x8B5CF6,
+  unitSDark: 0x1E1B4B,
+  danger: 0xDC2626,
+  success: 0x10B981,
+  warning: 0xF59E0B,
+  info: 0x3B82F6,
+};
+
 const ticketSettings = {
   allowedRoles: [],
   allowedRoleNames: [],
-  ticketAdminRoles: [1494477908754956288],
-  ticketAdminRoleNames: ['اداره', 'ادارة', 'admin', 'support', 'support team'],
+  ticketAdminRoles: [],
+  ticketAdminRoleNames: ['عمر', 'ا'],
+  ticketAdminUsers: ['عمر'], // المستخدمين المسموح لهم بإدارة التذاكر
   logsChannelId: null,
   mentionRoleId: null,
-  mentionRoleName: 'support team',
+  mentionRoleName: null,
   // إعدادات التكت
   ticketPanelTitle: 'Unit S Tickets',
   welcomeTitle: 'Welcome To Unit S support',
@@ -389,17 +400,32 @@ const COLORS = {
 function hasTicketAdminRole(member) {
   if (!member) return false;
 
+  // صلاحيات ManageChannels
   if (member.permissions.has('ManageChannels')) return true;
 
+  // التحقق من الرولات بالأيدي
   for (const roleId of ticketSettings.ticketAdminRoles) {
     if (member.roles.cache.has(roleId)) return true;
   }
 
+  // التحقق من الرولات بالأسماء
   for (const roleName of ticketSettings.ticketAdminRoleNames) {
     const role = member.roles.cache.find(r =>
       r.name.toLowerCase().includes(roleName.toLowerCase())
     );
     if (role) return true;
+  }
+
+  // التحقق من اسم المستخدم مباشرة
+  if (ticketSettings.ticketAdminUsers && ticketSettings.ticketAdminUsers.length > 0) {
+    const userName = member.user?.username?.toLowerCase() || '';
+    const displayName = member.displayName?.toLowerCase() || '';
+
+    for (const adminName of ticketSettings.ticketAdminUsers) {
+      if (userName.includes(adminName.toLowerCase()) || displayName.includes(adminName.toLowerCase())) {
+        return true;
+      }
+    }
   }
 
   return false;
