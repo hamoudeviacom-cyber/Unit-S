@@ -40,7 +40,7 @@ const ticketSettings = {
   ticketAdminRoles: [],
   ticketAdminRoleNames: ['عمر', 'ا'],
   ticketAdminUsers: ['عمر'], // المستخدمين المسموح لهم بإدارة التذاكر
-  logsChannelId: null,
+  logsChannelId: ['1494726640117223434'],
   mentionRoleId: null,
   mentionRoleName: null,
   // إعدادات التكت
