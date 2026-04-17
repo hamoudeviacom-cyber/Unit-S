@@ -37,10 +37,10 @@ const ticketSettings = {
   allowedRoles: [],
   allowedRoleNames: [],
   ticketAdminRoles: [],
-  ticketAdminRoleNames: ['اداره', 'ادارة', 'admin', 'support', 'support team'],
+  ticketAdminRoleNames: [],
   logsChannelId: null,
   mentionRoleId: null,
-  mentionRoleName: 'اداره',
+  mentionRoleName: null,
   // إعدادات التكت
   ticketPanelTitle: 'Unit S Tickets',
   welcomeTitle: 'Welcome To Unit S support',
@@ -384,16 +384,6 @@ const protectionSettings = {
 // Anti-Spam Tracker
 const antiSpamTracker = new Map();
 
-// ============ EMBED COLORS ============
-const COLORS = {
-  primary: 0x667eea,
-  success: 0x10b981,
-  warning: 0xf59e0b,
-  danger: 0xef4444,
-  unitS: 0x6366f1, // Unit S brand color
-  unitSDark: 0x1e1e2e, // Dark background
-};
-
 // ============ TICKET HELPER FUNCTIONS ============
 
 function hasTicketAdminRole(member) {
@@ -560,10 +550,10 @@ client.commands.set('ping', {
   },
 });
 
-// ============ TICKET MENU - Unit S Design ============
+// ============ TICKET MENU - Hollywood Style (Message with integrated Select) ============
 client.commands.set('ticket', {
   name: 'ticket',
-  description: 'Open ticket menu - Unit S design',
+  description: 'Open ticket menu - Hollywood style',
   execute: async (message) => {
     if (!hasAllowedRole(message.member)) {
       await message.channel.send('❌ ليس لديك صلاحية لفتح تذكرة!');
@@ -571,15 +561,16 @@ client.commands.set('ticket', {
       return;
     }
 
-    const embed = new EmbedBuilder()
-      .setTitle(`🎫 ${ticketSettings.ticketPanelTitle} :`)
-      .setDescription(`${ticketSettings.welcomeTitle}\n${ticketSettings.welcomeSubtitle}`)
-      .setColor(COLORS.unitSDark)
-      .setFooter({ text: 'Unit S | Support System' });
+    // Hollywood Style - Message content with Select Menu in same row
+    const ticketMessage = `━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎫 **Unit S Tickets**
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+**Welcome To Unit S Support**
+Choose The Ticket That You Want To Open`;
 
     const selectMenu = new StringSelectMenuBuilder()
       .setCustomId('ticket_select')
-      .setPlaceholder('Choose The Ticket...')
+      .setPlaceholder('🎫 Choose The Ticket...')
       .addOptions([
         new StringSelectMenuOptionBuilder({
           label: 'دعم فني',
@@ -599,10 +590,22 @@ client.commands.set('ticket', {
           value: 'inquiry',
           emoji: '❓',
         }),
+        new StringSelectMenuOptionBuilder({
+          label: 'شراكة',
+          description: 'للاستفسار عن الشراكة',
+          value: 'partnership',
+          emoji: '🤝',
+        }),
       ]);
 
     const row = new ActionRowBuilder().addComponents(selectMenu);
-    await message.channel.send({ embeds: [embed], components: [row] });
+
+    // Send message + select menu together
+    await message.channel.send({
+      content: ticketMessage,
+      components: [row]
+    });
+
     if (!message.deleted) message.delete().catch(() => {});
   },
 });
@@ -1131,7 +1134,8 @@ client.on('interactionCreate', async (interaction) => {
         const typeNames = {
           support: 'دعم فني',
           complaint: 'شكاوي',
-          inquiry: 'استفسار'
+          inquiry: 'استفسار',
+          partnership: 'شراكة'
         };
 
         const guild = interaction.guild;
