@@ -23,24 +23,14 @@ client.encryptedPosts = new Collection();
 client.ticketCounter = 0;
 client.ticketClaims = new Collection(); // لتتبع من استلم التذكرة
 
-// ============ Ticket Settings ============
-const COLORS = {
-  unitS: 0x8B5CF6,
-  unitSDark: 0x1E1B4B,
-  danger: 0xDC2626,
-  success: 0x10B981,
-  warning: 0xF59E0B,
-  info: 0x3B82F6,
-};
-
 const ticketSettings = {
   allowedRoles: [],
   allowedRoleNames: [],
-  ticketAdminRoles: [],
-  ticketAdminRoleNames: [],
+  ticketAdminRoles: [1494477908754956288],
+  ticketAdminRoleNames: ['اداره', 'ادارة', 'admin', 'support', 'support team'],
   logsChannelId: null,
   mentionRoleId: null,
-  mentionRoleName: null,
+  mentionRoleName: 'support team',
   // إعدادات التكت
   ticketPanelTitle: 'Unit S Tickets',
   welcomeTitle: 'Welcome To Unit S support',
