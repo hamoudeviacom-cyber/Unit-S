@@ -21,37 +21,96 @@ const client = new Client({
 client.commands = new Collection();
 client.encryptedPosts = new Collection();
 client.ticketCounter = 0;
+client.ticketClaims = new Collection(); // لتتبع من استلم التذكرة
 
 // ============ Ticket Settings ============
+const COLORS = {
+  unitS: 0x8B5CF6,
+  unitSDark: 0x1E1B4B,
+  danger: 0xDC2626,
+  success: 0x10B981,
+  warning: 0xF59E0B,
+  info: 0x3B82F6,
+  primary: 0x667eea,
+};
+
+// ============ Log Channels Settings ============
+const logSettings = {
+  allLog: null,          // # all-log
+  banLog: null,          // # ban-log
+  kickLog: null,         // # kick-log
+  timeoutLog: null,      // # timeout-log
+  messagesLog: null,     // # messages-log
+  roomsLog: null,        // # rooms-log
+  joinLeaveLog: null,    // # join-leave
+  rolesLog: null,        // # roles-log
+};
+
+// Admin roles for moderation commands
+const modSettings = {
+  adminRoles: [],           // الرولات المسموح لها بالحظر والطرد
+  adminRoleNames: ['عمر', 'ا'],  // بالأسماء
+  adminUsers: ['عمر'],     // المستخدمين المسموح لهم
+};
+
 const ticketSettings = {
   allowedRoles: [],
   allowedRoleNames: [],
   ticketAdminRoles: [],
-  ticketAdminRoleNames: [],
+  ticketAdminRoleNames: ['عمر', 'ا'],
+  ticketAdminUsers: ['عمر'], // المستخدمين المسموح لهم بإدارة التذاكر
   logsChannelId: null,
   mentionRoleId: null,
   mentionRoleName: null,
+  // إعدادات التكت
+  ticketPanelTitle: 'Unit S Tickets',
+  welcomeTitle: 'Welcome To Unit S support',
+  welcomeSubtitle: 'Choose The Ticket That You Want To Open',
+  ticketPrefix: 'Unit S Tickets',
 };
 
 // ============ Word Encryption Dictionary ============
 const wordDictionary = {
+    // حروف مفردة
+
+
+   "جيميلات": "جيـmـيلات",
+    "جيميل": "جيـmـيل",
+    "أيميلات": "أيـmـيلات",
+    "أيميل": "أيـmـيل",
+    "الأيميل": "الأيـmـيل",
+    "كرانشي": "كرانـshـي",
+    "جيمنج": "جيـmـنج",
+    "عايز": "3ايز",
+    "فيزات": "فيـZـات",
+    "فيزا": "فيـZـا",
+    "بلوكس": "بلـ9ـكس",
+    "روبلوكس": "ر9بلـkـس",
+    "روبوكس": "ر9ـبوكس",
+    "نيتروهات": "نيتر97ـات",
+    "نيترو": "نيتر9",
+    "روب": "ر9ب",
+    "لوقوا": "لوقـqـا",
+    "جيفت": "جيـFـت",
+    "حساب": "7ـساب",
+    "حسابات": "7ـسابات",
+    "حسابك": "7ـسابـk",
     "يوزرات": "يـ9ـزرات",
     "يوزر": "يـ9ـزر",
     "سيرفرات": "سيـRـفرات",
     "السيرفر": "السيـRـفر",
     "سيرفر": "سيـRـفر",
-    "للبيع": "للبيـ3",
-    "وسيط": "9ـسـيـt",
-    "دسكورد": "ديسـkـ9رد",
-    "فلوس": "فلـ9ـس",
     "الدفع": "الـDـفـ3",
+    "للبيع": "للبيـ3",
+    "وسيط": "9ـسـي_t",
+    "دسكورد": "ديسـkـ9رد",
+    "ديسكورد": "ديسـkـ9رد",
+    "فلوس": "فلـ9ـس",
     "ستيم": "ستيـm",
     "تهكير": "Tهـkـير",
     "رابط": "ر1بط",
     "أيدي": "١دي",
     "أداة": "١د١ة",
-    "الأيميل": "الأيـmـيل",
-    "أيميل": "أيـmـيل",
     "تشتري": "تشـtـري",
     "اسعارنا": "اسـ3ـارنا",
     "اعضاء": "اعـ3ـاء",
@@ -63,11 +122,10 @@ const wordDictionary = {
     "شراء": "شر1ء",
     "بيع": "بيـ3",
     "سعر": "سـ3ـر",
-    "سومك": "سـ9ـمـk",
-    "خاصي": "خـ1صي",
     "سعرك": "سـ3ـرk",
     "السعر": "الـ5ـ3ـر",
-    "ديسكورد": "ديسـkـ9رد",
+    "سومك": "سـ9ـمـk",
+    "خاصي": "خـ1صي",
     "انواع": "انـ9ـ1ع",
     "الدفعة": "الـDـفـ3ـة",
     "بوتات": "بـ9ـتات",
@@ -78,24 +136,18 @@ const wordDictionary = {
     "انشاء": "انشـ1ء",
     "مقابل": "مقـ1بل",
     "الجوال": "الجـ9ـ1ل",
-    "نيتروهات": "نيتر97ـات",
-    "روبلوكس": "ر9بلـkـس",
-    "حسابات": "7ـسابات",
-    "حسابك": "7ـسابـk",
-    "أسعار": "أسـ3ـ1ر",
-    "اسعاري": "اسـ3ـاري",
     "جواهر": "جـ9ـاهر",
     "بالسوق": "بالسـ9ـq",
     "السوق": "الـ5ـوق",
     "سوق": "5ـ9ـq",
     "طريقة": "طريـkـة",
+    "طرق": "طرk",
+    "طر9": "طر9",
     "توكن": "تـ9ـكـn",
+    "بروجكتات": "بر9جكتات",
     "بروجكت": "بر9جـkـت",
     "ايفون": "ايـFـون",
     "متوفر": "متـ9ـفر",
-    "بروجكتات": "بر9جكتات",
-    "روبوكس": "ر9ـبوكس",
-    "نيترو": "نيتر9",
     "لايكات": "لايـkـات",
     "انستا": "انسـtـا",
     "كريدت": "كريـDـت",
@@ -106,7 +158,6 @@ const wordDictionary = {
     "مطلوب": "مـtـل9ب",
     "استفسار": "استفسـ1ر",
     "تسليم": "تـ5ـليم",
-    "طرق": "طرk",
     "يوتيوب": "يـ9ـتيوب",
     "جوجل": "جـ9ـجل",
     "جيملات": "جيـmـلات",
@@ -262,12 +313,6 @@ const protectionSettings = {
       'فساد', 'فساد انت', 'افساد', 'فسد',
       'سحق', 'سحق انت', 'اسحق', 'سحاق',
       'زنق', 'زنقة', 'زنق انت', 'ازنق',
-      'طخ', 'طخة', 'طخ انت', 'اطخ',
-      'شنخ', 'شنخة', 'شنخ انت', 'اشنخ',
-      'زمخ', 'زمخة', 'زمخ انت', 'ازمخ',
-      'زنخ', 'زنخة', 'زنخ انت', 'ازنخ',
-      'طمخ', 'طمخة', 'طمخ انت', 'اطمخ',
-      'ضرس', 'ضرس انت', 'اضرس', 'ضرسين',
       'سب', 'سبك', 'سبه', 'سبها', 'سبوني',
       'شتم', 'شتمك', 'شتمه', 'شتمها', 'شتموني',
       'هن', 'هنك', 'هنه', 'اهن',
@@ -354,27 +399,6 @@ const protectionSettings = {
       'فسق', 'فسق انت', 'افسق', 'فسوق',
       'فساد', 'فساد انت', 'افساد', 'فسد',
       'سحق', 'سحق انت', 'اسحق', 'سحاق',
-      'زنق', 'زنقة', 'زنق انت', 'ازنق',
-      'سب', 'سبك', 'سبه', 'سبها', 'سبوني',
-      'شتم', 'شتمك', 'شتمه', 'شتمها', 'شتموني',
-      'هن', 'هنك', 'هنه', 'اهن',
-      'ذل', 'ذلك', 'ذله', 'اذل',
-      'ذل', 'ذلت', 'ذلت انت', 'اذلتك',
-      'سباكة', 'سباك', 'سباكة انت',
-      'فسخ', 'فسخة', 'فسخ انت', 'افسخ',
-      'زنخ', 'زنخة', 'زنخ انت', 'ازنخ',
-      'خبل', 'خبل انت', 'اخبل', 'خبلان',
-      'خدر', 'خدر انت', 'اخدر', 'خدران',
-      'زن', 'زنة', 'زن انت', 'ازن',
-      'عرص', 'عرصك', 'عرصه', 'عرصها',
-      'طمث', 'طمثة', 'طمث انت', 'اطمث',
-      'سمم', 'سممت', 'سمم انت', 'اسمم',
-      'سم', 'سمك', 'سمك انت', 'سممه',
-      'نجس', 'نجسة', 'نجس انت', 'انجس',
-      'خبث', 'خبث انت', 'اخبث', 'خبثان',
-      'فسق', 'فسق انت', 'افسق', 'فسوق',
-      'فساد', 'فساد انت', 'افساد', 'فسد',
-      'سحق', 'سحق انت', 'اسحق', 'سحاق',
       'زنق', 'زنقة', 'زنق انت', 'ازنق'
     ],
     action: 'delete',
@@ -397,24 +421,22 @@ const protectionSettings = {
 const antiSpamTracker = new Map();
 
 // ============ EMBED COLORS ============
-const COLORS = {
-  primary: 0x667eea,
-  success: 0x10b981,
-  warning: 0xf59e0b,
-  danger: 0xef4444,
-};
+// ملاحظة: COLORS معرّف مسبقاً في السطر 27
 
 // ============ TICKET HELPER FUNCTIONS ============
 
 function hasTicketAdminRole(member) {
   if (!member) return false;
 
+  // صلاحيات ManageChannels
   if (member.permissions.has('ManageChannels')) return true;
 
+  // التحقق من الرولات بالأيدي
   for (const roleId of ticketSettings.ticketAdminRoles) {
     if (member.roles.cache.has(roleId)) return true;
   }
 
+  // التحقق من الرولات بالأسماء
   for (const roleName of ticketSettings.ticketAdminRoleNames) {
     const role = member.roles.cache.find(r =>
       r.name.toLowerCase().includes(roleName.toLowerCase())
@@ -422,7 +444,169 @@ function hasTicketAdminRole(member) {
     if (role) return true;
   }
 
+  // التحقق من اسم المستخدم مباشرة
+  if (ticketSettings.ticketAdminUsers && ticketSettings.ticketAdminUsers.length > 0) {
+    const userName = member.user?.username?.toLowerCase() || '';
+    const displayName = member.displayName?.toLowerCase() || '';
+
+    for (const adminName of ticketSettings.ticketAdminUsers) {
+      if (userName.includes(adminName.toLowerCase()) || displayName.includes(adminName.toLowerCase())) {
+        return true;
+      }
+    }
+  }
+
   return false;
+}
+
+// ============ MODERATION HELPER FUNCTIONS ============
+function hasModRole(member) {
+  if (!member) return false;
+
+  // صلاحيات المودريشن
+  if (member.permissions.has('BanMembers')) return true;
+  if (member.permissions.has('KickMembers')) return true;
+
+  // التحقق من الرولات بالأيدي
+  for (const roleId of modSettings.adminRoles) {
+    if (member.roles.cache.has(roleId)) return true;
+  }
+
+  // التحقق من الرولات بالأسماء
+  for (const roleName of modSettings.adminRoleNames) {
+    const role = member.roles.cache.find(r =>
+      r.name.toLowerCase().includes(roleName.toLowerCase())
+    );
+    if (role) return true;
+  }
+
+  // التحقق من اسم المستخدم مباشرة
+  if (modSettings.adminUsers && modSettings.adminUsers.length > 0) {
+    const userName = member.user?.username?.toLowerCase() || '';
+    const displayName = member.displayName?.toLowerCase() || '';
+
+    for (const adminName of modSettings.adminUsers) {
+      if (userName.includes(adminName.toLowerCase()) || displayName.includes(adminName.toLowerCase())) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+// ============ LOGGING FUNCTIONS ============
+async function sendLog(guild, logType, embed) {
+  const channelMap = {
+    all: logSettings.allLog,
+    ban: logSettings.banLog,
+    kick: logSettings.kickLog,
+    timeout: logSettings.timeoutLog,
+    messages: logSettings.messagesLog,
+    rooms: logSettings.roomsLog,
+    joinLeave: logSettings.joinLeaveLog,
+    roles: logSettings.rolesLog,
+  };
+
+  const channelId = channelMap[logType];
+  if (channelId) {
+    const channel = guild.channels.cache.get(channelId);
+    if (channel) {
+      await channel.send({ embeds: [embed] });
+    }
+  }
+
+  // Send to all-log if set
+  if (logSettings.allLog && logType !== 'all') {
+    const allChannel = guild.channels.cache.get(logSettings.allLog);
+    if (allChannel) {
+      await allChannel.send({ embeds: [embed] });
+    }
+  }
+}
+
+async function logBan(guild, moderator, target, reason) {
+  const embed = new EmbedBuilder()
+    .setTitle('🔨 BAN LOG')
+    .setColor(0xDC2626)
+    .addFields(
+      { name: '🔨 Admin', value: moderator.tag || moderator.username, inline: true },
+      { name: '👤 Banned User', value: target.tag || target.username, inline: true },
+      { name: '🆔 User ID', value: target.id, inline: true },
+      { name: '📝 Reason', value: reason || 'No reason provided', inline: false },
+      { name: '⏰ Time', value: new Date().toLocaleString('ar-SA'), inline: false }
+    )
+    .setFooter({ text: 'Unit S - Moderation' })
+    .setTimestamp();
+
+  await sendLog(guild, 'ban', embed);
+}
+
+async function logKick(guild, moderator, target, reason) {
+  const embed = new EmbedBuilder()
+    .setTitle('🦵 KICK LOG')
+    .setColor(0xF59E0B)
+    .addFields(
+      { name: '🦵 Admin', value: moderator.tag || moderator.username, inline: true },
+      { name: '👤 Kicked User', value: target.tag || target.username, inline: true },
+      { name: '🆔 User ID', value: target.id, inline: true },
+      { name: '📝 Reason', value: reason || 'No reason provided', inline: false },
+      { name: '⏰ Time', value: new Date().toLocaleString('ar-SA'), inline: false }
+    )
+    .setFooter({ text: 'Unit S - Moderation' })
+    .setTimestamp();
+
+  await sendLog(guild, 'kick', embed);
+}
+
+async function logTimeout(guild, moderator, target, duration, reason) {
+  const embed = new EmbedBuilder()
+    .setTitle('⏱️ TIMEOUT LOG')
+    .setColor(0x8B5CF6)
+    .addFields(
+      { name: '👮 Admin', value: moderator.tag || moderator.username, inline: true },
+      { name: '👤 User', value: target.tag || target.username, inline: true },
+      { name: '🆔 User ID', value: target.id, inline: true },
+      { name: '⏱️ Duration', value: duration || 'Unknown', inline: true },
+      { name: '📝 Reason', value: reason || 'No reason provided', inline: false },
+      { name: '⏰ Time', value: new Date().toLocaleString('ar-SA'), inline: false }
+    )
+    .setFooter({ text: 'Unit S - Moderation' })
+    .setTimestamp();
+
+  await sendLog(guild, 'timeout', embed);
+}
+
+async function logMemberJoin(guild, member) {
+  const embed = new EmbedBuilder()
+    .setTitle('✅ MEMBER JOINED')
+    .setColor(0x10B981)
+    .addFields(
+      { name: '👤 User', value: member.user?.tag || 'Unknown', inline: true },
+      { name: '🆔 User ID', value: member.id, inline: true },
+      { name: '📅 Joined Server', value: new Date(member.joinedTimestamp).toLocaleString('ar-SA'), inline: false },
+      { name: '⏰ Time', value: new Date().toLocaleString('ar-SA'), inline: false }
+    )
+    .setFooter({ text: 'Unit S - Moderation' })
+    .setTimestamp();
+
+  await sendLog(guild, 'joinLeave', embed);
+}
+
+async function logMemberLeave(guild, member, kicker) {
+  const embed = new EmbedBuilder()
+    .setTitle('👋 MEMBER LEFT')
+    .setColor(0xF59E0B)
+    .addFields(
+      { name: '👤 User', value: member.user?.tag || 'Unknown', inline: true },
+      { name: '🆔 User ID', value: member.id, inline: true },
+      { name: '👮 Removed By', value: kicker ? `${kicker.tag || kicker.username}` : 'Left voluntarily', inline: true },
+      { name: '⏰ Time', value: new Date().toLocaleString('ar-SA'), inline: false }
+    )
+    .setFooter({ text: 'Unit S - Moderation' })
+    .setTimestamp();
+
+  await sendLog(guild, 'joinLeave', embed);
 }
 
 function hasAllowedRole(member) {
@@ -444,6 +628,19 @@ function hasAllowedRole(member) {
   }
 
   return false;
+}
+
+function formatTimeAgo(timestamp) {
+  const now = Date.now();
+  const diff = now - timestamp;
+  const minutes = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
+
+  if (days > 0) return `${days} day${days > 1 ? 's' : ''} ago`;
+  if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+  if (minutes > 0) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+  return 'Just now';
 }
 
 async function logTicketTranscript(channel, closedBy, reason = 'لم يذكر') {
@@ -498,8 +695,15 @@ client.commands.set('help', {
   execute: async (message) => {
     const embed = new EmbedBuilder()
       .setTitle('Unit S - قائمة الأوامر')
-      .setColor(COLORS.primary)
+      .setColor(0xDC2626)
       .addFields(
+        { name: '🔨 الأدمن', value:
+          '`!ban @user [reason]` - حظر عضو\n' +
+          '`!unban [user_id]` - إلغاء الحظر\n' +
+          '`!kick @user [reason]` - طرد عضو\n' +
+          '`!logs` - إعدادات اللوج\n' +
+          '`!logs set [type] #channel` - تعيين قناة اللوج\n' +
+          '`!modsettings` - إعدادات الأدمن', inline: false },
         { name: '🎫 التذاكر', value:
           '`!ticket` - فتح قائمة التذاكر\n' +
           '`!tmanage` - عرض قائمة التذاكر\n' +
@@ -545,7 +749,7 @@ client.commands.set('ping', {
 
     const embed = new EmbedBuilder()
       .setTitle('🏓 Pong!')
-      .setColor(COLORS.success)
+      .setColor(0xDC2626)
       .addFields(
         { name: 'Latency', value: `${ping}ms`, inline: true },
         { name: 'API Ping', value: `${apiPing}ms`, inline: true }
@@ -557,10 +761,598 @@ client.commands.set('ping', {
   },
 });
 
-// ============ TICKET MENU ============
+// ============ BAN COMMAND ============
+client.commands.set('ban', {
+  name: 'ban',
+  description: 'Ban a user from the server',
+  execute: async (message, args) => {
+    // Check permissions
+    if (!message.member.permissions.has('BanMembers')) {
+      if (!hasModRole(message.member)) {
+        await message.channel.send('❌ ليس لديك صلاحية!');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+    }
+
+    // Parse arguments
+    const user = message.mentions.users.first();
+    const userId = args.find(arg => !arg.startsWith('<@') && !arg.startsWith('!'));
+    let reason = args.slice(user ? 1 : 0).join(' ') || 'No reason provided';
+
+    let targetUser = user;
+
+    // If no mention, try to fetch by ID
+    if (!targetUser && userId) {
+      try {
+        targetUser = await client.users.fetch(userId);
+      } catch (err) {
+        await message.channel.send('❌ لم يتم العثور على المستخدم!');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+    }
+
+    if (!targetUser) {
+      const embed = new EmbedBuilder()
+        .setTitle('🔨 BAN COMMAND')
+        .setColor(0xDC2626)
+        .addFields(
+          { name: 'Usage:', value: '`!ban @user [reason]` or `!ban [user_id] [reason]`', inline: false },
+          { name: 'Example:', value: '`!ban @username spamming`\n`!ban 123456789 spamming`', inline: false }
+        )
+        .setFooter({ text: 'Unit S - Moderation' });
+      await message.channel.send({ embeds: [embed] });
+      if (!message.deleted) message.delete().catch(() => {});
+      return;
+    }
+
+    // Get member from guild
+    const guild = message.guild;
+    let targetMember;
+    try {
+      targetMember = await guild.members.fetch(targetUser.id);
+    } catch (err) {
+      // User not in server
+    }
+
+    // Check if trying to ban higher role
+    if (targetMember) {
+      if (targetMember.roles.highest.position >= message.member.roles.highest.position && message.guild.ownerId !== message.member.id) {
+        await message.channel.send('❌ لا يمكنك حظر هذا العضو!');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+    }
+
+    // Ban the user
+    try {
+      await guild.members.ban(targetUser.id, { reason: `By: ${message.author.tag} | Reason: ${reason}` });
+
+      // Log the ban
+      await logBan(guild, message.author, targetUser, reason);
+
+      // Confirmation message
+      const embed = new EmbedBuilder()
+        .setTitle('🔨 USER BANNED')
+        .setColor(0xDC2626)
+        .addFields(
+          { name: '👤 Banned User', value: `${targetUser.tag}`, inline: true },
+          { name: '📝 Reason', value: reason, inline: true },
+          { name: '🔨 By Admin', value: message.author.tag, inline: true }
+        )
+        .setFooter({ text: 'Unit S - Moderation' })
+        .setTimestamp();
+
+      await message.channel.send({ embeds: [embed] });
+      if (!message.deleted) message.delete().catch(() => {});
+
+    } catch (err) {
+      console.error('Ban error:', err);
+      await message.channel.send(`❌ حدث خطأ أثناء الحظر: ${err.message}`);
+      if (!message.deleted) message.delete().catch(() => {});
+    }
+  },
+});
+
+// ============ UNBAN COMMAND ============
+client.commands.set('unban', {
+  name: 'unban',
+  description: 'Unban a user from the server',
+  execute: async (message, args) => {
+    // Check permissions
+    if (!message.member.permissions.has('BanMembers')) {
+      if (!hasModRole(message.member)) {
+        await message.channel.send('❌ ليس لديك صلاحية!');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+    }
+
+    if (args.length === 0) {
+      const embed = new EmbedBuilder()
+        .setTitle('🔓 UNBAN COMMAND')
+        .setColor(0x10B981)
+        .addFields(
+          { name: 'Usage:', value: '`!unban [user_id]`', inline: false },
+          { name: 'Example:', value: '`!unban 123456789`', inline: false }
+        )
+        .setFooter({ text: 'Unit S - Moderation' });
+      await message.channel.send({ embeds: [embed] });
+      if (!message.deleted) message.delete().catch(() => {});
+      return;
+    }
+
+    const userId = args[0];
+
+    try {
+      const user = await client.users.fetch(userId);
+      await message.guild.members.unban(userId);
+
+      // Log the unban
+      const embed = new EmbedBuilder()
+        .setTitle('🔓 USER UNBANNED')
+        .setColor(0x10B981)
+        .addFields(
+          { name: '👤 Unbanned User', value: user.tag, inline: true },
+          { name: '🔓 By Admin', value: message.author.tag, inline: true }
+        )
+        .setFooter({ text: 'Unit S - Moderation' })
+        .setTimestamp();
+
+      await message.channel.send({ embeds: [embed] });
+
+      // Send to ban log
+      const banLogEmbed = new EmbedBuilder()
+        .setTitle('🔓 UNBAN LOG')
+        .setColor(0x10B981)
+        .addFields(
+          { name: '🔓 Admin', value: message.author.tag, inline: true },
+          { name: '👤 Unbanned User', value: user.tag, inline: true },
+          { name: '🆔 User ID', value: userId, inline: true },
+          { name: '⏰ Time', value: new Date().toLocaleString('ar-SA'), inline: false }
+        )
+        .setFooter({ text: 'Unit S - Moderation' })
+        .setTimestamp();
+
+      await sendLog(message.guild, 'ban', banLogEmbed);
+
+      if (!message.deleted) message.delete().catch(() => {});
+
+    } catch (err) {
+      console.error('Unban error:', err);
+      await message.channel.send('❌ لم يتم العثور على المستخدم أو حدث خطأ!');
+      if (!message.deleted) message.delete().catch(() => {});
+    }
+  },
+});
+
+// ============ KICK COMMAND ============
+client.commands.set('kick', {
+  name: 'kick',
+  description: 'Kick a user from the server',
+  execute: async (message, args) => {
+    // Check permissions
+    if (!message.member.permissions.has('KickMembers')) {
+      if (!hasModRole(message.member)) {
+        await message.channel.send('❌ ليس لديك صلاحية!');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+    }
+
+    // Parse arguments
+    const user = message.mentions.users.first();
+    const userId = args.find(arg => !arg.startsWith('<@') && !arg.startsWith('!'));
+    let reason = args.slice(user ? 1 : 0).join(' ') || 'No reason provided';
+
+    let targetUser = user;
+
+    // If no mention, try to fetch by ID
+    if (!targetUser && userId) {
+      try {
+        targetUser = await client.users.fetch(userId);
+      } catch (err) {
+        await message.channel.send('❌ لم يتم العثور على المستخدم!');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+    }
+
+    if (!targetUser) {
+      const embed = new EmbedBuilder()
+        .setTitle('🦵 KICK COMMAND')
+        .setColor(0xF59E0B)
+        .addFields(
+          { name: 'Usage:', value: '`!kick @user [reason]` or `!kick [user_id] [reason]`', inline: false },
+          { name: 'Example:', value: '`!kick @username rule break`\n`!kick 123456789 rule break`', inline: false }
+        )
+        .setFooter({ text: 'Unit S - Moderation' });
+      await message.channel.send({ embeds: [embed] });
+      if (!message.deleted) message.delete().catch(() => {});
+      return;
+    }
+
+    // Get member from guild
+    const guild = message.guild;
+    let targetMember;
+    try {
+      targetMember = await guild.members.fetch(targetUser.id);
+    } catch (err) {
+      await message.channel.send('❌ هذا العضو غير موجود في السيرفر!');
+      if (!message.deleted) message.delete().catch(() => {});
+      return;
+    }
+
+    // Check if trying to kick higher role
+    if (targetMember.roles.highest.position >= message.member.roles.highest.position && message.guild.ownerId !== message.member.id) {
+      await message.channel.send('❌ لا يمكنك طرد هذا العضو!');
+      if (!message.deleted) message.delete().catch(() => {});
+      return;
+    }
+
+    // Kick the user
+    try {
+      await targetMember.kick(`By: ${message.author.tag} | Reason: ${reason}`);
+
+      // Log the kick
+      await logKick(guild, message.author, targetUser, reason);
+
+      // Confirmation message
+      const embed = new EmbedBuilder()
+        .setTitle('🦵 USER KICKED')
+        .setColor(0xF59E0B)
+        .addFields(
+          { name: '👤 Kicked User', value: `${targetUser.tag}`, inline: true },
+          { name: '📝 Reason', value: reason, inline: true },
+          { name: '🦵 By Admin', value: message.author.tag, inline: true }
+        )
+        .setFooter({ text: 'Unit S - Moderation' })
+        .setTimestamp();
+
+      await message.channel.send({ embeds: [embed] });
+      if (!message.deleted) message.delete().catch(() => {});
+
+    } catch (err) {
+      console.error('Kick error:', err);
+      await message.channel.send(`❌ حدث خطأ أثناء الطرد: ${err.message}`);
+      if (!message.deleted) message.delete().catch(() => {});
+    }
+  },
+});
+
+// ============ LOGS COMMAND ============
+client.commands.set('logs', {
+  name: 'logs',
+  description: 'Manage log channels',
+  execute: async (message, args) => {
+    // Check permissions
+    if (!message.member.permissions.has('ManageChannels')) {
+      if (!hasModRole(message.member)) {
+        await message.channel.send('❌ ليس لديك صلاحية!');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+    }
+
+    if (args.length === 0) {
+      // Show current settings
+      const showChannel = (id) => id ? `<#${id}>` : '❌ Not set';
+
+      const embed = new EmbedBuilder()
+        .setTitle('📋 LOG CHANNELS SETTINGS')
+        .setColor(0x3B82F6)
+        .addFields(
+          { name: '📁 All Logs', value: showChannel(logSettings.allLog), inline: true },
+          { name: '🔨 Ban Logs', value: showChannel(logSettings.banLog), inline: true },
+          { name: '🦵 Kick Logs', value: showChannel(logSettings.kickLog), inline: true },
+          { name: '⏱️ Timeout Logs', value: showChannel(logSettings.timeoutLog), inline: true },
+          { name: '💬 Message Logs', value: showChannel(logSettings.messagesLog), inline: true },
+          { name: '📂 Room Logs', value: showChannel(logSettings.roomsLog), inline: true },
+          { name: '👋 Join/Leave Logs', value: showChannel(logSettings.joinLeaveLog), inline: true },
+          { name: '🎭 Role Logs', value: showChannel(logSettings.rolesLog), inline: true }
+        )
+        .addFields(
+          { name: '\n📝 Commands:', value:
+            '`!logs set all #channel` - Set all-log\n' +
+            '`!logs set ban #channel` - Set ban-log\n' +
+            '`!logs set kick #channel` - Set kick-log\n' +
+            '`!logs set timeout #channel` - Set timeout-log\n' +
+            '`!logs set messages #channel` - Set messages-log\n' +
+            '`!logs set rooms #channel` - Set rooms-log\n' +
+            '`!logs set joinleave #channel` - Set join-leave-log\n' +
+            '`!logs set roles #channel` - Set roles-log\n' +
+            '`!logs clear [type]` - Clear a log channel\n' +
+            '`!logs clear all` - Clear all log channels', inline: false }
+        )
+        .setFooter({ text: 'Unit S - Moderation' })
+        .setTimestamp();
+
+      await message.channel.send({ embeds: [embed] });
+      if (!message.deleted) message.delete().catch(() => {});
+      return;
+    }
+
+    const action = args[0].toLowerCase();
+
+    // SET command
+    if (action === 'set') {
+      const type = args[1]?.toLowerCase();
+      const channel = message.mentions.channels.first();
+
+      if (!type || !channel) {
+        await message.channel.send('❌ الاستخدام: `!logs set [type] #channel`');
+        await message.channel.send('📋 الأنواع: `all`, `ban`, `kick`, `timeout`, `messages`, `rooms`, `joinleave`, `roles`');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+
+      const typeMap = {
+        all: 'allLog',
+        ban: 'banLog',
+        kick: 'kickLog',
+        timeout: 'timeoutLog',
+        messages: 'messagesLog',
+        rooms: 'roomsLog',
+        joinleave: 'joinLeaveLog',
+        roles: 'rolesLog',
+      };
+
+      const settingKey = typeMap[type];
+      if (!settingKey) {
+        await message.channel.send('❌ نوع غير صالح! الأنواع: `all`, `ban`, `kick`, `timeout`, `messages`, `rooms`, `joinleave`, `roles`');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+
+      logSettings[settingKey] = channel.id;
+
+      const embed = new EmbedBuilder()
+        .setTitle('✅ LOG CHANNEL SET')
+        .setColor(0x10B981)
+        .addFields(
+          { name: 'Type', value: type.toUpperCase(), inline: true },
+          { name: 'Channel', value: channel.name, inline: true }
+        )
+        .setFooter({ text: 'Unit S - Moderation' })
+        .setTimestamp();
+
+      await message.channel.send({ embeds: [embed] });
+      if (!message.deleted) message.delete().catch(() => {});
+      return;
+    }
+
+    // CLEAR command
+    if (action === 'clear') {
+      const type = args[1]?.toLowerCase();
+
+      if (!type) {
+        await message.channel.send('❌ الاستخدام: `!logs clear [type]` أو `!logs clear all`');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+
+      if (type === 'all') {
+        logSettings.allLog = null;
+        logSettings.banLog = null;
+        logSettings.kickLog = null;
+        logSettings.timeoutLog = null;
+        logSettings.messagesLog = null;
+        logSettings.roomsLog = null;
+        logSettings.joinLeaveLog = null;
+        logSettings.rolesLog = null;
+
+        await message.channel.send('✅ تم مسح جميع قنوات اللوج!');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+
+      const typeMap = {
+        all: 'allLog',
+        ban: 'banLog',
+        kick: 'kickLog',
+        timeout: 'timeoutLog',
+        messages: 'messagesLog',
+        rooms: 'roomsLog',
+        joinleave: 'joinLeaveLog',
+        roles: 'rolesLog',
+      };
+
+      const settingKey = typeMap[type];
+      if (!settingKey) {
+        await message.channel.send('❌ نوع غير صالح!');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+
+      logSettings[settingKey] = null;
+      await message.channel.send(`✅ تم مسح قناة ${type.toUpperCase()} log!`);
+      if (!message.deleted) message.delete().catch(() => {});
+      return;
+    }
+
+    // Unknown command
+    await message.channel.send('❌ أمر غير معروف! استخدم `!logs` لعرض الأوامر.');
+    if (!message.deleted) message.delete().catch(() => {});
+  },
+});
+
+// ============ MODSETTINGS COMMAND ============
+client.commands.set('modsettings', {
+  name: 'modsettings',
+  description: 'Manage moderation settings',
+  execute: async (message, args) => {
+    // Check permissions
+    if (!message.member.permissions.has('ManageChannels')) {
+      if (!hasModRole(message.member)) {
+        await message.channel.send('❌ ليس لديك صلاحية!');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+    }
+
+    if (args.length === 0) {
+      // Show current settings
+      let rolesList = modSettings.adminRoles.length > 0
+        ? modSettings.adminRoles.map(id => `<@&${id}>`).join('\n')
+        : 'No roles set';
+      let roleNamesList = modSettings.adminRoleNames.length > 0
+        ? modSettings.adminRoleNames.join('\n')
+        : 'No role names set';
+
+      const embed = new EmbedBuilder()
+        .setTitle('⚙️ MODERATION SETTINGS')
+        .setColor(0x8B5CF6)
+        .addFields(
+          { name: '👮 Admin Roles', value: rolesList, inline: false },
+          { name: '📝 Admin Role Names', value: roleNamesList, inline: false },
+          { name: '👤 Admin Users', value: modSettings.adminUsers.join('\n') || 'None', inline: false }
+        )
+        .addFields(
+          { name: '\n📝 Commands:', value:
+            '`!modsettings addrole @role` - Add admin role\n' +
+            '`!modsettings removerole @role` - Remove admin role\n' +
+            '`!modsettings addadminname [name]` - Add role name\n' +
+            '`!modsettings removeadminname [name]` - Remove role name\n' +
+            '`!modsettings adduser [name]` - Add admin user\n' +
+            '`!modsettings removeuser [name]` - Remove admin user', inline: false }
+        )
+        .setFooter({ text: 'Unit S - Moderation' })
+        .setTimestamp();
+
+      await message.channel.send({ embeds: [embed] });
+      if (!message.deleted) message.delete().catch(() => {});
+      return;
+    }
+
+    const action = args[0].toLowerCase();
+
+    // Add role
+    if (action === 'addrole') {
+      const role = message.mentions.roles.first();
+      if (!role) {
+        await message.channel.send('❌ الاستخدام: `!modsettings addrole @role`');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+
+      if (!modSettings.adminRoles.includes(role.id)) {
+        modSettings.adminRoles.push(role.id);
+        await message.channel.send(`✅ تم إضافة ${role.name} كأدمن!`);
+      } else {
+        await message.channel.send('⚠️ الرول موجودة مسبقاً!');
+      }
+      if (!message.deleted) message.delete().catch(() => {});
+      return;
+    }
+
+    // Remove role
+    if (action === 'removerole') {
+      const role = message.mentions.roles.first();
+      if (!role) {
+        await message.channel.send('❌ الاستخدام: `!modsettings removerole @role`');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+
+      const index = modSettings.adminRoles.indexOf(role.id);
+      if (index > -1) {
+        modSettings.adminRoles.splice(index, 1);
+        await message.channel.send(`✅ تم إزالة ${role.name} من الأدمن!`);
+      } else {
+        await message.channel.send('⚠️ الرول غير موجودة!');
+      }
+      if (!message.deleted) message.delete().catch(() => {});
+      return;
+    }
+
+    // Add admin name
+    if (action === 'addadminname') {
+      const name = args.slice(1).join(' ');
+      if (!name) {
+        await message.channel.send('❌ الاستخدام: `!modsettings addadminname [name]`');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+
+      if (!modSettings.adminRoleNames.includes(name)) {
+        modSettings.adminRoleNames.push(name);
+        await message.channel.send(`✅ تم إضافة "${name}" كأدمن!`);
+      } else {
+        await message.channel.send('⚠️ الاسم موجود مسبقاً!');
+      }
+      if (!message.deleted) message.delete().catch(() => {});
+      return;
+    }
+
+    // Remove admin name
+    if (action === 'removeadminname') {
+      const name = args.slice(1).join(' ');
+      if (!name) {
+        await message.channel.send('❌ الاستخدام: `!modsettings removeadminname [name]`');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+
+      const index = modSettings.adminRoleNames.indexOf(name);
+      if (index > -1) {
+        modSettings.adminRoleNames.splice(index, 1);
+        await message.channel.send(`✅ تم إزالة "${name}" من الأدمن!`);
+      } else {
+        await message.channel.send('⚠️ الاسم غير موجود!');
+      }
+      if (!message.deleted) message.delete().catch(() => {});
+      return;
+    }
+
+    // Add user
+    if (action === 'adduser') {
+      const name = args.slice(1).join(' ');
+      if (!name) {
+        await message.channel.send('❌ الاستخدام: `!modsettings adduser [name]`');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+
+      if (!modSettings.adminUsers.includes(name)) {
+        modSettings.adminUsers.push(name);
+        await message.channel.send(`✅ تم إضافة "${name}" كأدمن!`);
+      } else {
+        await message.channel.send('⚠️ المستخدم موجود مسبقاً!');
+      }
+      if (!message.deleted) message.delete().catch(() => {});
+      return;
+    }
+
+    // Remove user
+    if (action === 'removeuser') {
+      const name = args.slice(1).join(' ');
+      if (!name) {
+        await message.channel.send('❌ الاستخدام: `!modsettings removeuser [name]`');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+
+      const index = modSettings.adminUsers.indexOf(name);
+      if (index > -1) {
+        modSettings.adminUsers.splice(index, 1);
+        await message.channel.send(`✅ تم إزالة "${name}" من الأدمن!`);
+      } else {
+        await message.channel.send('⚠️ المستخدم غير موجود!');
+      }
+      if (!message.deleted) message.delete().catch(() => {});
+      return;
+    }
+
+    await message.channel.send('❌ أمر غير معروف! استخدم `!modsettings` لعرض الأوامر.');
+    if (!message.deleted) message.delete().catch(() => {});
+  },
+});
+
+// ============ TICKET MENU - Viper S Design ============
 client.commands.set('ticket', {
   name: 'ticket',
-  description: 'Open ticket menu',
+  description: 'Open ticket menu - Viper S design',
   execute: async (message) => {
     if (!hasAllowedRole(message.member)) {
       await message.channel.send('❌ ليس لديك صلاحية لفتح تذكرة!');
@@ -568,42 +1360,208 @@ client.commands.set('ticket', {
       return;
     }
 
+    // Step 1: Main menu
     const embed = new EmbedBuilder()
-      .setTitle('🎫 نظام التذاكر')
-      .setDescription('اختر نوع التذكرة من القائمة أدناه')
-      .setColor(COLORS.primary)
-      .addFields(
-        { name: '📋 أنواع التذاكر:', value: '> **دعم فني** - للمشاكل التقنية\n> **الشكاوي** - للشكاوي ضد أعضاء\n> **استفسار** - لأسئلة عامة' },
-        { name: '⚠️ ملاحظات:', value: '> **يمنع** فتح تذكرة لأسباب خارج السيرفر\n> **يمنع** Mention أو سبام للموظفين\n> **يمنع** العبث أو عدم النشاط في التذكرة\n> ⚠️ المخالفة قد تؤدي لـ Mute أو Timeout' }
-      )
-      .setFooter({ text: 'Unit S | اختر من القائمة' })
-      .setTimestamp();
+      .setTitle('🎫 Unit S | لوحة التذاكر')
+      .setDescription('مرحباً بك في نظام الدعم الفني\nيرجى تحديد سبب فتح التذكرة من القائمة أدناه')
+      .setColor(0x667eea)
+      .setFooter({ text: 'Unit S | Support System' });
 
     const selectMenu = new StringSelectMenuBuilder()
-      .setCustomId('ticket_select')
+      .setCustomId('ticket_main_select')
       .setPlaceholder('اختر نوع التذكرة...')
       .addOptions([
         new StringSelectMenuOptionBuilder({
           label: 'دعم فني',
-          description: 'مشاكل تقنية وحلول',
-          value: 'support',
+          description: 'للمشاكل التقنية والاستفسارات',
+          value: 'ticket_technical',
           emoji: '🔧',
         }),
         new StringSelectMenuOptionBuilder({
-          label: 'الشكاوي',
-          description: 'شكاوي ضد أعضاء الإدارة',
-          value: 'complaint',
-          emoji: '🎧',
+          label: 'شكاوي',
+          description: 'للتقدم بشكوى ضد عضو',
+          value: 'ticket_complaint',
+          emoji: '⚠️',
         }),
         new StringSelectMenuOptionBuilder({
-          label: 'استفسار',
-          description: 'أسئلة ومعلومات عامة',
-          value: 'inquiry',
-          emoji: '❓',
+          label: 'إعادة تعيين القائمة',
+          description: 'لإعادة عرض قائمة التذاكر',
+          value: 'ticket_inquiry',
+          emoji: '🔄',
+        }),
+        new StringSelectMenuOptionBuilder({
+          label: 'شراء',
+          description: 'للشراء من السيرفر',
+          value: 'ticket_purchase',
+          emoji: '💰',
+        }),
+        new StringSelectMenuOptionBuilder({
+          label: 'عروض الرتب',
+          description: 'عرض رتب متاحة للشراء',
+          value: 'ticket_ranks',
+          emoji: '👑',
         }),
       ]);
 
     const row = new ActionRowBuilder().addComponents(selectMenu);
+    await message.channel.send({ embeds: [embed], components: [row] });
+    if (!message.deleted) message.delete().catch(() => {});
+  },
+});
+
+// ============ TICKET SUB-MENU SELECTIONS ============
+client.commands.set('tmenu', {
+  name: 'tmenu',
+  description: 'Open ticket sub-menu',
+  execute: async (message) => {
+    if (!hasAllowedRole(message.member)) {
+      await message.channel.send('❌ ليس لديك صلاحية!');
+      if (!message.deleted) message.delete().catch(() => {});
+      return;
+    }
+
+    // Technical Support Sub-menu
+    const technicalEmbed = new EmbedBuilder()
+      .setTitle('🔧 الدعم الفني')
+      .setDescription('اختر نوع المشكلة التي تواجهك')
+      .setColor(0x667eea)
+      .setFooter({ text: 'Unit S | Support' });
+
+    const technicalMenu = new StringSelectMenuBuilder()
+      .setCustomId('ticket_technical_type')
+      .setPlaceholder('اختر نوع المشكلة...')
+      .addOptions([
+        new StringSelectMenuOptionBuilder({
+          label: 'مشكلة في رتبة',
+          description: 'لم استلم رتبتي / مشكلة في الصلاحيات',
+          value: 'rank_issue',
+          emoji: '👑',
+        }),
+        new StringSelectMenuOptionBuilder({
+          label: 'مشكلة في شراء',
+          description: 'مشكلة في الدفع أو الشراء',
+          value: 'purchase_issue',
+          emoji: '💰',
+        }),
+        new StringSelectMenuOptionBuilder({
+          label: 'مشكلة في روم',
+          description: 'لا أستطيع الدخول لروم معينة',
+          value: 'room_issue',
+          emoji: '🔒',
+        }),
+        new StringSelectMenuOptionBuilder({
+          label: 'استفسار عام',
+          description: 'لاستفسار عن أي شيء',
+          value: 'general_inquiry',
+          emoji: '❓',
+        }),
+      ]);
+
+    const row = new ActionRowBuilder().addComponents(technicalMenu);
+    await message.channel.send({ embeds: [technicalEmbed], components: [row] });
+  },
+});
+
+// ============ RANKS MENU ============
+client.commands.set('ranks', {
+  name: 'ranks',
+  description: 'Show available ranks for purchase',
+  execute: async (message) => {
+    const ranks = [
+      { name: 'Coder S.', price: 150000, features: ['نشر في رومات محددة', 'إمكانية منشن', 'صلاحيات خاصة'] },
+      { name: 'Artisan S.', price: 200000, features: ['نشر في رومات معينة', 'نشر صور في رومات محددة', 'إمكانية منشن'] },
+      { name: 'Novice S.', price: 250000, features: ['نشر في جميع الرومات', 'عدم نشر صور', 'إمكانية منشن'] },
+      { name: 'Elite S.', price: 300000, features: ['نشر في جميع الرومات', 'نشر صور', 'عدم المنشن'] },
+      { name: 'Master S.', price: 550000, features: ['نشر في جميع الرومات', 'نشر صور في رومات محددة', 'إمكانية منشن'] },
+      { name: 'Legend S.', price: 750000, features: ['نشر في جميع الرومات', 'نشر صور', 'إمكانية منشن'] },
+      { name: 'Seraph S.', price: 1000000, features: ['جميع الصلاحيات', 'نشر صور في جميع الرومات', 'منشن كامل'] },
+    ];
+
+    const embeds = [];
+    for (let i = 0; i < ranks.length; i += 3) {
+      const chunk = ranks.slice(i, i + 3);
+      const embed = new EmbedBuilder()
+        .setTitle('👑 رتب Unit S')
+        .setColor(0x667eea)
+        .setFooter({ text: `Unit S | الصفحة ${Math.floor(i / 3) + 1}` });
+
+      for (const rank of chunk) {
+        embed.addFields({
+          name: `${rank.name} - $${rank.price.toLocaleString()}`,
+          value: rank.features.map(f => `• ${f}`).join('\n'),
+          inline: false
+        });
+      }
+
+      embeds.push(embed);
+    }
+
+    const buyButton = new ButtonBuilder()
+      .setCustomId('buy_rank_ticket')
+      .setLabel('شراء رتبة')
+      .setStyle(ButtonStyle.Success)
+      .setEmoji('💰');
+
+    const backButton = new ButtonBuilder()
+      .setCustomId('back_to_menu')
+      .setLabel('رجوع للقائمة')
+      .setStyle(ButtonStyle.Secondary);
+
+    const row = new ActionRowBuilder().addComponents(buyButton, backButton);
+
+    await message.channel.send({ embeds: embeds, components: [row] });
+    if (!message.deleted) message.delete().catch(() => {});
+  },
+});
+
+// ============ PURCHASE MENU ============
+client.commands.set('shop', {
+  name: 'shop',
+  description: 'Show shop options',
+  execute: async (message) => {
+    const embed = new EmbedBuilder()
+      .setTitle('💰 لوحة الشراء')
+      .setDescription('اختر ما تريد شراؤه')
+      .setColor(0x667eea)
+      .setFooter({ text: 'Unit S | Shop' });
+
+    const shopMenu = new StringSelectMenuBuilder()
+      .setCustomId('shop_select')
+      .setPlaceholder('اختر ما تريد شراؤه...')
+      .addOptions([
+        new StringSelectMenuOptionBuilder({
+          label: 'شراء رتبة عادية',
+          description: 'للحصول على رتبة بصلاحيات محددة',
+          value: 'buy_rank',
+          emoji: '👑',
+        }),
+        new StringSelectMenuOptionBuilder({
+          label: 'شراء رتبة مميزة',
+          description: 'للحصول على رتبة مميزة',
+          value: 'buy_premium_rank',
+          emoji: '💎',
+        }),
+        new StringSelectMenuOptionBuilder({
+          label: 'شراء رومات خاصة',
+          description: 'إنشاء روم خاص بك',
+          value: 'buy_private_room',
+          emoji: '🔒',
+        }),
+        new StringSelectMenuOptionBuilder({
+          label: 'شراء إعلانات',
+          description: 'لنشر إعلانك في السيرفر',
+          value: 'buy_ads',
+          emoji: '📢',
+        }),
+        new StringSelectMenuOptionBuilder({
+          label: 'شراء منشورات مميزة',
+          description: 'لعرض منشورك بشكل مميز',
+          value: 'buy_featured_post',
+          emoji: '⭐',
+        }),
+      ]);
+
+    const row = new ActionRowBuilder().addComponents(shopMenu);
     await message.channel.send({ embeds: [embed], components: [row] });
     if (!message.deleted) message.delete().catch(() => {});
   },
@@ -616,9 +1574,9 @@ client.commands.set('shfr', {
   execute: async (message) => {
     try {
       const embed = new EmbedBuilder()
-        .setTitle('~ Unit S | التشفير')
+        .setTitle('🔒 Unit S | التشفير')
         .setDescription('لتشفير منشورك، اضغط على الزر أدناه')
-        .setColor(COLORS.primary)
+        .setColor(0xDC2626)
         .addFields(
           { name: '✨ المميزات:', value: '• تشفير الكلمات المحظورة\n• يعمل بكفاءة عالية\n• آمن وسريع', inline: false }
         )
@@ -628,7 +1586,7 @@ client.commands.set('shfr', {
       const encryptButton = new ButtonBuilder()
         .setCustomId('shfr_post')
         .setLabel('شفر منشورك')
-        .setStyle(ButtonStyle.Secondary);
+        .setStyle(ButtonStyle.Success);
 
       const row = new ActionRowBuilder().addComponents(encryptButton);
       await message.channel.send({ embeds: [embed], components: [row] });
@@ -655,7 +1613,7 @@ client.commands.set('enc', {
 
     const embed = new EmbedBuilder()
       .setTitle('🔒 تم تشفير النص!')
-      .setColor(COLORS.success)
+      .setColor(0xDC2626)
       .addFields(
         { name: 'النص الأصلي:', value: `\`\`\`\n${text}\n\`\`\`` },
         { name: 'النص المشفر:', value: `\`\`\`\n${encrypted}\n\`\`\`` }
@@ -684,7 +1642,7 @@ client.commands.set('protect', {
 
     const embed = new EmbedBuilder()
       .setTitle('🛡️ لوحة التحكم - الحماية')
-      .setColor(COLORS.primary)
+      .setColor(0xDC2626)
       .addFields(
         { name: 'حالة الحماية:', value: '━━━━━━━━━━━━━━━', inline: false },
         { name: '🔤 فلتر الكلمات:', value: wordFilterStatus, inline: true },
@@ -793,7 +1751,7 @@ client.commands.set('tmanage', {
 
       const embed = new EmbedBuilder()
         .setTitle('🎫 قائمة التذاكر المفتوحة')
-        .setColor(COLORS.primary)
+        .setColor(0xDC2626)
         .setDescription(ticketList)
         .setFooter({ text: `عدد التذاكر: ${tickets.size}` })
         .setTimestamp();
@@ -1086,7 +2044,7 @@ client.commands.set('tmanage', {
     if (action === 'help' || action === '?') {
       const embed = new EmbedBuilder()
         .setTitle('🎫 أوامر إدارة التذاكر')
-        .setColor(COLORS.primary)
+        .setColor(0xDC2626)
         .addFields(
           { name: 'الأوامر الأساسية:', value:
             '`!tmanage` - عرض التذاكر المفتوحة\n' +
@@ -1125,168 +2083,509 @@ client.commands.set('tmanage', {
 // ============ INTERACTION HANDLER ============
 client.on('interactionCreate', async (interaction) => {
   try {
-    // Handle Select Menu
+    // Handle Select Menu - Main Ticket Selection
     if (interaction.isStringSelectMenu()) {
-      if (interaction.customId === 'ticket_select') {
+
+      // ============ NEW TICKET MAIN MENU ============
+      if (interaction.customId === 'ticket_main_select') {
         const ticketType = interaction.values[0];
-
-        const typeNames = {
-          support: 'دعم فني',
-          complaint: 'شكاوي',
-          inquiry: 'استفسار'
-        };
-
         const guild = interaction.guild;
 
-        try {
-          const botMember = await guild.members.fetch(client.user.id);
-          if (!botMember.permissions.has('ManageChannels')) {
-            return await interaction.reply({
-              content: '❌ لا توجد لدي الصلاحية اللازمة لإنشاء قناة!',
-              flags: 64 // Ephemeral
-            });
-          }
+        // Map ticket types to create ticket
+        const ticketTypeMap = {
+          ticket_technical: 'دعم فني',
+          ticket_complaint: 'شكاوي',
+          ticket_inquiry: 'إعادة تعيين القائمة',
+          ticket_purchase: 'شراء',
+          ticket_ranks: 'عروض رتب'
+        };
 
-          const existingTickets = guild.channels.cache.filter(ch =>
-            ch.name.startsWith('ticket-') &&
-            ch.topic?.includes(interaction.user.username)
-          );
+        const typeName = ticketTypeMap[ticketType];
 
-          if (existingTickets.size > 0) {
-            const existingTicket = existingTickets.first();
-            return await interaction.reply({
-              content: `❌ لديك تذكرة مفتوحة بالفعل!\n${existingTicket.toString()}`,
-              flags: 64 // Ephemeral
-            });
-          }
-
-          const existingTicketCount = guild.channels.cache.filter(ch =>
-            ch.name.startsWith('ticket-')
-          ).size;
-
-          const ticketNum = String(existingTicketCount + 1).padStart(3, '0');
-          const channelName = `ticket-${ticketNum}`;
-
-          const closeButton = new ButtonBuilder()
-            .setCustomId('close_ticket')
-            .setLabel('إغلاق التذكرة')
-            .setStyle(ButtonStyle.Danger);
-
-          const row = new ActionRowBuilder().addComponents(closeButton);
-
-          const mentionedRoles = [];
-          const permissionOverwrites = [
-            { id: guild.id, deny: ['ViewChannel', 'SendMessages', 'ReadMessageHistory'] },
-            { id: interaction.user.id, allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory', 'AttachFiles'] },
-          ];
-
-          if (ticketSettings.allowedRoles.length > 0) {
-            for (const roleId of ticketSettings.allowedRoles) {
-              const role = guild.roles.cache.get(roleId);
-              if (role) {
-                permissionOverwrites.push({
-                  id: roleId,
-                  allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory', 'AttachFiles']
-                });
-                mentionedRoles.push(role);
-              }
-            }
-          }
-
-          if (ticketSettings.allowedRoleNames.length > 0) {
-            for (const roleName of ticketSettings.allowedRoleNames) {
-              const role = guild.roles.cache.find(r =>
-                r.name.toLowerCase().includes(roleName.toLowerCase())
-              );
-              if (role && !mentionedRoles.includes(role)) {
-                permissionOverwrites.push({
-                  id: role.id,
-                  allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory', 'AttachFiles']
-                });
-                mentionedRoles.push(role);
-              }
-            }
-          }
-
-          const ticketChannel = await guild.channels.create({
-            name: channelName,
-            type: 0,
-            topic: `🎫 تذكرة ${typeNames[ticketType]} | المستخدم: ${interaction.user.tag}`,
-            permissionOverwrites: permissionOverwrites,
-          });
-
+        // For inquiry/reset menu - show main ticket menu
+        if (ticketType === 'ticket_inquiry') {
           const embed = new EmbedBuilder()
-            .setTitle(`🎫 تذكرة #${ticketNum}`)
-            .setColor(COLORS.primary)
-            .addFields(
-              { name: 'نوع التذكرة:', value: typeNames[ticketType], inline: true },
-              { name: 'صاحب التذكرة:', value: interaction.user.username, inline: true },
-              { name: 'تاريخ الإنشاء:', value: new Date().toLocaleString('ar-SA'), inline: false },
-              { name: '⚠️ تنبيه:', value: 'يمكنك فتح **تذكرة واحدة فقط**!\nلفتح تذكرة جديدة، أغلق الحالية أولاً.', inline: false }
-            )
-            .setDescription(`> مرحباً!\n> ${interaction.user} فتح تذكرة جديدة\n> اكتب سبب التذكرة وانتظر الرد\n> ⚠️ لا تقم بإغلاق هذه القناة بنفسك`);
+            .setTitle('🎫 Unit S | لوحة التذاكر')
+            .setDescription('مرحباً بك في نظام الدعم الفني\nيرجى تحديد سبب فتح التذكرة من القائمة أدناه')
+            .setColor(0x667eea)
+            .setFooter({ text: 'Unit S | Support System' });
 
-          let channelContent = interaction.user.toString();
+          const selectMenu = new StringSelectMenuBuilder()
+            .setCustomId('ticket_main_select')
+            .setPlaceholder('اختر نوع التذكرة...')
+            .addOptions([
+              new StringSelectMenuOptionBuilder({
+                label: 'دعم فني',
+                description: 'للمشاكل التقنية والاستفسارات',
+                value: 'ticket_technical',
+                emoji: '🔧',
+              }),
+              new StringSelectMenuOptionBuilder({
+                label: 'شكاوي',
+                description: 'للتقدم بشكوى ضد عضو',
+                value: 'ticket_complaint',
+                emoji: '⚠️',
+              }),
+              new StringSelectMenuOptionBuilder({
+                label: 'إعادة تعيين القائمة',
+                description: 'لإعادة عرض قائمة التذاكر',
+                value: 'ticket_inquiry',
+                emoji: '🔄',
+              }),
+              new StringSelectMenuOptionBuilder({
+                label: 'شراء',
+                description: 'للشراء من السيرفر',
+                value: 'ticket_purchase',
+                emoji: '💰',
+              }),
+              new StringSelectMenuOptionBuilder({
+                label: 'عروض الرتب',
+                description: 'عرض رتب متاحة للشراء',
+                value: 'ticket_ranks',
+                emoji: '👑',
+              }),
+            ]);
 
-          if (ticketSettings.mentionRoleId || ticketSettings.mentionRoleName) {
-            let autoMentionRole = null;
+          const row = new ActionRowBuilder().addComponents(selectMenu);
 
-            if (ticketSettings.mentionRoleId) {
-              autoMentionRole = guild.roles.cache.get(ticketSettings.mentionRoleId);
-            }
-
-            if (!autoMentionRole && ticketSettings.mentionRoleName) {
-              autoMentionRole = guild.roles.cache.find(r =>
-                r.name.toLowerCase().includes(ticketSettings.mentionRoleName.toLowerCase())
-              );
-            }
-
-            if (autoMentionRole) {
-              channelContent += ' ' + autoMentionRole.toString();
-            }
-          }
-
-          if (mentionedRoles.length > 0) {
-            channelContent += ' ' + mentionedRoles.map(r => r.toString()).join(' ');
-          }
-
-          await ticketChannel.send({
-            content: channelContent,
+          await interaction.update({
             embeds: [embed],
             components: [row]
           });
-
-          await interaction.reply({
-            content: `✅ تم إنشاء التذكرة #${ticketNum} بنجاح! <#${ticketChannel.id}>`,
-            flags: 64 // Ephemeral
-          });
-
-        } catch (error) {
-          console.error('Ticket creation error:', error);
-          await interaction.reply({
-            content: `❌ حدث خطأ أثناء إنشاء التذكرة!\nالخطأ: \`${error.message}\``,
-            flags: 64 // Ephemeral
-          });
+          return;
         }
+
+        // For ranks display - show ranks menu
+        if (ticketType === 'ticket_ranks') {
+          const ranks = [
+            { name: 'Coder S.', price: 150000, features: ['نشر في رومات محددة', 'إمكانية منشن', 'صلاحيات خاصة'] },
+            { name: 'Artisan S.', price: 200000, features: ['نشر في رومات معينة', 'نشر صور في رومات محددة', 'إمكانية منشن'] },
+            { name: 'Novice S.', price: 250000, features: ['نشر في جميع الرومات', 'عدم نشر صور', 'إمكانية منشن'] },
+            { name: 'Elite S.', price: 300000, features: ['نشر في جميع الرومات', 'نشر صور', 'عدم المنشن'] },
+            { name: 'Master S.', price: 550000, features: ['نشر في جميع الرومات', 'نشر صور في رومات محددة', 'إمكانية منشن'] },
+            { name: 'Legend S.', price: 750000, features: ['نشر في جميع الرومات', 'نشر صور', 'إمكانية منشن'] },
+            { name: 'Seraph S.', price: 1000000, features: ['جميع الصلاحيات', 'نشر صور في جميع الرومات', 'منشن كامل'] },
+          ];
+
+          const embed = new EmbedBuilder()
+            .setTitle('👑 رتب Unit S')
+            .setColor(0x667eea)
+            .setFooter({ text: 'Unit S | Ranks' });
+
+          for (const rank of ranks) {
+            embed.addFields({
+              name: `${rank.name} - $${rank.price.toLocaleString()}`,
+              value: rank.features.map(f => `• ${f}`).join('\n'),
+              inline: true
+            });
+          }
+
+          // Add reset button
+          const resetButton = new ButtonBuilder()
+            .setCustomId('ticket_reset_menu')
+            .setLabel('القائمة الرئيسية')
+            .setStyle(ButtonStyle.Secondary)
+            .setEmoji('🔙');
+
+          const row = new ActionRowBuilder().addComponents(resetButton);
+
+          await interaction.reply({
+            embeds: [embed],
+            components: [row],
+            flags: 64
+          });
+          return;
+        }
+
+        // For purchase - show shop options
+        if (ticketType === 'ticket_purchase') {
+          const embed = new EmbedBuilder()
+            .setTitle('💰 لوحة الشراء')
+            .setDescription('اختر ما تريد شراؤه')
+            .setColor(0x667eea)
+            .setFooter({ text: 'Unit S | Shop' });
+
+          const shopMenu = new StringSelectMenuBuilder()
+            .setCustomId('shop_purchase_select')
+            .setPlaceholder('اختر ما تريد شراؤه...')
+            .addOptions([
+              new StringSelectMenuOptionBuilder({
+                label: 'شراء رتبة عادية',
+                description: 'للحصول على رتبة بصلاحيات محددة',
+                value: 'buy_rank',
+                emoji: '👑',
+              }),
+              new StringSelectMenuOptionBuilder({
+                label: 'شراء رتبة مميزة',
+                description: 'للحصول على رتبة مميزة',
+                value: 'buy_premium_rank',
+                emoji: '💎',
+              }),
+              new StringSelectMenuOptionBuilder({
+                label: 'شراء رومات خاصة',
+                description: 'إنشاء روم خاص بك',
+                value: 'buy_private_room',
+                emoji: '🔒',
+              }),
+              new StringSelectMenuOptionBuilder({
+                label: 'شراء إعلانات',
+                description: 'لنشر إعلانك في السيرفر',
+                value: 'buy_ads',
+                emoji: '📢',
+              }),
+            ]);
+
+          const resetButton = new ButtonBuilder()
+            .setCustomId('ticket_reset_menu')
+            .setLabel('رجوع')
+            .setStyle(ButtonStyle.Secondary)
+            .setEmoji('🔙');
+
+          const row1 = new ActionRowBuilder().addComponents(shopMenu);
+          const row2 = new ActionRowBuilder().addComponents(resetButton);
+
+          await interaction.reply({
+            embeds: [embed],
+            components: [row1, row2],
+            flags: 64
+          });
+          return;
+        }
+
+        // For technical support and complaints - create ticket
+        if (ticketType === 'ticket_technical' || ticketType === 'ticket_complaint') {
+          try {
+            const botMember = await guild.members.fetch(client.user.id);
+            if (!botMember.permissions.has('ManageChannels')) {
+              return await interaction.reply({
+                content: '❌ لا توجد لدي الصلاحية اللازمة لإنشاء قناة!',
+                flags: 64
+              });
+            }
+
+            const existingTickets = guild.channels.cache.filter(ch =>
+              ch.name.startsWith('ticket-') &&
+              ch.topic?.includes(interaction.user.username)
+            );
+
+            if (existingTickets.size > 0) {
+              const existingTicket = existingTickets.first();
+              return await interaction.reply({
+                content: `❌ لديك تذكرة مفتوحة بالفعل!\n${existingTicket.toString()}`,
+                flags: 64
+              });
+            }
+
+            const existingTicketCount = guild.channels.cache.filter(ch =>
+              ch.name.startsWith('ticket-')
+            ).size;
+
+            const ticketNum = String(existingTicketCount + 1).padStart(3, '0');
+            const channelName = `ticket-${ticketNum}`;
+
+            // أزرار التذكرة
+            const claimButton = new ButtonBuilder()
+              .setCustomId('claim_ticket')
+              .setLabel('استلام')
+              .setStyle(ButtonStyle.Success)
+              .setEmoji('✅');
+
+            const unclaimButton = new ButtonBuilder()
+              .setCustomId('unclaim_ticket')
+              .setLabel('إلغاء الاستلام')
+              .setStyle(ButtonStyle.Secondary);
+
+            const closeButton = new ButtonBuilder()
+              .setCustomId('close_ticket')
+              .setLabel('إغلاق')
+              .setStyle(ButtonStyle.Danger);
+
+            const resetButton = new ButtonBuilder()
+              .setCustomId('ticket_reset_menu')
+              .setLabel('القائمة')
+              .setStyle(ButtonStyle.Secondary)
+              .setEmoji('🔙');
+
+            const row = new ActionRowBuilder().addComponents(claimButton, unclaimButton, closeButton, resetButton);
+
+            // صلاحيات القناة
+            const permissionOverwrites = [
+              { id: guild.id, deny: ['ViewChannel', 'SendMessages', 'ReadMessageHistory'] },
+              { id: interaction.user.id, allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory', 'AttachFiles'] },
+            ];
+
+            // إضافة الرولات المسموحة
+            const mentionedRoles = [];
+            if (ticketSettings.allowedRoles.length > 0) {
+              for (const roleId of ticketSettings.allowedRoles) {
+                const role = guild.roles.cache.get(roleId);
+                if (role) {
+                  permissionOverwrites.push({
+                    id: roleId,
+                    allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory', 'AttachFiles']
+                  });
+                  mentionedRoles.push(role);
+                }
+              }
+            }
+
+            if (ticketSettings.allowedRoleNames.length > 0) {
+              for (const roleName of ticketSettings.allowedRoleNames) {
+                const role = guild.roles.cache.find(r =>
+                  r.name.toLowerCase().includes(roleName.toLowerCase())
+                );
+                if (role && !mentionedRoles.includes(role)) {
+                  permissionOverwrites.push({
+                    id: role.id,
+                    allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory', 'AttachFiles']
+                  });
+                  mentionedRoles.push(role);
+                }
+              }
+            }
+
+            const ticketChannel = await guild.channels.create({
+              name: channelName,
+              type: 0,
+              topic: `🎫 ${typeName} | ${interaction.user.tag}`,
+              permissionOverwrites: permissionOverwrites,
+            });
+
+            // حفظ وقت فتح التذكرة
+            client.ticketClaims.set(ticketChannel.id, {
+              claimedBy: null,
+              openedAt: Date.now(),
+              ticketType: ticketType,
+              user: interaction.user
+            });
+
+            // Ticket Embed
+            const embed = new EmbedBuilder()
+              .setTitle(`🎫 Unit S Tickets | #${ticketNum} — ${typeName}`)
+              .setColor(0x667eea)
+              .setDescription(`مرحباً <@${interaction.user.id}>\nشكراً لفتحك تذكرة. أحد أعضاء الفريق سيreply عليك قريباً.`)
+              .addFields(
+                { name: '⏰ وقت الفتح', value: formatTimeAgo(Date.now()), inline: true },
+                { name: '📌 الحالة', value: '🟡 غير مستلمة', inline: true },
+                { name: '💡 ملاحظة', value: 'اكتب استفسارك هنا وسنرد عليك بأسرع وقت', inline: false }
+              )
+              .setFooter({ text: 'Unit S Support System' })
+              .setTimestamp();
+
+            // منشن الرولات
+            let channelContent = interaction.user.toString();
+            if (ticketSettings.mentionRoleId || ticketSettings.mentionRoleName) {
+              let autoMentionRole = null;
+              if (ticketSettings.mentionRoleId) {
+                autoMentionRole = guild.roles.cache.get(ticketSettings.mentionRoleId);
+              }
+              if (!autoMentionRole && ticketSettings.mentionRoleName) {
+                autoMentionRole = guild.roles.cache.find(r =>
+                  r.name.toLowerCase().includes(ticketSettings.mentionRoleName.toLowerCase())
+                );
+              }
+              if (autoMentionRole) {
+                channelContent += ' ' + autoMentionRole.toString();
+              }
+            }
+            if (mentionedRoles.length > 0) {
+              channelContent += ' ' + mentionedRoles.map(r => r.toString()).join(' ');
+            }
+
+            await ticketChannel.send({
+              content: channelContent,
+              embeds: [embed],
+              components: [row]
+            });
+
+            await interaction.reply({
+              content: `✅ تم إنشاء التذكرة #${ticketNum} بنجاح! <#${ticketChannel.id}>`,
+              flags: 64
+            });
+
+          } catch (error) {
+            console.error('Ticket creation error:', error);
+            await interaction.reply({
+              content: `❌ حدث خطأ أثناء إنشاء التذكرة!\nالخطأ: \`${error.message}\``,
+              flags: 64
+            });
+          }
+          return;
+        }
+      }
+
+      // ============ SHOP PURCHASE SELECT ============
+      if (interaction.customId === 'shop_purchase_select') {
+        const purchaseType = interaction.values[0];
+
+        const purchaseTypeMap = {
+          buy_rank: 'شراء رتبة',
+          buy_premium_rank: 'شراء رتبة مميزة',
+          buy_private_room: 'شراء روم خاص',
+          buy_ads: 'شراء إعلانات',
+          buy_featured_post: 'شراء منشور مميز'
+        };
+
+        const embed = new EmbedBuilder()
+          .setTitle('💰 ' + purchaseTypeMap[purchaseType])
+          .setDescription('تم تحديد طلبك! سيتم التواصل معك قريباً عبر这支 التذكرة.')
+          .setColor(0x667eea)
+          .addFields(
+            { name: '📋 الطلب', value: purchaseTypeMap[purchaseType], inline: true },
+            { name: '💬 الخطوات', value: '1. انتظر الرد\n2. اختر الرتبة المطلوبة\n3. اتبع التعليمات للدفع', inline: false }
+          )
+          .setFooter({ text: 'Unit S | Shop' });
+
+        // Add reset button
+        const resetButton = new ButtonBuilder()
+          .setCustomId('ticket_reset_menu')
+          .setLabel('القائمة الرئيسية')
+          .setStyle(ButtonStyle.Secondary)
+          .setEmoji('🔙');
+
+        const row = new ActionRowBuilder().addComponents(resetButton);
+
+        await interaction.reply({
+          embeds: [embed],
+          components: [row],
+          flags: 64
+        });
+        return;
       }
     }
 
-    // Handle Button
+    // Handle Button Interactions
     if (interaction.isButton()) {
-      if (interaction.customId === 'close_ticket') {
-        if (!hasTicketAdminRole(interaction.member)) {
-          return await interaction.reply({
-            content: '❌ ليس لديك صلاحية لإغلاق هذه التذكرة!',
-            flags: 64 // Ephemeral
-          });
-        }
+      // ============ RESET MENU BUTTON ============
+      if (interaction.customId === 'ticket_reset_menu') {
+        const embed = new EmbedBuilder()
+          .setTitle('🎫 Unit S | لوحة التذاكر')
+          .setDescription('مرحباً بك في نظام الدعم الفني\nيرجى تحديد سبب فتح التذكرة من القائمة أدناه')
+          .setColor(0x667eea)
+          .setFooter({ text: 'Unit S | Support System' });
 
-        const channel = interaction.channel;
-        await logTicketTranscript(channel, interaction.user, 'تم الإغلاق من زر');
-        await interaction.reply('🔒 جاري إغلاق التذكرة...');
-        setTimeout(() => channel.delete(), 1000);
+        const selectMenu = new StringSelectMenuBuilder()
+          .setCustomId('ticket_main_select')
+          .setPlaceholder('اختر نوع التذكرة...')
+          .addOptions([
+            new StringSelectMenuOptionBuilder({
+              label: 'دعم فني',
+              description: 'للمشاكل التقنية والاستفسارات',
+              value: 'ticket_technical',
+              emoji: '🔧',
+            }),
+            new StringSelectMenuOptionBuilder({
+              label: 'شكاوي',
+              description: 'للتقدم بشكوى ضد عضو',
+              value: 'ticket_complaint',
+              emoji: '⚠️',
+            }),
+            new StringSelectMenuOptionBuilder({
+              label: 'إعادة تعيين القائمة',
+              description: 'لإعادة عرض قائمة التذاكر',
+              value: 'ticket_inquiry',
+              emoji: '🔄',
+            }),
+            new StringSelectMenuOptionBuilder({
+              label: 'شراء',
+              description: 'للشراء من السيرفر',
+              value: 'ticket_purchase',
+              emoji: '💰',
+            }),
+            new StringSelectMenuOptionBuilder({
+              label: 'عروض الرتب',
+              description: 'عرض رتب متاحة للشراء',
+              value: 'ticket_ranks',
+              emoji: '👑',
+            }),
+          ]);
+
+        const row = new ActionRowBuilder().addComponents(selectMenu);
+
+        await interaction.update({
+          embeds: [embed],
+          components: [row]
+        });
+        return;
       }
 
+      // ============ BUY RANK BUTTON ============
+      if (interaction.customId === 'buy_rank_ticket') {
+        const embed = new EmbedBuilder()
+          .setTitle('💰 شراء رتبة')
+          .setDescription('لشراء رتبة، يرجى فتح تذكرة من القائمة الرئيسية')
+          .setColor(0x667eea)
+          .setFooter({ text: 'Unit S | Shop' });
+
+        const resetButton = new ButtonBuilder()
+          .setCustomId('ticket_reset_menu')
+          .setLabel('القائمة الرئيسية')
+          .setStyle(ButtonStyle.Secondary)
+          .setEmoji('🔙');
+
+        const row = new ActionRowBuilder().addComponents(resetButton);
+
+        await interaction.update({
+          embeds: [embed],
+          components: [row]
+        });
+        return;
+      }
+
+      // ============ BACK TO MENU BUTTON ============
+      if (interaction.customId === 'back_to_menu') {
+        const embed = new EmbedBuilder()
+          .setTitle('🎫 Unit S | لوحة التذاكر')
+          .setDescription('مرحباً بك في نظام الدعم الفني\nيرجى تحديد سبب فتح التذكرة من القائمة أدناه')
+          .setColor(0x667eea)
+          .setFooter({ text: 'Unit S | Support System' });
+
+        const selectMenu = new StringSelectMenuBuilder()
+          .setCustomId('ticket_main_select')
+          .setPlaceholder('اختر نوع التذكرة...')
+          .addOptions([
+            new StringSelectMenuOptionBuilder({
+              label: 'دعم فني',
+              description: 'للمشاكل التقنية والاستفسارات',
+              value: 'ticket_technical',
+              emoji: '🔧',
+            }),
+            new StringSelectMenuOptionBuilder({
+              label: 'شكاوي',
+              description: 'للتقدم بشكوى ضد عضو',
+              value: 'ticket_complaint',
+              emoji: '⚠️',
+            }),
+            new StringSelectMenuOptionBuilder({
+              label: 'إعادة تعيين القائمة',
+              description: 'لإعادة عرض قائمة التذاكر',
+              value: 'ticket_inquiry',
+              emoji: '🔄',
+            }),
+            new StringSelectMenuOptionBuilder({
+              label: 'شراء',
+              description: 'للشراء من السيرفر',
+              value: 'ticket_purchase',
+              emoji: '💰',
+            }),
+            new StringSelectMenuOptionBuilder({
+              label: 'عروض الرتب',
+              description: 'عرض رتب متاحة للشراء',
+              value: 'ticket_ranks',
+              emoji: '👑',
+            }),
+          ]);
+
+        const row = new ActionRowBuilder().addComponents(selectMenu);
+
+        await interaction.update({
+          embeds: [embed],
+          components: [row]
+        });
+        return;
+      }
+
+      // ============ أزرار التشفير ============
       if (interaction.customId === 'shfr_post') {
         const modal = new ModalBuilder()
           .setCustomId('shfr_modal')
@@ -1304,25 +2603,189 @@ client.on('interactionCreate', async (interaction) => {
         modal.addComponents(actionRow);
 
         await interaction.showModal(modal);
+        return;
+      }
+
+      // ============ أزرار التذاكر ============
+      const channel = interaction.channel;
+      if (!channel || !channel.name.startsWith('ticket-')) return;
+
+      const ticketData = client.ticketClaims.get(channel.id);
+      if (!ticketData) return;
+
+      // Claim Button
+      if (interaction.customId === 'claim_ticket') {
+        if (!hasTicketAdminRole(interaction.member)) {
+          return await interaction.reply({
+            content: '❌ ليس لديك صلاحية لاستلام التذكرة!',
+            flags: 64
+          });
+        }
+
+        if (ticketData.claimedBy) {
+          return await interaction.reply({
+            content: '❌ هذه التذكرة تم استلامها مسبقاً!',
+            flags: 64
+          });
+        }
+
+        // تحديث بيانات التذكرة
+        ticketData.claimedBy = interaction.user;
+        client.ticketClaims.set(channel.id, ticketData);
+
+        // تحديث الأزرار - تعطيل Claim
+        const claimButton = new ButtonBuilder()
+          .setCustomId('claim_ticket')
+          .setLabel('Claim')
+          .setStyle(ButtonStyle.Success)
+          .setEmoji('✅')
+          .setDisabled(true);
+
+        const unclaimButton = new ButtonBuilder()
+          .setCustomId('unclaim_ticket')
+          .setLabel('Unclaim')
+          .setStyle(ButtonStyle.Success);
+
+        const closeButton = new ButtonBuilder()
+          .setCustomId('close_ticket')
+          .setLabel('Close')
+          .setStyle(ButtonStyle.Success);
+
+        const row = new ActionRowBuilder().addComponents(claimButton, unclaimButton, closeButton);
+
+        // Unit S Ticket Embed - تحديث
+        const embed = new EmbedBuilder()
+          .setTitle(channel.topic?.split('|')[0]?.trim()?.replace('🎫 ', '') || 'Unit S Tickets')
+          .setColor(0xDC2626)
+          .setDescription(`Welcome ${interaction.user}.\nThank you for opening a ticket. A staff member will be with you shortly.`)
+          .addFields(
+            {
+              name: '⏰ Opened',
+              value: `${formatTimeAgo(ticketData.openedAt)}`,
+              inline: true
+            },
+            {
+              name: '📌 Status',
+              value: `🟢 Claimed by ${interaction.user.username}`,
+              inline: true
+            }
+          )
+          .setFooter({ text: 'Unit S Support System' })
+          .setTimestamp();
+
+        // رسالة التأكيد
+        const confirmEmbed = new EmbedBuilder()
+          .setDescription(`✅ تم استلام التكت من قِبَل ${interaction.user}`)
+          .setColor(0x14b8a6)
+          .setTimestamp();
+
+        await interaction.reply({ embeds: [embed, confirmEmbed], components: [row] });
+
+        // منشن الأدمن
+        await channel.send(`${interaction.user}`);
+      }
+
+      // Unclaim Button
+      if (interaction.customId === 'unclaim_ticket') {
+        if (!hasTicketAdminRole(interaction.member)) {
+          return await interaction.reply({
+            content: '❌ ليس لديك صلاحية!',
+            flags: 64
+          });
+        }
+
+        if (ticketData.claimedBy?.id !== interaction.user.id) {
+          return await interaction.reply({
+            content: '❌ يمكنك فقط إلغاء استلام التذكرة التي استلمتها أنت!',
+            flags: 64
+          });
+        }
+
+        // تحديث بيانات التذكرة
+        ticketData.claimedBy = null;
+        client.ticketClaims.set(channel.id, ticketData);
+
+        // تحديث الأزرار
+        const claimButton = new ButtonBuilder()
+          .setCustomId('claim_ticket')
+          .setLabel('Claim')
+          .setStyle(ButtonStyle.Success)
+          .setEmoji('✅');
+
+        const unclaimButton = new ButtonBuilder()
+          .setCustomId('unclaim_ticket')
+          .setLabel('Unclaim')
+          .setStyle(ButtonStyle.Success)
+          .setDisabled(true);
+
+        const closeButton = new ButtonBuilder()
+          .setCustomId('close_ticket')
+          .setLabel('Close')
+          .setStyle(ButtonStyle.Success);
+
+        const row = new ActionRowBuilder().addComponents(claimButton, unclaimButton, closeButton);
+
+        // Unit S Ticket Embed - تحديث
+        const embed = new EmbedBuilder()
+          .setTitle(channel.topic?.split('|')[0]?.trim()?.replace('🎫 ', '') || 'Unit S Tickets')
+          .setColor(0xDC2626)
+          .setDescription(`Welcome ${ticketData.user}.\nThank you for opening a ticket. A staff member will be with you shortly.`)
+          .addFields(
+            {
+              name: '⏰ Opened',
+              value: `${formatTimeAgo(ticketData.openedAt)}`,
+              inline: true
+            },
+            {
+              name: '📌 Status',
+              value: '🟡 Unclaimed',
+              inline: true
+            }
+          )
+          .setFooter({ text: 'Unit S Support System' })
+          .setTimestamp();
+
+        await interaction.reply({ embeds: [embed], components: [row] });
+      }
+
+      // Close Button
+      if (interaction.customId === 'close_ticket') {
+        if (!hasTicketAdminRole(interaction.member)) {
+          return await interaction.reply({
+            content: '❌ ليس لديك صلاحية لإغلاق التذكرة!',
+            flags: 64
+          });
+        }
+
+        await logTicketTranscript(channel, interaction.user, 'تم الإغلاق من زر');
+        await interaction.reply('🔒 جاري إغلاق التذكرة...');
+        setTimeout(() => channel.delete(), 1000);
       }
     }
 
     // Handle Modal Submit
     if (interaction.isModalSubmit()) {
       if (interaction.customId === 'shfr_modal') {
-        const text = interaction.fields.getTextInputValue('shfr_text');
-        const encrypted = encryptText(text);
+        try {
+          const text = interaction.fields.getTextInputValue('shfr_text');
+          const encrypted = encryptText(text);
 
-        const embed = new EmbedBuilder()
-          .setTitle('🔒 تم تشفير النص!')
-          .setColor(COLORS.success)
-          .addFields(
-            { name: 'منشورك بعد تشفير:', value: `\`\`\`\n${encrypted}\n\`\`\`` }
-          )
-          .setFooter({ text: 'Unit S | التشفير' })
-          .setTimestamp();
+          // تحويل النص المشفر للون مختلف
+          const embed = new EmbedBuilder()
+            .setTitle('🔒 تم تشفير النص!')
+            .setColor(0xDC2626)
+            .addFields(
+              { name: 'النص المشفر:', value: `\`\`\`\n${encrypted}\n\`\`\`` }
+            )
+            .setFooter({ text: 'Unit S | التشفير' })
+            .setTimestamp();
 
-        await interaction.reply({ embeds: [embed], flags: 64 }); // Ephemeral
+          // الرد يكون فقط للشخص اللي شفره (ephemeral)
+          await interaction.reply({ embeds: [embed], ephemeral: true });
+        } catch (error) {
+          console.error('Encryption error:', error);
+          await interaction.reply({ content: '❌ حدث خطأ أثناء التشفير!', ephemeral: true });
+        }
       }
     }
   } catch (error) {
@@ -1502,6 +2965,456 @@ client.on('clientReady', () => {
   console.log(`👤 Logged as: ${client.user.tag}`);
   console.log(`📊 Servers: ${client.guilds.cache.size}`);
   client.user.setActivity('Unit S | !help', { type: 'WATCHING' });
+});
+
+// ============ MEMBER JOIN EVENT ============
+client.on('guildMemberAdd', async (member) => {
+  if (member.user.bot) return;
+  await logMemberJoin(member.guild, member);
+});
+
+// ============ MEMBER LEAVE EVENT ============
+client.on('guildMemberRemove', async (member) => {
+  if (member.user.bot) return;
+  await logMemberLeave(member.guild, member, null);
+});
+
+// ============ AUDIT LOG EVENTS ============
+
+// Track ban actions from Audit Logs
+client.on('guildBanAdd', async (guild, user) => {
+  try {
+    const auditLogs = await guild.fetchAuditLogs({
+      type: 'MEMBER_BAN_ADD',
+      limit: 1
+    }).catch(() => null);
+
+    const banEntry = auditLogs?.entries.first();
+    const moderator = banEntry?.executor || guild.me;
+    const reason = banEntry?.reason || 'No reason provided';
+
+    const embed = new EmbedBuilder()
+      .setTitle('🔨 BAN LOG')
+      .setColor(0xDC2626)
+      .addFields(
+        { name: '🔨 Admin', value: moderator.tag || moderator.username || 'Unknown', inline: true },
+        { name: '👤 Banned User', value: user.tag || user.username, inline: true },
+        { name: '🆔 User ID', value: user.id, inline: true },
+        { name: '📝 Reason', value: reason, inline: false },
+        { name: '⏰ Time', value: new Date().toLocaleString('ar-SA'), inline: false }
+      )
+      .setFooter({ text: 'Unit S - Moderation' })
+      .setTimestamp();
+
+    await sendLog(guild, 'ban', embed);
+
+    // Log to all-log if enabled
+    if (logSettings.allLog) {
+      const allChannel = guild.channels.cache.get(logSettings.allLog);
+      if (allChannel) {
+        await allChannel.send({ embeds: [embed] });
+      }
+    }
+  } catch (err) {
+    console.error('Ban audit log error:', err);
+  }
+});
+
+// Track unban actions from Audit Logs
+client.on('guildBanRemove', async (guild, user) => {
+  try {
+    const auditLogs = await guild.fetchAuditLogs({
+      type: 'MEMBER_BAN_REMOVE',
+      limit: 1
+    }).catch(() => null);
+
+    const unbanEntry = auditLogs?.entries.first();
+    const moderator = unbanEntry?.executor || guild.me;
+
+    const embed = new EmbedBuilder()
+      .setTitle('🔓 UNBAN LOG')
+      .setColor(0x10B981)
+      .addFields(
+        { name: '🔓 Admin', value: moderator.tag || moderator.username || 'Unknown', inline: true },
+        { name: '👤 Unbanned User', value: user.tag || user.username, inline: true },
+        { name: '🆔 User ID', value: user.id, inline: true },
+        { name: '⏰ Time', value: new Date().toLocaleString('ar-SA'), inline: false }
+      )
+      .setFooter({ text: 'Unit S - Moderation' })
+      .setTimestamp();
+
+    await sendLog(guild, 'ban', embed);
+
+    if (logSettings.allLog) {
+      const allChannel = guild.channels.cache.get(logSettings.allLog);
+      if (allChannel) {
+        await allChannel.send({ embeds: [embed] });
+      }
+    }
+  } catch (err) {
+    console.error('Unban audit log error:', err);
+  }
+});
+
+// Track kick actions from Audit Logs
+client.on('guildMemberRemove', async (member) => {
+  if (member.user.bot) return;
+
+  try {
+    const auditLogs = await member.guild.fetchAuditLogs({
+      type: 'MEMBER_KICK',
+      limit: 1
+    }).catch(() => null);
+
+    const kickEntry = auditLogs?.entries.first();
+
+    // Check if this is a kick (entry should be recent, within 5 seconds)
+    const isKick = kickEntry &&
+                  kickEntry.target?.id === member.id &&
+                  kickEntry.executor &&
+                  (Date.now() - kickEntry.createdTimestamp) < 5000;
+
+    if (isKick) {
+      const moderator = kickEntry.executor;
+      const reason = kickEntry.reason || 'No reason provided';
+
+      const embed = new EmbedBuilder()
+        .setTitle('🦵 KICK LOG')
+        .setColor(0xF59E0B)
+        .addFields(
+          { name: '🦵 Admin', value: moderator.tag || moderator.username, inline: true },
+          { name: '👤 Kicked User', value: member.user.tag || member.user.username, inline: true },
+          { name: '🆔 User ID', value: member.id, inline: true },
+          { name: '📝 Reason', value: reason, inline: false },
+          { name: '⏰ Time', value: new Date().toLocaleString('ar-SA'), inline: false }
+        )
+        .setFooter({ text: 'Unit S - Moderation' })
+        .setTimestamp();
+
+      await sendLog(member.guild, 'kick', embed);
+
+      if (logSettings.allLog) {
+        const allChannel = member.guild.channels.cache.get(logSettings.allLog);
+        if (allChannel) {
+          await allChannel.send({ embeds: [embed] });
+        }
+      }
+    } else {
+      // Regular leave - not a kick
+      await logMemberLeave(member.guild, member, null);
+    }
+  } catch (err) {
+    console.error('Kick audit log error:', err);
+    // If error, treat as regular leave
+    await logMemberLeave(member.guild, member, null);
+  }
+});
+
+// Track role create from Audit Logs
+client.on('roleCreate', async (role) => {
+  try {
+    const auditLogs = await role.guild.fetchAuditLogs({
+      type: 'ROLE_CREATE',
+      limit: 1
+    }).catch(() => null);
+
+    const creator = auditLogs?.entries.first()?.executor || role.guild.me;
+
+    const embed = new EmbedBuilder()
+      .setTitle('🎭 ROLE CREATED')
+      .setColor(0x10B981)
+      .addFields(
+        { name: '🎭 Role', value: role.name, inline: true },
+        { name: '🆔 Role ID', value: role.id, inline: true },
+        { name: '👤 Created By', value: creator.tag || creator.username || 'Unknown', inline: true },
+        { name: '⏰ Time', value: new Date().toLocaleString('ar-SA'), inline: false }
+      )
+      .setFooter({ text: 'Unit S - Moderation' })
+      .setTimestamp();
+
+    await sendLog(role.guild, 'roles', embed);
+
+    if (logSettings.allLog) {
+      const allChannel = role.guild.channels.cache.get(logSettings.allLog);
+      if (allChannel) {
+        await allChannel.send({ embeds: [embed] });
+      }
+    }
+  } catch (err) {
+    console.error('Role create audit log error:', err);
+  }
+});
+
+// Track role delete from Audit Logs
+client.on('roleDelete', async (role) => {
+  try {
+    const auditLogs = await role.guild.fetchAuditLogs({
+      type: 'ROLE_DELETE',
+      limit: 1
+    }).catch(() => null);
+
+    const deleter = auditLogs?.entries.first()?.executor || role.guild.me;
+
+    const embed = new EmbedBuilder()
+      .setTitle('🎭 ROLE DELETED')
+      .setColor(0xDC2626)
+      .addFields(
+        { name: '🎭 Role', value: role.name, inline: true },
+        { name: '🆔 Role ID', value: role.id, inline: true },
+        { name: '👤 Deleted By', value: deleter.tag || deleter.username || 'Unknown', inline: true },
+        { name: '⏰ Time', value: new Date().toLocaleString('ar-SA'), inline: false }
+      )
+      .setFooter({ text: 'Unit S - Moderation' })
+      .setTimestamp();
+
+    await sendLog(role.guild, 'roles', embed);
+
+    if (logSettings.allLog) {
+      const allChannel = role.guild.channels.cache.get(logSettings.allLog);
+      if (allChannel) {
+        await allChannel.send({ embeds: [embed] });
+      }
+    }
+  } catch (err) {
+    console.error('Role delete audit log error:', err);
+  }
+});
+
+// Track role updates (permissions, name, color, etc.)
+client.on('roleUpdate', async (oldRole, newRole) => {
+  try {
+    const auditLogs = await newRole.guild.fetchAuditLogs({
+      type: 'ROLE_UPDATE',
+      limit: 1
+    }).catch(() => null);
+
+    const updater = auditLogs?.entries.first()?.executor || newRole.guild.me;
+
+    const changes = [];
+    if (oldRole.name !== newRole.name) {
+      changes.push(`Name: ${oldRole.name} → ${newRole.name}`);
+    }
+    if (oldRole.color !== newRole.color) {
+      changes.push(`Color: #${oldRole.color?.toString(16) || 'none'} → #${newRole.color?.toString(16) || 'none'}`);
+    }
+    if (oldRole.permissions.bitfield !== newRole.permissions.bitfield) {
+      changes.push(`Permissions updated`);
+    }
+
+    if (changes.length === 0) return; // No significant changes
+
+    const embed = new EmbedBuilder()
+      .setTitle('🎭 ROLE UPDATED')
+      .setColor(0xF59E0B)
+      .addFields(
+        { name: '🎭 Role', value: newRole.name, inline: true },
+        { name: '🆔 Role ID', value: newRole.id, inline: true },
+        { name: '👤 Updated By', value: updater.tag || updater.username || 'Unknown', inline: true },
+        { name: '📝 Changes', value: changes.join('\n'), inline: false },
+        { name: '⏰ Time', value: new Date().toLocaleString('ar-SA'), inline: false }
+      )
+      .setFooter({ text: 'Unit S - Moderation' })
+      .setTimestamp();
+
+    await sendLog(newRole.guild, 'roles', embed);
+
+    if (logSettings.allLog) {
+      const allChannel = newRole.guild.channels.cache.get(logSettings.allLog);
+      if (allChannel) {
+        await allChannel.send({ embeds: [embed] });
+      }
+    }
+  } catch (err) {
+    console.error('Role update audit log error:', err);
+  }
+});
+
+// Track member role add/remove from Audit Logs
+client.on('guildMemberUpdate', async (oldMember, newMember) => {
+  try {
+    const auditLogs = await newMember.guild.fetchAuditLogs({
+      limit: 10
+    }).catch(() => null);
+
+    const roleAddEntries = auditLogs?.entries.filter(e => e.action === 'MEMBER_ROLE_UPDATE' && e.target?.id === newMember.id);
+    const recentEntry = roleAddEntries?.first();
+
+    if (!recentEntry) return;
+
+    const addedRoles = newMember.roles.cache.filter(role => !oldMember.roles.cache.has(role.id));
+    const removedRoles = oldMember.roles.cache.filter(role => !newMember.roles.cache.has(role.id));
+    const moderator = recentEntry.executor || newMember.guild.me;
+
+    for (const role of addedRoles) {
+      const embed = new EmbedBuilder()
+        .setTitle('🎭 ROLE ADDED')
+        .setColor(0x10B981)
+        .addFields(
+          { name: '👮 Admin', value: moderator.tag || moderator.username || 'Unknown', inline: true },
+          { name: '👤 User', value: newMember.user.tag || newMember.user.username, inline: true },
+          { name: '🆔 User ID', value: newMember.id, inline: true },
+          { name: '🎭 Role Added', value: role.name, inline: true },
+          { name: '⏰ Time', value: new Date().toLocaleString('ar-SA'), inline: false }
+        )
+        .setFooter({ text: 'Unit S - Moderation' })
+        .setTimestamp();
+
+      await sendLog(newMember.guild, 'roles', embed);
+
+      if (logSettings.allLog) {
+        const allChannel = newMember.guild.channels.cache.get(logSettings.allLog);
+        if (allChannel) {
+          await allChannel.send({ embeds: [embed] });
+        }
+      }
+    }
+
+    for (const role of removedRoles) {
+      const embed = new EmbedBuilder()
+        .setTitle('🎭 ROLE REMOVED')
+        .setColor(0xDC2626)
+        .addFields(
+          { name: '👮 Admin', value: moderator.tag || moderator.username || 'Unknown', inline: true },
+          { name: '👤 User', value: newMember.user.tag || newMember.user.username, inline: true },
+          { name: '🆔 User ID', value: newMember.id, inline: true },
+          { name: '🎭 Role Removed', value: role.name, inline: true },
+          { name: '⏰ Time', value: new Date().toLocaleString('ar-SA'), inline: false }
+        )
+        .setFooter({ text: 'Unit S - Moderation' })
+        .setTimestamp();
+
+      await sendLog(newMember.guild, 'roles', embed);
+
+      if (logSettings.allLog) {
+        const allChannel = newMember.guild.channels.cache.get(logSettings.allLog);
+        if (allChannel) {
+          await allChannel.send({ embeds: [embed] });
+        }
+      }
+    }
+  } catch (err) {
+    console.error('Member role update audit log error:', err);
+  }
+});
+
+// Track channel create from Audit Logs
+client.on('channelCreate', async (channel) => {
+  if (channel.isVoiceBased()) return;
+  if (channel.name.startsWith('ticket-')) return; // Ignore ticket channels
+
+  try {
+    const auditLogs = await channel.guild.fetchAuditLogs({
+      type: 'CHANNEL_CREATE',
+      limit: 1
+    }).catch(() => null);
+
+    const creator = auditLogs?.entries.first()?.executor || channel.guild.me;
+
+    const embed = new EmbedBuilder()
+      .setTitle('📁 CHANNEL CREATED')
+      .setColor(0x10B981)
+      .addFields(
+        { name: '📁 Channel', value: channel.name, inline: true },
+        { name: '🆔 Channel ID', value: channel.id, inline: true },
+        { name: '👤 Created By', value: creator.tag || creator.username || 'Unknown', inline: true },
+        { name: '⏰ Time', value: new Date().toLocaleString('ar-SA'), inline: false }
+      )
+      .setFooter({ text: 'Unit S - Moderation' })
+      .setTimestamp();
+
+    await sendLog(channel.guild, 'rooms', embed);
+
+    if (logSettings.allLog) {
+      const allChannel = channel.guild.channels.cache.get(logSettings.allLog);
+      if (allChannel) {
+        await allChannel.send({ embeds: [embed] });
+      }
+    }
+  } catch (err) {
+    console.error('Channel create audit log error:', err);
+  }
+});
+
+// Track channel delete from Audit Logs
+client.on('channelDelete', async (channel) => {
+  if (channel.isVoiceBased()) return;
+  if (channel.name.startsWith('ticket-')) return; // Ignore ticket channels
+
+  try {
+    const auditLogs = await channel.guild.fetchAuditLogs({
+      type: 'CHANNEL_DELETE',
+      limit: 1
+    }).catch(() => null);
+
+    const deleter = auditLogs?.entries.first()?.executor || channel.guild.me;
+
+    const embed = new EmbedBuilder()
+      .setTitle('📁 CHANNEL DELETED')
+      .setColor(0xDC2626)
+      .addFields(
+        { name: '📁 Channel', value: channel.name, inline: true },
+        { name: '🆔 Channel ID', value: channel.id, inline: true },
+        { name: '👤 Deleted By', value: deleter.tag || deleter.username || 'Unknown', inline: true },
+        { name: '⏰ Time', value: new Date().toLocaleString('ar-SA'), inline: false }
+      )
+      .setFooter({ text: 'Unit S - Moderation' })
+      .setTimestamp();
+
+    await sendLog(channel.guild, 'rooms', embed);
+
+    if (logSettings.allLog) {
+      const allChannel = channel.guild.channels.cache.get(logSettings.allLog);
+      if (allChannel) {
+        await allChannel.send({ embeds: [embed] });
+      }
+    }
+  } catch (err) {
+    console.error('Channel delete audit log error:', err);
+  }
+});
+
+// Track message delete from Audit Logs
+client.on('messageDelete', async (message) => {
+  if (message.author?.bot) return;
+  if (!message.guild) return;
+
+  try {
+    const auditLogs = await message.guild.fetchAuditLogs({
+      type: 'MESSAGE_DELETE',
+      limit: 5
+    }).catch(() => null);
+
+    const deleteEntry = auditLogs?.entries.find(e =>
+      e.target?.id === message.author?.id &&
+      Math.abs(e.createdTimestamp - message.createdTimestamp) < 3000
+    );
+
+    const deleter = deleteEntry?.executor || message.guild.me;
+
+    const embed = new EmbedBuilder()
+      .setTitle('🗑️ MESSAGE DELETED')
+      .setColor(0xDC2626)
+      .addFields(
+        { name: '👤 Author', value: message.author?.tag || 'Unknown', inline: true },
+        { name: '👤 Deleted By', value: deleter?.tag || deleter?.username || 'Unknown', inline: true },
+        { name: '#️⃣ Channel', value: message.channel?.name || 'Unknown', inline: true },
+        { name: '📝 Content', value: message.content?.substring(0, 1024) || '[No text/Embed/Attachment]', inline: false },
+        { name: '⏰ Time', value: new Date().toLocaleString('ar-SA'), inline: false }
+      )
+      .setFooter({ text: 'Unit S - Moderation' })
+      .setTimestamp();
+
+    await sendLog(message.guild, 'messages', embed);
+
+    if (logSettings.allLog) {
+      const allChannel = message.guild.channels.cache.get(logSettings.allLog);
+      if (allChannel) {
+        await allChannel.send({ embeds: [embed] });
+      }
+    }
+  } catch (err) {
+    console.error('Message delete audit log error:', err);
+  }
 });
 
 // ============ ERROR HANDLER ============
