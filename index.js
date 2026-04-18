@@ -2398,6 +2398,42 @@ client.on('interactionCreate', async (interaction) => {
               components: [row]
             });
 
+            // رسالة الشراء التلقائي مع القائمة المنسدلة
+            const purchaseEmbed = new EmbedBuilder()
+              .setTitle('💰 الشراء التلقائي')
+              .setDescription('حدد هدف فتح التذكرة من الأزرار الموجودة بالأسفل')
+              .addFields(
+                { name: '🔹 الشراء التلقائي', value: 'لشراء الرتب - الإعلانات - المنشورات - الرومات الخاصة', inline: false },
+                { name: '🔹 مشكلة / استفسار', value: 'لاستفسار عن أي شيء يخص السيرفر أو لطرح مشكلة معينة', inline: false }
+              )
+              .setColor(0x10B981)
+              .setFooter({ text: 'Unit S | System Bot' });
+
+            const purchaseSelectMenu = new StringSelectMenuBuilder()
+              .setCustomId('ticket_purchase_select')
+              .setPlaceholder('اختر هدف فتح التذكرة...')
+              .addOptions([
+                new StringSelectMenuOptionBuilder({
+                  label: 'الشراء التلقائي',
+                  description: 'لشراء الرتب - الإعلانات - المنشورات - الرومات الخاصة',
+                  value: 'purchase_auto',
+                  emoji: '💰',
+                }),
+                new StringSelectMenuOptionBuilder({
+                  label: 'مشكلة / استفسار',
+                  description: 'لاستفسار عن أي شيء يخص السيرفر أو لطرح مشكلة معينة',
+                  value: 'purchase_inquiry',
+                  emoji: '❓',
+                }),
+              ]);
+
+            const purchaseRow = new ActionRowBuilder().addComponents(purchaseSelectMenu);
+
+            await ticketChannel.send({
+              embeds: [purchaseEmbed],
+              components: [purchaseRow]
+            });
+
             await interaction.reply({
               content: `✅ تم إنشاء التذكرة #${ticketNum} بنجاح! <#${ticketChannel.id}>`,
               flags: 64
@@ -2414,7 +2450,129 @@ client.on('interactionCreate', async (interaction) => {
         }
       }
 
-      // ============ SHOP PURCHASE SELECT ============
+      // ============ TICKET PURCHASE SELECT (داخل التذكرة) ============
+      if (interaction.customId === 'ticket_purchase_select') {
+        const purchaseType = interaction.values[0];
+
+        if (purchaseType === 'purchase_auto') {
+          const ranksEmbed = new EmbedBuilder()
+            .setTitle('👑 رتب Unit S')
+            .setColor(0x667eea)
+            .addFields(
+              { name: '💎 Coder S.', value: 'السعر: 150,000 | نشر في رومات محددة - إمكانية منشن - صلاحيات خاصة', inline: false },
+              { name: '⚡ Artisan S.', value: 'السعر: 200,000 | نشر في رومات معينة - نشر صور - إمكانية منشن', inline: false },
+              { name: '🎯 Novice S.', value: 'السعر: 250,000 | نشر في جميع الرومات - عدم نشر صور - إمكانية منشن', inline: false },
+              { name: '🔥 Elite S.', value: 'السعر: 300,000 | نشر في جميع الرومات - نشر صور - عدم المنشن', inline: false },
+              { name: '⭐ Master S.', value: 'السعر: 550,000 | نشر في جميع الرومات - نشر صور في رومات محددة - إمكانية منشن', inline: false },
+              { name: '👑 Legend S.', value: 'السعر: 750,000 | نشر في جميع الرومات - نشر صور - إمكانية منشن', inline: false },
+              { name: '🌟 Seraph S.', value: 'السعر: 1,000,000 | جميع الصلاحيات - نشر صور في جميع الرومات - منشن كامل', inline: false }
+            )
+            .setFooter({ text: 'Unit S | الرتب' });
+
+          const shopSelectMenu = new StringSelectMenuBuilder()
+            .setCustomId('shop_ranks_select')
+            .setPlaceholder('اختر الرتبة المطلوبة...')
+            .addOptions([
+              new StringSelectMenuOptionBuilder({
+                label: 'Coder S. - 150,000',
+                value: 'rank_coder',
+                emoji: '💎',
+              }),
+              new StringSelectMenuOptionBuilder({
+                label: 'Artisan S. - 200,000',
+                value: 'rank_artisan',
+                emoji: '⚡',
+              }),
+              new StringSelectMenuOptionBuilder({
+                label: 'Novice S. - 250,000',
+                value: 'rank_novice',
+                emoji: '🎯',
+              }),
+              new StringSelectMenuOptionBuilder({
+                label: 'Elite S. - 300,000',
+                value: 'rank_elite',
+                emoji: '🔥',
+              }),
+              new StringSelectMenuOptionBuilder({
+                label: 'Master S. - 550,000',
+                value: 'rank_master',
+                emoji: '⭐',
+              }),
+              new StringSelectMenuOptionBuilder({
+                label: 'Legend S. - 750,000',
+                value: 'rank_legend',
+                emoji: '👑',
+              }),
+              new StringSelectMenuOptionBuilder({
+                label: 'Seraph S. - 1,000,000',
+                value: 'rank_seraph',
+                emoji: '🌟',
+              }),
+            ]);
+
+          const shopRow = new ActionRowBuilder().addComponents(shopSelectMenu);
+
+          await interaction.reply({
+            embeds: [ranksEmbed],
+            components: [shopRow],
+            flags: 64
+          });
+          return;
+        }
+
+        if (purchaseType === 'purchase_inquiry') {
+          const inquiryEmbed = new EmbedBuilder()
+            .setTitle('❓ مشكلة / استفسار')
+            .setDescription('يمكنك كتابة استفسارك أو مشكلتك هنا وسنرد عليك في أقرب وقت ممكن')
+            .setColor(0xF59E0B)
+            .addFields(
+              { name: '💡 ملاحظة', value: '• اكتب استفسارك بشكل واضح ومفصل\n• انتظر الرد من فريق الدعم\n• لا تقم بالإزعاج بالمنشن', inline: false }
+            )
+            .setFooter({ text: 'Unit S | الدعم' });
+
+          await interaction.reply({
+            embeds: [inquiryEmbed],
+            flags: 64
+          });
+          return;
+        }
+
+        return;
+      }
+
+      // ============ SHOP RANKS SELECT ============
+      if (interaction.customId === 'shop_ranks_select') {
+        const selectedRank = interaction.values[0];
+
+        const rankInfo = {
+          rank_coder: { name: 'Coder S.', price: '150,000' },
+          rank_artisan: { name: 'Artisan S.', price: '200,000' },
+          rank_novice: { name: 'Novice S.', price: '250,000' },
+          rank_elite: { name: 'Elite S.', price: '300,000' },
+          rank_master: { name: 'Master S.', price: '550,000' },
+          rank_legend: { name: 'Legend S.', price: '750,000' },
+          rank_seraph: { name: 'Seraph S.', price: '1,000,000' },
+        };
+
+        const selected = rankInfo[selectedRank];
+
+        const confirmEmbed = new EmbedBuilder()
+          .setTitle(`✅ تم اختيار الرتبة: ${selected.name}`)
+          .setColor(0x10B981)
+          .setDescription(`تم تحديد رتبة **${selected.name}** بقيمة **${selected.price}**`)
+          .addFields(
+            { name: '📋 الخطوات التالية:', value: '1. سيتم التواصل معك عبر هذه التذكرة\n2. اتبع تعليمات الدفع\n3. بعد الدفع سيتم تفعيل الرتبة فوراً', inline: false }
+          )
+          .setFooter({ text: 'Unit S | الشراء' });
+
+        await interaction.reply({
+          embeds: [confirmEmbed],
+          flags: 64
+        });
+        return;
+      }
+
+      // ============ SHOP PURCHASE SELECT (القائمة القديمة) ============
       if (interaction.customId === 'shop_purchase_select') {
         const purchaseType = interaction.values[0];
 
