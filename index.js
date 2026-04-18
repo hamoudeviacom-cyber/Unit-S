@@ -1390,12 +1390,6 @@ client.commands.set('ticket', {
           emoji: '🔄',
         }),
         new StringSelectMenuOptionBuilder({
-          label: 'شراء',
-          description: 'للشراء من السيرفر',
-          value: 'ticket_purchase',
-          emoji: '💰',
-        }),
-        new StringSelectMenuOptionBuilder({
           label: 'عروض الرتب',
           description: 'عرض رتب متاحة للشراء',
           value: 'ticket_ranks',
@@ -1454,6 +1448,18 @@ client.commands.set('tmenu', {
           description: 'لاستفسار عن أي شيء',
           value: 'general_inquiry',
           emoji: '❓',
+        }),
+        new StringSelectMenuOptionBuilder({
+          label: 'شراء',
+          description: 'للشراء من السيرفر',
+          value: 'ticket_purchase',
+          emoji: '💰',
+        }),
+        new StringSelectMenuOptionBuilder({
+          label: 'عرض الراتب',
+          description: 'لعرض الرتب المتاحة للشراء',
+          value: 'ticket_ranks',
+          emoji: '👑',
         }),
       ]);
 
