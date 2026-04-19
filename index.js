@@ -1360,40 +1360,86 @@ client.commands.set('ticket', {
       return;
     }
 
-    // Step 1: Main menu
-    const embed = new EmbedBuilder()
-      .setTitle('<:_:1487186496061440032> التذكرة')
-      .setAuthor({ name: 'UNIT SHOP', iconURL: 'https://media.discordapp.net/attachments/1397309666752593920/1495169429741240511/UNIT_4306000.png?ex=69e5448a&is=69e3f30a&hm=d1143eeac3289c0b55d81d3275a529dbc46a324607e5a8dc5326486b1b08c327&' })
-      .setDescription('<:_:1198389594568265728> **هنا يُمكنك الحصول على المساعدة عن طريق التذكرة**\n\n\`\`\`fix\nالدعم الفني ❯ شراء رتبة + استفسار + إنشاء روم خاص\`\`\`\n\n<:_:1487186496061440032> **الـدعـم الـفـنـي :**\n> منشور بـ <#1495217972896071882> <:_:1495225057209880706>\n\n\`\`\`fix\nالشكاوي ❯ البلاغ عن فرد\`\`\`\n\n<:_:1488212380755427398> **الـشـكـاوي :**\n> للبلاغ عن فرد من طاقم الدعم الفني الخاص بـ Unit S <:_:1495224616585658418>\n\n-------------------------------------------------- <:_:1495223911871414403> --------------------------------------------------\n--------------------------------------------------\n\n<:_:1495225561520541848> **يُمنع الازعاج بالمنشن والاسبام داخل التذكرة**\n\n<:_:1495225561520541848> **يُمنع السب والشتم داخل التذكرة مهما كان السبب**\n\n<:_:1495225561520541848> **يُمنع فتح التذكرة بدون سبب او للاستهبال**\n\n<:_:1495225561520541848> **في حال مخالفة احد القوانين اعلاه ستتعرض للكتم**\n\n--------------------------------------------------')
-      .setColor(15105570)
-      .setImage('https://cdn.discordapp.com/attachments/1397309666752593920/1495169428738936852/UNIT_406004040.webp?ex=69e5448a&is=69e3f30a&hm=be61008c6e62b1b6783e3af827d9a737804a90f617421c905fa4881c90a03994&');
+    // Step 1: Main menu - Viper S Design
+    const ticketPayload = {
+      content: '_ _',
+      embeds: [
+        {
+          color: 0xff0000,
+          author: {
+            name: 'الـتـذكـرة',
+            icon_url: 'https://media.discordapp.net/attachments/1397309666752593920/1495169429741240511/UNIT_4306000.png?ex=69e5448a&is=69e3f30a&hm=d1143eeac3289c0b55d81d3275a529dbc46a324607e5a8dc5326486b1b08c327&=format=webp&quality=lossless&width=788&height=788'
+          },
+          description: [
+            '**هنا يُمكنك الحصول على المساعدة عن طريق  :<:vanka237:1495225240035262597>**',
+            '',
+            '**__  الـدعـم الـفـنـي__ : شراء رتبة ، استفسار ، إنشاء روم خاص ، منشور بـ <#1495217972896071882> <:6542stafficonred:1495225057209880706>**',
+            '',
+            '** __الـشـكـاوي__ : للبلاغ عن فرد من طاثم الدعم الفني الخاص بـ Unit S <:StaffHighCommand:1495224616585658418>**',
+            '',
+            '__ ـــــــــــــــــــــــــــــــــــــــــــــــــ <a:emrp_warning:1495223911871414403> ـــــــــــــــــــــــــــــــــــــــــــــــــــ __',
+            '',
+            '**يُمنع الازعاج بالمنشن والاسبام داخل التذكرة <:warn:1495225561520541848>**',
+            '',
+            '**يُمنع السب والشتم داخل التذكرة مهما كان السبب <:warn:1495225561520541848>**',
+            '',
+            '**يُمنع فتح التذكرة بدون سبباو للاستهبال <:warn:1495225561520541848>**',
+            '',
+            '**في حال خالفة احد القوانين اعلاه ستتعرض للكتم <:warn:1495225561520541848>**',
+            '',
+            '__ ـــــــــــــــــــــــــــــــــــــــــــــــــ <:vanka237:1495225240035262597> ـــــــــــــــــــــــــــــــــــــــــــــــــــ __'
+          ].join('\n'),
+          image: {
+            url: 'https://cdn.discordapp.com/attachments/1397309666752593920/1495169428738936852/UNIT_406004040.webp?ex=69e5448a&is=69e3f30a&hm=be61008c6e62b1b6783e3af827d9a737804a90f617421c905fa4881c90a03994&'
+          }
+        }
+      ],
+      components: [
+        {
+          type: 1,
+          components: [
+            {
+              type: 3,
+              custom_id: 'ticket_main_select',
+              options: [
+                {
+                  label: 'الـدعـم الـفـنـي',
+                  emoji: {
+                    id: '1495235065440108584',
+                    name: 'vanka237',
+                    animated: false
+                  },
+                  value: 'ticket_technical'
+                },
+                {
+                  label: 'الـشـكـاوي',
+                  emoji: {
+                    id: '1495234630310297671',
+                    name: 'Reprot_Flag',
+                    animated: false
+                  },
+                  value: 'ticket_complaint'
+                },
+                {
+                  label: 'إعـادة تعيين الـقـائـمـة',
+                  emoji: {
+                    id: '1495234888931082333',
+                    name: 'vanka239',
+                    animated: false
+                  },
+                  value: 'ticket_reset'
+                }
+              ],
+              placeholder: 'اختر من القائمة...',
+              min_values: 1,
+              max_values: 1
+            }
+          ]
+        }
+      ]
+    };
 
-    const selectMenu = new StringSelectMenuBuilder()
-      .setCustomId('ticket_main_select')
-      .setPlaceholder('اختر من القائمة...')
-      .addOptions([
-        new StringSelectMenuOptionBuilder({
-          label: 'الـدعـم الـفـنـي',
-          description: 'لمشاكل تقنية واستفسارات',
-          emoji: { id: '1487186496061440032', name: 'SupportIcon', animated: false },
-          value: 'ticket_technical',
-        }),
-        new StringSelectMenuOptionBuilder({
-          label: 'الـشـكـاوي',
-          description: 'للبلاغ عن عضو',
-          emoji: { id: '1488212380755427398', name: 'ReportIcon', animated: false },
-          value: 'ticket_complaint',
-        }),
-        new StringSelectMenuOptionBuilder({
-          label: 'إعـادة تعيين الـقـائـمـة',
-          description: 'لإعادة عرض القائمة',
-          emoji: { id: '1487186879123030106', name: 'ResetIcon', animated: false },
-          value: 'ticket_inquiry',
-        }),
-      ]);
-
-    const row = new ActionRowBuilder().addComponents(selectMenu);
-    await message.channel.send({ embeds: [embed], components: [row] });
+    await message.channel.send(ticketPayload);
     if (!message.deleted) message.delete().catch(() => {});
   },
 });
