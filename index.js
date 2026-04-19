@@ -2405,19 +2405,6 @@ client.on('interactionCreate', async (interaction) => {
               user: interaction.user
             });
 
-            // Ticket Embed
-            const embed = new EmbedBuilder()
-              .setTitle(`🎫 Unit S Tickets | #${ticketNum} — ${typeName}`)
-              .setColor(0x667eea)
-              .setDescription(`مرحباً <@${interaction.user.id}>\nشكراً لفتحك تذكرة. أحد أعضاء الفريق سيreply عليك قريباً.`)
-              .addFields(
-                { name: '⏰ وقت الفتح', value: formatTimeAgo(Date.now()), inline: true },
-                { name: '📌 الحالة', value: '🟡 غير مستلمة', inline: true },
-                { name: '💡 ملاحظة', value: 'اكتب استفسارك هنا وسنرد عليك بأسرع وقت', inline: false }
-              )
-              .setFooter({ text: 'Unit S Support System' })
-              .setTimestamp();
-
             // منشن الرولات
             let channelContent = interaction.user.toString();
             if (ticketSettings.mentionRoleId || ticketSettings.mentionRoleName) {
@@ -2438,47 +2425,116 @@ client.on('interactionCreate', async (interaction) => {
               channelContent += ' ' + mentionedRoles.map(r => r.toString()).join(' ');
             }
 
-            await ticketChannel.send({
-              content: channelContent,
-              embeds: [embed],
-              components: [row]
-            });
+            // Ticket Embed - Unit S Design
+            const ticketEmbed = {
+              content: '_ _',
+              embeds: [
+                {
+                  color: 0xff0000,
+                  author: {
+                    name: typeName === 'دعم فني' ? 'الـدعـم الـفـنـي' : 'الـشـكـاوي',
+                    icon_url: 'https://media.discordapp.net/attachments/1397309666752593920/1495169429741240511/UNIT_4306000.png?ex=69e5448a&is=69e3f30a&hm=d1143eeac3289c0b55d81d3275a529dbc46a324607e5a8dc5326486b1b08c327&=format=webp&quality=lossless&width=788&height=788'
+                  },
+                  description: [
+                    `💎 **مرحباً بك <@${interaction.user.id}> في Unit S**`,
+                    '',
+                    `⚔️ **يشرفنا وجودك ونعدك بحل مشكلتك بأسرع وقت**`,
+                    '',
+                    `🔹 **الهدف من فتح التذكرة :** ${typeName}`,
+                    '',
+                    '__ ـــــــــــــــــــــــــــــــــــــــــــــــــ <a:emrp_warning:1495223911871414403> ـــــــــــــــــــــــــــــــــــــــــــــــــــ __',
+                    '',
+                    `📌 **يرجى كتابة مشكلتك بالتفصيل الممل**`,
+                    '',
+                    `⚠️ **نرجو منك الصبر حتى الرد عليك من قبل احد طاقم الدعم الفني**`,
+                    '',
+                    `🔇 **يُمنع السبام والمنشن داخل التذكرة**`,
+                    '',
+                    `✅ **شكراً لتعاملكم مع Unit S**`,
+                    '',
+                    '__ ـــــــــــــــــــــــــــــــــــــــــــــــــ <:vanka237:1495225240035262597> ـــــــــــــــــــــــــــــــــــــــــــــــــــ __'
+                  ].join('\n'),
+                  image: {
+                    url: 'https://cdn.discordapp.com/attachments/1397309666752593920/1495169428738936852/UNIT_406004040.webp?ex=69e5448a&is=69e3f30a&hm=be61008c6e62b1b6783e3af827d9a737804a90f617421c905fa4881c90a03994&'
+                  }
+                }
+              ],
+              components: [
+                {
+                  type: 1,
+                  components: [
+                    {
+                      type: 3,
+                      custom_id: 'ticket_purchase_select',
+                      options: [
+                        {
+                          label: 'الـشـراء الـتـلـقـائـي',
+                          emoji: {
+                            id: '1495235065440108584',
+                            name: 'vanka237',
+                            animated: false
+                          },
+                          value: 'purchase_auto'
+                        },
+                        {
+                          label: 'مـشـكـلـة / اسـتـفـسـار',
+                          emoji: {
+                            id: '1495234630310297671',
+                            name: 'Reprot_Flag',
+                            animated: false
+                          },
+                          value: 'purchase_inquiry'
+                        }
+                      ],
+                      placeholder: 'اختر هدف فتح التذكرة...',
+                      min_values: 1,
+                      max_values: 1
+                    }
+                  ]
+                },
+                {
+                  type: 1,
+                  components: [
+                    {
+                      type: 2,
+                      custom_id: 'claim_ticket',
+                      label: 'استلام',
+                      style: 3,
+                      emoji: {
+                        id: '1495235065440108584',
+                        name: 'vanka237',
+                        animated: false
+                      }
+                    },
+                    {
+                      type: 2,
+                      custom_id: 'unclaim_ticket',
+                      label: 'إلغاء الاستلام',
+                      style: 2
+                    },
+                    {
+                      type: 2,
+                      custom_id: 'close_ticket',
+                      label: 'إغلاق',
+                      style: 4
+                    },
+                    {
+                      type: 2,
+                      custom_id: 'ticket_reset_menu',
+                      label: 'القائمة',
+                      style: 2,
+                      emoji: {
+                        id: '1495234888931082333',
+                        name: 'vanka239',
+                        animated: false
+                      }
+                    }
+                  ]
+                }
+              ]
+            };
 
-            // رسالة الشراء التلقائي مع القائمة المنسدلة
-            const purchaseEmbed = new EmbedBuilder()
-              .setTitle('💰 الشراء التلقائي')
-              .setDescription('حدد هدف فتح التذكرة من الأزرار الموجودة بالأسفل')
-              .addFields(
-                { name: '🔹 الشراء التلقائي', value: 'لشراء الرتب - الإعلانات - المنشورات - الرومات الخاصة', inline: false },
-                { name: '🔹 مشكلة / استفسار', value: 'لاستفسار عن أي شيء يخص السيرفر أو لطرح مشكلة معينة', inline: false }
-              )
-              .setColor(0x10B981)
-              .setFooter({ text: 'Unit S | System Bot' });
-
-            const purchaseSelectMenu = new StringSelectMenuBuilder()
-              .setCustomId('ticket_purchase_select')
-              .setPlaceholder('اختر هدف فتح التذكرة...')
-              .addOptions([
-                new StringSelectMenuOptionBuilder({
-                  label: 'الشراء التلقائي',
-                  description: 'لشراء الرتب - الإعلانات - المنشورات - الرومات الخاصة',
-                  value: 'purchase_auto',
-                  emoji: '💰',
-                }),
-                new StringSelectMenuOptionBuilder({
-                  label: 'مشكلة / استفسار',
-                  description: 'لاستفسار عن أي شيء يخص السيرفر أو لطرح مشكلة معينة',
-                  value: 'purchase_inquiry',
-                  emoji: '❓',
-                }),
-              ]);
-
-            const purchaseRow = new ActionRowBuilder().addComponents(purchaseSelectMenu);
-
-            await ticketChannel.send({
-              embeds: [purchaseEmbed],
-              components: [purchaseRow]
-            });
+            await ticketChannel.send(ticketEmbed);
 
             await interaction.reply({
               content: `✅ تم إنشاء التذكرة #${ticketNum} بنجاح! <#${ticketChannel.id}>`,
