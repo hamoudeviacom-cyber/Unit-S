@@ -73,7 +73,7 @@ const ticketSettings = {
 const freeRankSettings = {
   enabled: true,                    // تفعيل/تعطيل النظام
   roleId: null,                     // ايدي الرتبة (ضع هنا)
-  roleName: 'Selling',              // اسم الرتبة
+  roleName: '🜲・〢↝ Excellent',              // اسم الرتبة
   panelChannelId: null,             // قناة لوحة الرتبة المجانية
   panelMessageId: null,             // رسالة اللوحة
   maxClaims: 500,                   // الحد الأقصى للمطالبات (0 = غير محدود)
