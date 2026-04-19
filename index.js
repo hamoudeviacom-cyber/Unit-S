@@ -34,6 +34,15 @@ const COLORS = {
   primary: 0x667eea,
 };
 
+// ============ FREE RANK SETTINGS ============
+const freeRankSettings = {
+  enabled: true,
+  roleId: '1494685867749539861', // استبدل هذا باي دي الرتبة المجانية
+  maxUses: 100,
+  usedCount: 0,
+  channelId: null, // القناة المسموح فيها استخدام الأمر
+};
+
 // ============ Log Channels Settings ============
 const logSettings = {
   allLog: null,          // # all-log
@@ -67,19 +76,6 @@ const ticketSettings = {
   welcomeTitle: 'Welcome To Unit S support',
   welcomeSubtitle: 'Choose The Ticket That You Want To Open',
   ticketPrefix: 'Unit S Tickets',
-};
-
-// ============ Free Rank Settings ============
-const freeRankSettings = {
-  enabled: true,                    // تفعيل/تعطيل النظام
-  roleId: '1494685867749539861',                     // ايدي الرتبة (ضع هنا)
-  roleName: '🜲・〢↝ Excellent',              // اسم الرتبة
-  panelChannelId: null,             // قناة لوحة الرتبة المجانية
-  panelMessageId: null,             // رسالة اللوحة
-  maxClaims: 100,                   // الحد الأقصى للمطالبات (0 = غير محدود)
-  claimedCount: 0,                   // عدد المطالبات المستخدمة
-  claimedUsers: new Set(),          // قائمة المستخدمين الذين استلموا
-  logChannelId: null,               // قناة اللوج
 };
 
 // ============ Word Encryption Dictionary ============
@@ -730,13 +726,6 @@ client.commands.set('help', {
           '`!tmanage setlogs #قناة` - تعيين قناة اللوجس\n' +
           '`!tmanage setmention @رول` - تعيين رول للمنشن\n' +
           '`!tmanage mention` - عرض إعدادات المنشن', inline: false },
-        { name: '🎁 الرتبة المجانية', value:
-          '`!freerank` - عرض أوامر الرتبة المجانية\n' +
-          '`!freerank setup` - إنشاء لوحة الرتبة المجانية\n' +
-          '`!freerank setrole [ايدي/اسم]` - تعيين الرتبة\n' +
-          '`!freerank setmax [عدد]` - تعيين الحد الأقصى\n' +
-          '`!freerank stats` - عرض الإحصائيات\n' +
-          '`!freerank enable/disable` - تفعيل/تعطيل', inline: false },
         { name: '🔒 التشفير', value:
           '`!shfr` - لوحة التشفير\n' +
           '`!enc [نص]` - تشفير نص مباشرة', inline: false },
@@ -777,225 +766,6 @@ client.commands.set('ping', {
       .setTimestamp();
 
     await message.channel.send({ embeds: [embed] });
-    if (!message.deleted) message.delete().catch(() => {});
-  },
-});
-
-// ============ FREE RANK COMMAND ============
-client.commands.set('freerank', {
-  name: 'freerank',
-  description: 'Free rank management',
-  execute: async (message, args) => {
-    // Check if user has admin permissions
-    if (!hasModRole(message.member) && !modSettings.adminUsers.includes(message.author.username)) {
-      await message.channel.send('❌ ليس لديك صلاحية!');
-      if (!message.deleted) message.delete().catch(() => {});
-      return;
-    }
-
-    // If no args, show help
-    if (args.length === 0) {
-      const embed = new EmbedBuilder()
-        .setTitle('🎁 Unit S | الرتبة المجانية')
-        .setColor(0x667eea)
-        .setDescription('أوامر إدارة الرتبة المجانية:')
-        .addFields(
-          { name: '`!freerank setup`', value: 'إنشاء لوحة الرتبة المجانية في القناة الحالية', inline: false },
-          { name: '`!freerank setrole [role_id]`', value: 'تعيين رتبة البيع بالأيدي', inline: false },
-          { name: '`!freerank setrole [اسم]`', value: 'تعيين رتبة البيع بالاسم', inline: false },
-          { name: '`!freerank setmax [عدد]`', value: 'تعيين الحد الأقصى للمطالبات', inline: false },
-          { name: '`!freerank reset`', value: 'إعادة تعيين العداد والمطالبات', inline: false },
-          { name: '`!freerank stats`', value: 'عرض إحصائيات الرتبة المجانية', inline: false },
-          { name: '`!freerank enable`', value: 'تفعيل الرتبة المجانية', inline: false },
-          { name: '`!freerank disable`', value: 'تعطيل الرتبة المجانية', inline: false },
-          { name: '`!freerank setlog #قناة`', value: 'تعيين قناة اللوج', inline: false }
-        )
-        .setFooter({ text: 'Unit S | Free Rank System' })
-        .setTimestamp();
-
-      await message.channel.send({ embeds: [embed] });
-      if (!message.deleted) message.delete().catch(() => {});
-      return;
-    }
-
-    const action = args[0].toLowerCase();
-
-    // Setup panel
-    if (action === 'setup') {
-      if (!freeRankSettings.roleId && !freeRankSettings.roleName) {
-        await message.channel.send('❌ لم يتم تعيين الرتبة! استخدم `!freerank setrole [ايدي/اسم]` أولاً');
-        if (!message.deleted) message.delete().catch(() => {});
-        return;
-      }
-
-      // Create the embed - تصميم احترافي
-      const remaining = freeRankSettings.maxClaims === 0 ? '∞' : freeRankSettings.maxClaims - freeRankSettings.claimedCount;
-      const used = freeRankSettings.claimedCount;
-
-      const embed = new EmbedBuilder()
-        .setColor(0x667eea) // بنفسج
-        .setAuthor({
-          name: 'رتبة مجانية',
-          iconURL: 'https://media.discordapp.net/attachments/1397309666752593920/1495169429741240511/UNIT_4306000.png?ex=69e6960a&is=69e5448a&hm=bc63944a60898ed0271e92008aaccaa3be3945d85455fcbe3a4e32d1a8559c37&=format=webp&quality=lossless&width=788&height=788'
-        })
-        .setImage('https://cdn.discordapp.com/attachments/1397309666752593920/1495543234166919351/4cc71a18-6f61-459e-8e8a-293c31b199b4.png?ex=69e6a0ac&is=69e54f2c&hm=247d340eb85f00962d3e650df57c9221a78c33f75de0b5938a2340f503dfa33d&')
-        .setDescription(
-          '**__<:zO_246:1495222454530871346> للحصول على رتبة بيع مجانية اضغط على زر <a:Taj:1449677193738195047> بالأسفل :__**\n' +
-          '\n' +
-          '**الـرتب الـمـسـتـخـدمـة :**\n' +
-          '\n' +
-          `> **${used}**\n` +
-          '\n' +
-          '**الـرتـب الـمتـبـقـيـة :**\n' +
-          '\n' +
-          `> **${remaining}**`
-        )
-        .setFooter({ text: 'UNIT S | System Bot' });
-
-      // Create button - تصميم مشابه للرسالة الأصلية
-      const claimButton = new ButtonBuilder()
-        .setCustomId('free_rank_claim')
-        .setLabel('احصل على رتبتك المجانية')
-        .setStyle(ButtonStyle.Secondary)
-        .setEmoji('🎁');
-
-      const row = new ActionRowBuilder().addComponents(claimButton);
-
-      // Send the message
-      const panelMessage = await message.channel.send({
-        embeds: [embed],
-        components: [row]
-      });
-
-      // Save settings
-      freeRankSettings.panelChannelId = message.channel.id;
-      freeRankSettings.panelMessageId = panelMessage.id;
-
-      await message.channel.send('✅ تم إنشاء لوحة الرتبة المجانية بنجاح!');
-      if (!message.deleted) message.delete().catch(() => {});
-      return;
-    }
-
-    // Set role by ID
-    if (action === 'setrole') {
-      const roleInput = args.slice(1).join(' ');
-
-      if (!roleInput) {
-        await message.channel.send('❌ استخدم: `!freerank setrole [ايدي الرتبة]` أو `!freerank setrole [اسم الرتبة]`');
-        if (!message.deleted) message.delete().catch(() => {});
-        return;
-      }
-
-      // Check if it's a role ID (number)
-      if (/^\d+$/.test(roleInput)) {
-        const role = message.guild.roles.cache.get(roleInput);
-        if (!role) {
-          await message.channel.send('❌ لم يتم العثور على الرتبة بهذا الأيدي!');
-          if (!message.deleted) message.delete().catch(() => {});
-          return;
-        }
-        freeRankSettings.roleId = roleInput;
-        freeRankSettings.roleName = role.name;
-      } else {
-        // Search by name
-        const role = message.guild.roles.cache.find(r =>
-          r.name.toLowerCase().includes(roleInput.toLowerCase())
-        );
-        if (!role) {
-          await message.channel.send(`❌ لم يتم العثور على رتبة تحتوي على: "${roleInput}"`);
-          if (!message.deleted) message.delete().catch(() => {});
-          return;
-        }
-        freeRankSettings.roleId = role.id;
-        freeRankSettings.roleName = role.name;
-      }
-
-      await message.channel.send(`✅ تم تعيين الرتبة: **${freeRankSettings.roleName}**`);
-      if (!message.deleted) message.delete().catch(() => {});
-      return;
-    }
-
-    // Set max claims
-    if (action === 'setmax') {
-      const maxInput = args[1];
-
-      if (!maxInput || isNaN(maxInput)) {
-        await message.channel.send('❌ استخدم: `!freerank setmax [عدد]`\n(ضع 0 للإرسال غير محدود)');
-        if (!message.deleted) message.delete().catch(() => {});
-        return;
-      }
-
-      freeRankSettings.maxClaims = parseInt(maxInput);
-      await message.channel.send(`✅ تم تعيين الحد الأقصى للمطالبات: **${freeRankSettings.maxClaims === 0 ? 'غير محدود' : freeRankSettings.maxClaims}**`);
-      if (!message.deleted) message.delete().catch(() => {});
-      return;
-    }
-
-    // Reset counter
-    if (action === 'reset') {
-      freeRankSettings.claimedCount = 0;
-      freeRankSettings.claimedUsers = new Set();
-
-      await message.channel.send('✅ تم إعادة تعيين العداد والمطالبات!');
-      if (!message.deleted) message.delete().catch(() => {});
-      return;
-    }
-
-    // Stats
-    if (action === 'stats') {
-      const remaining = freeRankSettings.maxClaims === 0 ? '∞' : freeRankSettings.maxClaims - freeRankSettings.claimedCount;
-
-      const embed = new EmbedBuilder()
-        .setTitle('📊 إحصائيات الرتبة المجانية')
-        .setColor(0x667eea)
-        .addFields(
-          { name: '📌 الحالة:', value: freeRankSettings.enabled ? '✅ مفعّل' : '❌ معطّل', inline: true },
-          { name: '🎭 الرتبة:', value: freeRankSettings.roleName || 'غير محددة', inline: true },
-          { name: '🔢 الحد الأقصى:', value: freeRankSettings.maxClaims === 0 ? 'غير محدود' : freeRankSettings.maxClaims.toString(), inline: true },
-          { name: '✅ المستخدمة:', value: freeRankSettings.claimedCount.toString(), inline: true },
-          { name: '📦 المتبقية:', value: remaining.toString(), inline: true },
-          { name: '👥 عدد المستخدمين:', value: freeRankSettings.claimedUsers.size.toString(), inline: true }
-        )
-        .setFooter({ text: 'Unit S | Free Rank System' })
-        .setTimestamp();
-
-      await message.channel.send({ embeds: [embed] });
-      if (!message.deleted) message.delete().catch(() => {});
-      return;
-    }
-
-    // Enable
-    if (action === 'enable') {
-      freeRankSettings.enabled = true;
-      await message.channel.send('✅ تم تفعيل الرتبة المجانية!');
-      if (!message.deleted) message.delete().catch(() => {});
-      return;
-    }
-
-    // Disable
-    if (action === 'disable') {
-      freeRankSettings.enabled = false;
-      await message.channel.send('❌ تم تعطيل الرتبة المجانية!');
-      if (!message.deleted) message.delete().catch(() => {});
-      return;
-    }
-
-    // Set log channel
-    if (action === 'setlog') {
-      const channel = message.mentions.channels.first();
-      if (!channel) {
-        await message.channel.send('❌ استخدم: `!freerank setlog #قناة`');
-        if (!message.deleted) message.delete().catch(() => {});
-        return;
-      }
-      freeRankSettings.logChannelId = channel.id;
-      await message.channel.send(`✅ تم تعيين قناة اللوج: ${channel.name}`);
-      if (!message.deleted) message.delete().catch(() => {});
-      return;
-    }
-
-    // Unknown command
-    await message.channel.send(`❌ أمر غير معروف: \`${action}\`\n💡 استخدم \`!freerank\` لعرض قائمة الأوامر.`);
     if (!message.deleted) message.delete().catch(() => {});
   },
 });
@@ -1848,6 +1618,44 @@ client.commands.set('shop', {
 
     const row = new ActionRowBuilder().addComponents(shopMenu);
     await message.channel.send({ embeds: [embed], components: [row] });
+    if (!message.deleted) message.delete().catch(() => {});
+  },
+});
+
+// ============ FREE RANK PANEL COMMAND ============
+client.commands.set('freerank', {
+  name: 'freerank',
+  description: 'إنشاء لوحة رتبة مجانية',
+  execute: async (message) => {
+    // التحقق من الإعدادات
+    if (freeRankSettings.roleId === 'ضع_اي_دي_الرتبة_هنا') {
+      await message.channel.send('❌ لم يتم تعيين الرتبة المجانية! يرجى تعيين roleId في الإعدادات.');
+      return;
+    }
+
+    const remaining = freeRankSettings.maxUses - freeRankSettings.usedCount;
+
+    const embed = new EmbedBuilder()
+      .setTitle('👑 رتبة مجانية')
+      .setDescription('للحصول على رتبة بيع مجانية اضغط على زر Taj: بالأسفل :')
+      .setColor(0xDC2626)
+      .addFields(
+        { name: 'الرتب المستخدمة :', value: `${freeRankSettings.usedCount}`, inline: true },
+        { name: 'الرتب المتبقية :', value: `${remaining}`, inline: true }
+      )
+      .setImage('https://cdn.discordapp.com/attachments/1397309666752593920/1495169428738936852/UNIT_406004040.webp?ex=69e5448a&is=69e3f30a&hm=be61008c6e62b1b6783e3af827d9a737804a90f617421c905fa4881c90a03994&')
+      .setFooter({ text: 'Unit S | Free Rank' });
+
+    const getRankButton = new ButtonBuilder()
+      .setCustomId('get_free_rank_btn')
+      .setLabel('احصل على رتبتك المجانية')
+      .setStyle(ButtonStyle.Success)
+      .setEmoji('👑');
+
+    const row = new ActionRowBuilder().addComponents(getRankButton);
+
+    await message.channel.send({ embeds: [embed], components: [row] });
+    await message.channel.send('✅ تم إنشاء لوحة الرتبة المجانية بنجاح!');
     if (!message.deleted) message.delete().catch(() => {});
   },
 });
@@ -3209,6 +3017,71 @@ client.on('interactionCreate', async (interaction) => {
         await interaction.reply({ embeds: [embed], components: [row] });
       }
 
+      // ============ FREE RANK BUTTON HANDLER ============
+      if (interaction.customId === 'get_free_rank_btn') {
+        try {
+          const member = interaction.guild.members.cache.get(interaction.user.id);
+
+          // التحقق هل الرتبة معيّنة
+          if (freeRankSettings.roleId === 'ضع_اي_دي_الرتبة_هنا') {
+            return await interaction.reply({
+              content: '❌ الرتبة المجانية غير معيّنة!',
+              flags: 64
+            });
+          }
+
+          // التحقق هل المستخدم عنده الرتبة بالفعل
+          if (member.roles.cache.has(freeRankSettings.roleId)) {
+            return await interaction.reply({
+              content: '❌ لديك الرتبة بالفعل!',
+              flags: 64
+            });
+          }
+
+          // التحقق من عدد الرتب المتبقية
+          if (freeRankSettings.usedCount >= freeRankSettings.maxUses) {
+            return await interaction.reply({
+              content: '❌ عذراً! تم استهلاك جميع الرتب المجانية.',
+              flags: 64
+            });
+          }
+
+          // إعطاء الرتبة
+          const role = interaction.guild.roles.cache.get(freeRankSettings.roleId);
+          if (role) {
+            await member.roles.add(role);
+            freeRankSettings.usedCount++;
+
+            const successEmbed = new EmbedBuilder()
+              .setTitle('✅ تم بنجاح!')
+              .setDescription(`تم إعطائك رتبة **${role.name}**! استمتع 🎉`)
+              .setColor(0x10B981)
+              .addFields(
+                { name: 'الرتب المستخدمة :', value: `${freeRankSettings.usedCount}`, inline: true },
+                { name: 'الرتب المتبقية :', value: `${freeRankSettings.maxUses - freeRankSettings.usedCount}`, inline: true }
+              )
+              .setFooter({ text: 'Unit S | Free Rank' });
+
+            await interaction.reply({
+              embeds: [successEmbed],
+              flags: 64
+            });
+          } else {
+            await interaction.reply({
+              content: '❌ حدث خطأ! الرتبة غير موجودة.',
+              flags: 64
+            });
+          }
+        } catch (error) {
+          console.error('Free rank error:', error);
+          await interaction.reply({
+            content: '❌ حدث خطأ أثناء إعطاء الرتبة!',
+            flags: 64
+          });
+        }
+        return;
+      }
+
       // Close Button
       if (interaction.customId === 'close_ticket') {
         if (!hasTicketAdminRole(interaction.member)) {
@@ -3246,157 +3119,6 @@ client.on('interactionCreate', async (interaction) => {
         } catch (error) {
           console.error('Encryption error:', error);
           await interaction.reply({ content: '❌ حدث خطأ أثناء التشفير!', ephemeral: true });
-        }
-      }
-    }
-
-    // ============ FREE RANK BUTTON HANDLER ============
-    if (interaction.isButton()) {
-      if (interaction.customId === 'free_rank_claim') {
-        // Check if system is enabled
-        if (!freeRankSettings.enabled) {
-          return await interaction.reply({
-            content: '❌ نظام الرتبة المجانية معطّل حالياً!',
-            flags: 64
-          });
-        }
-
-        // Check if role is set
-        if (!freeRankSettings.roleId) {
-          return await interaction.reply({
-            content: '❌ لم يتم تعيين الرتبة! تواصل مع الإدارة.',
-            flags: 64
-          });
-        }
-
-        const userId = interaction.user.id;
-        const guild = interaction.guild;
-        const member = await guild.members.fetch(interaction.user.id);
-
-        // Check if user already claimed
-        if (freeRankSettings.claimedUsers.has(userId)) {
-          return await interaction.reply({
-            content: '❌你已经领取过免费等级了!\n__**You have already taken a free selling rank before.**__',
-            flags: 64
-          });
-        }
-
-        // Check if max claims reached
-        if (freeRankSettings.maxClaims > 0 && freeRankSettings.claimedCount >= freeRankSettings.maxClaims) {
-          return await interaction.reply({
-            content: '❌ عذراً! تم استلام جميع الرتب المجانية المتاحة!\nحاول لاحقاً أو تواصل مع الإدارة.',
-            flags: 64
-          });
-        }
-
-        // Give the role
-        try {
-          const role = guild.roles.cache.get(freeRankSettings.roleId);
-          if (!role) {
-            return await interaction.reply({
-              content: '❌ الرتبة غير موجودة! تواصل مع الإدارة.',
-              flags: 64
-            });
-          }
-
-          await member.roles.add(role);
-
-          // Update counter
-          freeRankSettings.claimedUsers.add(userId);
-          freeRankSettings.claimedCount++;
-
-          // Success message
-          const successEmbed = new EmbedBuilder()
-            .setTitle('🎉 تهانينا!')
-            .setColor(0x10B981)
-            .setDescription(`✅ تم منحك رتبة **${freeRankSettings.roleName}** بنجاح!\n\n🎁 هذه الرتبة مجانية ومرة واحدة فقط!`)
-            .addFields(
-              { name: '👤 المستخدم:', value: interaction.user.toString(), inline: true },
-              { name: '🎭 الرتبة:', value: freeRankSettings.roleName, inline: true }
-            )
-            .setFooter({ text: 'Viper S | System Bot' })
-            .setTimestamp();
-
-          await interaction.reply({
-            embeds: [successEmbed],
-            flags: 64
-          });
-
-          // Log to channel
-          if (freeRankSettings.logChannelId) {
-            const logChannel = guild.channels.cache.get(freeRankSettings.logChannelId);
-            if (logChannel) {
-              const logEmbed = new EmbedBuilder()
-                .setTitle('🎁 FREE RANK CLAIMED')
-                .setColor(0x10B981)
-                .addFields(
-                  { name: '👤 User:', value: `${interaction.user.tag} (${interaction.user.id})`, inline: true },
-                  { name: '🎭 Role:', value: freeRankSettings.roleName, inline: true },
-                  { name: '📊 Remaining:', value: `${freeRankSettings.maxClaims === 0 ? '∞' : freeRankSettings.maxClaims - freeRankSettings.claimedCount}`, inline: true }
-                )
-                .setTimestamp();
-
-              await logChannel.send({ embeds: [logEmbed] });
-            }
-          }
-
-          // Update panel message
-          if (freeRankSettings.panelChannelId && freeRankSettings.panelMessageId) {
-            try {
-              const panelChannel = guild.channels.cache.get(freeRankSettings.panelChannelId);
-              if (panelChannel) {
-                const panelMessage = await panelChannel.messages.fetch(freeRankSettings.panelMessageId);
-                if (panelMessage) {
-                  const remaining = freeRankSettings.maxClaims === 0 ? '∞' : freeRankSettings.maxClaims - freeRankSettings.claimedCount;
-
-                  const updatedEmbed = new EmbedBuilder()
-                    .setColor(0x667eea)
-                    .setAuthor({
-                      name: 'رتبة مجانية',
-                      iconURL: 'https://media.discordapp.net/attachments/1397309666752593920/1495169429741240511/UNIT_4306000.png?ex=69e6960a&is=69e5448a&hm=bc63944a60898ed0271e92008aaccaa3be3945d85455fcbe3a4e32d1a8559c37&=format=webp&quality=lossless&width=788&height=788'
-                    })
-                    .setImage('https://cdn.discordapp.com/attachments/1397309666752593920/1495543234166919351/4cc71a18-6f61-459e-8e8a-293c31b199b4.png?ex=69e6a0ac&is=69e54f2c&hm=247d340eb85f00962d3e650df57c9221a78c33f75de0b5938a2340f503dfa33d&')
-                    .setDescription(
-                      '**__<:zO_246:1495222454530871346> للحصول على رتبة بيع مجانية اضغط على زر <a:Taj:1449677193738195047> بالأسفل :__**\n' +
-                      '\n' +
-                      '**الـرتب الـمـسـتـخـدمـة :**\n' +
-                      '\n' +
-                      `> **${freeRankSettings.claimedCount}**\n` +
-                      '\n' +
-                      '**الـرتـب الـمتـبـقـيـة :**\n' +
-                      '\n' +
-                      `> **${remaining}**`
-                    )
-                    .setFooter({ text: 'UNIT S | System Bot' });
-
-                  // Check if button should be disabled
-                  let components = [];
-                  if (freeRankSettings.maxClaims === 0 || freeRankSettings.claimedCount < freeRankSettings.maxClaims) {
-                    const claimButton = new ButtonBuilder()
-                      .setCustomId('free_rank_claim')
-                      .setLabel('احصل على رتبتك المجانية')
-                      .setStyle(ButtonStyle.Secondary)
-                      .setEmoji('🎁');
-                    components = [new ActionRowBuilder().addComponents(claimButton)];
-                  }
-
-                  await panelMessage.edit({
-                    embeds: [updatedEmbed],
-                    components: components
-                  });
-                }
-              }
-            } catch (err) {
-              console.error('Error updating panel message:', err);
-            }
-          }
-
-        } catch (error) {
-          console.error('Free rank claim error:', error);
-          await interaction.reply({
-            content: '❌ حدث خطأ أثناء منح الرتبة! تواصل مع الإدارة.',
-            flags: 64
-          });
         }
       }
     }
