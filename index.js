@@ -1362,38 +1362,33 @@ client.commands.set('ticket', {
 
     // Step 1: Main menu
     const embed = new EmbedBuilder()
-      .setTitle('🎫 Unit S | لوحة التذاكر')
-      .setDescription('مرحباً بك في نظام الدعم الفني\nيرجى تحديد سبب فتح التذكرة من القائمة أدناه')
-      .setColor(0x667eea)
-      .setFooter({ text: 'Unit S | Support System' });
+      .setTitle('<:_:1487186496061440032> التذكرة <:_:1487186496061440032>')
+      .setAuthor({ name: 'UNIT SHOP', iconURL: 'https://media.discordapp.net/attachments/1397309666752593920/1495169429741240511/UNIT_4306000.png?ex=69e5448a&is=69e3f30a&hm=d1143eeac3289c0b55d81d3275a529dbc46a324607e5a8dc5326486b1b08c327&' })
+      .setDescription('<:_:1198389594568265728> **هنا يُمكنك الحصول على المساعدة عن طريق التذكرة**\n\n\`\`\`fix\nالدعم الفني ❯ شراء رتبة + استفسار + إنشاء روم خاص\`\`\`\n\n**الـدعـم الـفـنـي :**\n> منشور بـ <#1495217972896071882> <:_:1495225057209880706>\n\n\`\`\`fix\nالشكاوي ❯ البلاغ عن فرد\`\`\`\n\n**الـشـكـاوي :**\n> للبلاغ عن فرد من طاقم الدعم الفني الخاص بـ Unit S <:_:1495224616585658418>\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ <:_:1495223911871414403> ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n<:_:1495225561520541848> **يُمنع الازعاج بالمنشن والاسبام داخل التذكرة**\n\n<:_:1495225561520541848> **يُمنع السب والشتم داخل التذكرة مهما كان السبب**\n\n<:_:1495225561520541848> **يُمنع فتح التذكرة بدون سبب او للاستهبال**\n\n<:_:1495225561520541848> **في حال مخالفة احد القوانين اعلاه ستتعرض للكتم**\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+      .setColor(15105570)
+      .setImage('https://cdn.discordapp.com/attachments/1397309666752593920/1495169428738936852/UNIT_406004040.webp?ex=69e5448a&is=69e3f30a&hm=be61008c6e62b1b6783e3af827d9a737804a90f617421c905fa4881c90a03994&');
 
     const selectMenu = new StringSelectMenuBuilder()
       .setCustomId('ticket_main_select')
-      .setPlaceholder('اختر نوع التذكرة...')
+      .setPlaceholder('اختر من القائمة...')
       .addOptions([
         new StringSelectMenuOptionBuilder({
-          label: 'دعم فني',
-          description: 'للمشاكل التقنية والاستفسارات',
+          label: 'الـدعـم الـفـنـي',
+          description: 'لمشاكل تقنية واستفسارات',
+          emoji: { id: '1487186496061440032', name: 'SupportIcon', animated: false },
           value: 'ticket_technical',
-          emoji: '🔧',
         }),
         new StringSelectMenuOptionBuilder({
-          label: 'شكاوي',
-          description: 'للتقدم بشكوى ضد عضو',
+          label: 'الـشـكـاوي',
+          description: 'للبلاغ عن عضو',
+          emoji: { id: '1488212380755427398', name: 'ReportIcon', animated: false },
           value: 'ticket_complaint',
-          emoji: '⚠️',
         }),
         new StringSelectMenuOptionBuilder({
-          label: 'إعادة تعيين القائمة',
-          description: 'لإعادة عرض قائمة التذاكر',
+          label: 'إعـادة تعيين الـقـائـمـة',
+          description: 'لإعادة عرض القائمة',
+          emoji: { id: '1487186879123030106', name: 'ResetIcon', animated: false },
           value: 'ticket_inquiry',
-          emoji: '🔄',
-        }),
-        new StringSelectMenuOptionBuilder({
-          label: 'عروض الرتب',
-          description: 'عرض رتب متاحة للشراء',
-          value: 'ticket_ranks',
-          emoji: '👑',
         }),
       ]);
 
@@ -1423,43 +1418,42 @@ client.commands.set('tmenu', {
 
     const technicalMenu = new StringSelectMenuBuilder()
       .setCustomId('ticket_technical_type')
-      .setPlaceholder('اختر نوع المشكلة...')
+      .setPlaceholder('اختر من القائمة...')
       .addOptions([
         new StringSelectMenuOptionBuilder({
           label: 'مشكلة في رتبة',
           description: 'لم استلم رتبتي / مشكلة في الصلاحيات',
           value: 'rank_issue',
-          emoji: '👑',
         }),
         new StringSelectMenuOptionBuilder({
-          label: 'مشكلة في شراء',
-          description: 'مشكلة في الدفع أو الشراء',
-          value: 'purchase_issue',
-          emoji: '💰',
+          label: 'شراء رتبة عادية',
+          description: 'للحصول على رتبة بصلاحيات محددة',
+          value: 'buy_rank',
         }),
         new StringSelectMenuOptionBuilder({
-          label: 'مشكلة في روم',
-          description: 'لا أستطيع الدخول لروم معينة',
-          value: 'room_issue',
-          emoji: '🔒',
+          label: 'شراء رتبة مميزة',
+          description: 'للحصول على رتبة مميزة',
+          value: 'buy_premium_rank',
         }),
         new StringSelectMenuOptionBuilder({
-          label: 'استفسار عام',
-          description: 'لاستفسار عن أي شيء',
-          value: 'general_inquiry',
-          emoji: '❓',
+          label: 'شراء رومات خاصة',
+          description: 'إنشاء روم خاص بك',
+          value: 'buy_private_room',
         }),
         new StringSelectMenuOptionBuilder({
-          label: 'شراء',
-          description: 'للشراء من السيرفر',
-          value: 'ticket_purchase',
-          emoji: '💰',
+          label: 'شراء إعلانات',
+          description: 'لنشر إعلانك في السيرفر',
+          value: 'buy_ads',
         }),
         new StringSelectMenuOptionBuilder({
-          label: 'عرض الراتب',
+          label: 'شراء منشورات مميزة',
+          description: 'لعرض منشورك بشكل مميز',
+          value: 'buy_featured_post',
+        }),
+        new StringSelectMenuOptionBuilder({
+          label: 'عرض الرتب',
           description: 'لعرض الرتب المتاحة للشراء',
           value: 'ticket_ranks',
-          emoji: '👑',
         }),
       ]);
 
