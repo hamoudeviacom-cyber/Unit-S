@@ -2466,38 +2466,6 @@ client.on('interactionCreate', async (interaction) => {
                   type: 1,
                   components: [
                     {
-                      type: 3,
-                      custom_id: 'ticket_purchase_select',
-                      options: [
-                        {
-                          label: 'الـشـراء الـتـلـقـائـي',
-                          emoji: {
-                            id: '1495235065440108584',
-                            name: 'vanka237',
-                            animated: false
-                          },
-                          value: 'purchase_auto'
-                        },
-                        {
-                          label: 'مـشـكـلـة / اسـتـفـسـار',
-                          emoji: {
-                            id: '1495234630310297671',
-                            name: 'Reprot_Flag',
-                            animated: false
-                          },
-                          value: 'purchase_inquiry'
-                        }
-                      ],
-                      placeholder: 'اختر هدف فتح التذكرة...',
-                      min_values: 1,
-                      max_values: 1
-                    }
-                  ]
-                },
-                {
-                  type: 1,
-                  components: [
-                    {
                       type: 2,
                       custom_id: 'claim_ticket',
                       label: 'استلام',
