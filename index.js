@@ -57,7 +57,7 @@ const ticketSettings = {
   allowedRoles: [],
   allowedRoleNames: [],
   ticketAdminRoles: [],
-  ticketAdminRoleNames: ['عمر', 'ا'],
+  ticketAdminRoleNames: ['♚・Ticket Manager', 'ا'],
   ticketAdminUsers: ['عمر'], // المستخدمين المسموح لهم بإدارة التذاكر
   logsChannelId: null,
   mentionRoleId: null,
