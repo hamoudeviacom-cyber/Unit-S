@@ -60,7 +60,7 @@ const ticketSettings = {
   ticketAdminRoleNames: ['عمر', 'ا'],
   ticketAdminUsers: ['عمر'], // المستخدمين المسموح لهم بإدارة التذاكر
   logsChannelId: null,
-  mentionRoleId: null,
+  mentionRoleId: '1494685856684970014', // رتبة الدعم الفني - سيتم المنشن تلقائياً
   mentionRoleName: null,
   // إعدادات التكت
   ticketPanelTitle: 'Unit S Tickets',
@@ -2309,9 +2309,15 @@ client.on('interactionCreate', async (interaction) => {
               });
             }
 
+            // التحقق من وجود تذكرة سابقة بنفس اسم المستخدم
+            const sanitizedUsername = interaction.user.username
+              .toLowerCase()
+              .replace(/[^a-z0-9]/gi, '-')
+              .replace(/-+/g, '-')
+              .replace(/^-|-$/g, '');
+
             const existingTickets = guild.channels.cache.filter(ch =>
-              ch.name.startsWith('ticket-') &&
-              ch.topic?.includes(interaction.user.username)
+              ch.name === `ticket-${sanitizedUsername}`
             );
 
             if (existingTickets.size > 0) {
@@ -2322,12 +2328,7 @@ client.on('interactionCreate', async (interaction) => {
               });
             }
 
-            const existingTicketCount = guild.channels.cache.filter(ch =>
-              ch.name.startsWith('ticket-')
-            ).size;
-
-            const ticketNum = String(existingTicketCount + 1).padStart(3, '0');
-            const channelName = `ticket-${ticketNum}`;
+            const channelName = `ticket-${sanitizedUsername}`;
 
             // أزرار التذكرة
             const claimButton = new ButtonBuilder()
@@ -2405,18 +2406,20 @@ client.on('interactionCreate', async (interaction) => {
               user: interaction.user
             });
 
-            // منشن الرولات
+            // منشن الرولات + المستخدم + رتبة الدعم
             let channelContent = interaction.user.toString();
-            if (ticketSettings.mentionRoleId || ticketSettings.mentionRoleName) {
-              let autoMentionRole = null;
-              if (ticketSettings.mentionRoleId) {
-                autoMentionRole = guild.roles.cache.get(ticketSettings.mentionRoleId);
+
+            // إضافة الرولات من الإعدادات
+            if (ticketSettings.mentionRoleId) {
+              const autoMentionRole = guild.roles.cache.get(ticketSettings.mentionRoleId);
+              if (autoMentionRole) {
+                channelContent += ' ' + autoMentionRole.toString();
               }
-              if (!autoMentionRole && ticketSettings.mentionRoleName) {
-                autoMentionRole = guild.roles.cache.find(r =>
-                  r.name.toLowerCase().includes(ticketSettings.mentionRoleName.toLowerCase())
-                );
-              }
+            }
+            if (ticketSettings.mentionRoleName) {
+              const autoMentionRole = guild.roles.cache.find(r =>
+                r.name.toLowerCase().includes(ticketSettings.mentionRoleName.toLowerCase())
+              );
               if (autoMentionRole) {
                 channelContent += ' ' + autoMentionRole.toString();
               }
@@ -2427,7 +2430,7 @@ client.on('interactionCreate', async (interaction) => {
 
             // Ticket Embed - Unit S Design
             const ticketEmbed = {
-              content: '_ _',
+              content: channelContent,
               embeds: [
                 {
                   color: 0xff0000,
@@ -2496,7 +2499,7 @@ client.on('interactionCreate', async (interaction) => {
             await ticketChannel.send(ticketEmbed);
 
             await interaction.reply({
-              content: `✅ تم إنشاء التذكرة #${ticketNum} بنجاح! <#${ticketChannel.id}>`,
+              content: `✅ تم إنشاء تذكرة ${interaction.user.username} بنجاح! <#${ticketChannel.id}>`,
               flags: 64
             });
 
