@@ -72,11 +72,11 @@ const ticketSettings = {
 // ============ Free Rank Settings ============
 const freeRankSettings = {
   enabled: true,                    // تفعيل/تعطيل النظام
-  roleId: null,                     // ايدي الرتبة (ضع هنا)
+  roleId: '1494685867749539861',                     // ايدي الرتبة (ضع هنا)
   roleName: '🜲・〢↝ Excellent',              // اسم الرتبة
   panelChannelId: null,             // قناة لوحة الرتبة المجانية
   panelMessageId: null,             // رسالة اللوحة
-  maxClaims: 500,                   // الحد الأقصى للمطالبات (0 = غير محدود)
+  maxClaims: 100,                   // الحد الأقصى للمطالبات (0 = غير محدود)
   claimedCount: 0,                   // عدد المطالبات المستخدمة
   claimedUsers: new Set(),          // قائمة المستخدمين الذين استلموا
   logChannelId: null,               // قناة اللوج
