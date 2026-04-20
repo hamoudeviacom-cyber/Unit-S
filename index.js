@@ -4039,8 +4039,6 @@ client.on('error', (error) => {
 // ============ LOGIN ============
 client.login(TOKEN);
 
-export default client;
-
 // ============ FREE RANK PANEL COMMAND ============
 client.commands.set('freerank', {
   name: 'freerank',
