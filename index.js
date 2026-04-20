@@ -848,38 +848,37 @@ client.commands.set('freerank', {
       // Create the embed - تصميم احترافي
       const remaining = freeRankSettings.maxClaims === 0 ? '∞' : freeRankSettings.maxClaims - freeRankSettings.claimedCount;
 
-                  await panelMessage.edit({
-                    content: '_ _',
-                    embeds: [{
-                      color: 0xff0000,
-                      author: {
-                        name: 'رتبة مجانية',
-                        iconURL: 'https://media.discordapp.net/attachments/1397309666752593920/1495169429741240511/UNIT_4306000.png?ex=69e6960a&is=69e5448a&hm=bc63944a60898ed0271e92008aaccaa3be3945d85455fcbe3a4e32d1a8559c37&=format=webp&quality=lossless&width=788&height=788'
-                      },
-                      image: { url: 'https://cdn.discordapp.com/attachments/1397309666752593920/1495543234166919351/4cc71a18-6f61-459e-8e8a-293c31b199b4.png?ex=69e6a0ac&is=69e54f2c&hm=247d340eb85f00962d3e650df57c9221a78c33f75de0b5938a2340f503dfa33d&' },
-                      description: [
-                        '**__<:zO_246:1495222454530871346> للحصول على رتبة بيع مجانية اضغط على  زر <a:Taj:1449677193738195047> بالأسفل   :__**',
-                        '',
-                        '**الـرتب الـمـسـتـخـدمـة :**',
-                        '',
-                        '> **' + freeRankSettings.claimedCount + '**',
-                        '',
-                        '**الـرتـب الـمتـبـقـيـة :**',
-                        '',
-                        '> **' + remaining + '**'
-                      ].join('\n')
-                    }],
-                    components: [{
-                      type: 1,
-                      components: [{
-                        type: 2,
-                        style: 2,
-                        label: '',
-                        customId: 'free_rank_claim',
-                        emoji: { name: '🎁', id: null }
-                      }]
-                    }]
-                  });
+      const panelMessage = await message.channel.send({
+        content: '_ _',
+        embeds: [{
+          color: 0xff0000,
+          author: {
+            name: 'رتبة مجانية',
+            iconURL: 'https://media.discordapp.net/attachments/1397309666752593920/1495169429741240511/UNIT_4306000.png?ex=69e6960a&is=69e5448a&hm=bc63944a60898ed0271e92008aaccaa3be3945d85455fcbe3a4e32d1a8559c37&=format=webp&quality=lossless&width=788&height=788'
+          },
+          image: { url: 'https://cdn.discordapp.com/attachments/1397309666752593920/1495543234166919351/4cc71a18-6f61-459e-8e8a-293c31b199b4.png?ex=69e6a0ac&is=69e54f2c&hm=247d340eb85f00962d3e650df57c9221a78c33f75de0b5938a2340f503dfa33d&' },
+          description: [
+            '**__<:zO_246:1495222454530871346> للحصول على رتبة بيع مجانية اضغط على  زر <a:Taj:1449677193738195047> بالأسفل   :__**',
+            '',
+            '**الـرتب الـمـسـتـخـدمـة :**',
+            '',
+            '> **' + freeRankSettings.claimedCount + '**',
+            '',
+            '**الـرتـب الـمتـبـقـيـة :**',
+            '',
+            '> **' + remaining + '**'
+          ]
+        }],
+        components: [{
+          type: 1,
+          components: [{
+            type: 2,
+            style: 5,
+            label: 'مجاني',
+            customId: 'free_rank_claim',
+            emoji: { name: '🎁', id: null }
+          }]
+        }]
       });
 
       // Save settings
@@ -3995,16 +3994,15 @@ client.on('messageDelete', async (message) => {
     const deleter = deleteEntry?.executor || message.guild.me;
 
     const embed = new EmbedBuilder()
-      .setTitle('🗑️ MESSAGE DELETED')
-      .setColor(0xDC2626)
-      .addFields(
-        { name: '👤 Author', value: message.author?.tag || 'Unknown', inline: true },
-        { name: '👤 Deleted By', value: deleter?.tag || deleter?.username || 'Unknown', inline: true },
-        { name: '#️⃣ Channel', value: message.channel?.name || 'Unknown', inline: true },
-        { name: '📝 Content', value: message.content?.substring(0, 1024) || '[No text/Embed/Attachment]', inline: false },
-        { name: '⏰ Time', value: new Date().toLocaleString('ar-SA'), inline: false }
-      )
-      .setFooter({ text: 'Unit S - Moderation' })
+      .setColor(0xff0000)
+      .setDescription([
+        '**__<:zO_246:1495222454530871346> رسالة محذوفة اضغط على  زر <a:Taj:1495224006947639377> بالأسفل   :__**',
+        '',
+        '**الرسائل المحذوفة :**',
+        '',
+        '> **' + (message.content?.substring(0, 100) || '[No text/Embed/Attachment]') + '**'
+      ].join('\n'))
+      .setFooter({ text: 'Unit S | Free Rank System' })
       .setTimestamp();
 
     await sendLog(message.guild, 'messages', embed);
