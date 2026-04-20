@@ -99,19 +99,6 @@ const ticketSettings = {
   ticketPrefix: 'Unit S Tickets',
 };
 
-// ============ Free Rank Settings ============
-const freeRankSettings = {
-  enabled: true,                    // تفعيل/تعطيل النظام
-  roleId: null,                     // ايدي الرتبة (ضع هنا)
-  roleName: 'Selling',              // اسم الرتبة
-  panelChannelId: null,             // قناة لوحة الرتبة المجانية
-  panelMessageId: null,             // رسالة اللوحة
-  maxClaims: 500,                   // الحد الأقصى للمطالبات (0 = غير محدود)
-  claimedCount: 0,                   // عدد المطالبات المستخدمة
-  claimedUsers: new Set(),          // قائمة المستخدمين الذين استلموا
-  logChannelId: null,               // قناة اللوج
-};
-
 // ============ Word Encryption Dictionary ============
 const wordDictionary = {
     // حروف مفردة
@@ -860,41 +847,39 @@ client.commands.set('freerank', {
 
       // Create the embed - تصميم احترافي
       const remaining = freeRankSettings.maxClaims === 0 ? '∞' : freeRankSettings.maxClaims - freeRankSettings.claimedCount;
-      const used = freeRankSettings.claimedCount;
 
-      const embed = new EmbedBuilder()
-        .setColor(0x667eea) // بنفسج
-        .setAuthor({
-          name: 'رتبة مجانية',
-          iconURL: 'https://media.discordapp.net/attachments/1397309666752593920/1495169429741240511/UNIT_4306000.png?ex=69e6960a&is=69e5448a&hm=bc63944a60898ed0271e92008aaccaa3be3945d85455fcbe3a4e32d1a8559c37&=format=webp&quality=lossless&width=788&height=788'
-        })
-        .setImage('https://cdn.discordapp.com/attachments/1397309666752593920/1495543234166919351/4cc71a18-6f61-459e-8e8a-293c31b199b4.png?ex=69e6a0ac&is=69e54f2c&hm=247d340eb85f00962d3e650df57c9221a78c33f75de0b5938a2340f503dfa33d&')
-        .setDescription(
-          '**__<:zO_246:1495222454530871346> للحصول على رتبة بيع مجانية اضغط على زر <a:Taj:1449677193738195047> بالأسفل :__**\n' +
-          '\n' +
-          '**الـرتب الـمـسـتـخـدمـة :**\n' +
-          '\n' +
-          `> **${used}**\n` +
-          '\n' +
-          '**الـرتـب الـمتـبـقـيـة :**\n' +
-          '\n' +
-          `> **${remaining}**`
-        )
-        .setFooter({ text: 'UNIT S | System Bot' });
-
-      // Create button - تصميم مشابه للرسالة الأصلية
-      const claimButton = new ButtonBuilder()
-        .setCustomId('free_rank_claim')
-        .setLabel('احصل على رتبتك المجانية')
-        .setStyle(ButtonStyle.Secondary)
-        .setEmoji('🎁');
-
-      const row = new ActionRowBuilder().addComponents(claimButton);
-
-      // Send the message
-      const panelMessage = await message.channel.send({
-        embeds: [embed],
-        components: [row]
+                  await panelMessage.edit({
+                    content: '_ _',
+                    embeds: [{
+                      color: 0xff0000,
+                      author: {
+                        name: 'رتبة مجانية',
+                        iconURL: 'https://media.discordapp.net/attachments/1397309666752593920/1495169429741240511/UNIT_4306000.png?ex=69e6960a&is=69e5448a&hm=bc63944a60898ed0271e92008aaccaa3be3945d85455fcbe3a4e32d1a8559c37&=format=webp&quality=lossless&width=788&height=788'
+                      },
+                      image: { url: 'https://cdn.discordapp.com/attachments/1397309666752593920/1495543234166919351/4cc71a18-6f61-459e-8e8a-293c31b199b4.png?ex=69e6a0ac&is=69e54f2c&hm=247d340eb85f00962d3e650df57c9221a78c33f75de0b5938a2340f503dfa33d&' },
+                      description: [
+                        '**__<:zO_246:1495222454530871346> للحصول على رتبة بيع مجانية اضغط على  زر <a:Taj:1449677193738195047> بالأسفل   :__**',
+                        '',
+                        '**الـرتب الـمـسـتـخـدمـة :**',
+                        '',
+                        '> **' + freeRankSettings.claimedCount + '**',
+                        '',
+                        '**الـرتـب الـمتـبـقـيـة :**',
+                        '',
+                        '> **' + remaining + '**'
+                      ].join('\n')
+                    }],
+                    components: [{
+                      type: 1,
+                      components: [{
+                        type: 2,
+                        style: 2,
+                        label: '',
+                        customId: 'free_rank_claim',
+                        emoji: { name: '🎁', id: null }
+                      }]
+                    }]
+                  });
       });
 
       // Save settings
@@ -975,59 +960,38 @@ client.commands.set('freerank', {
     if (action === 'stats') {
       const remaining = freeRankSettings.maxClaims === 0 ? '∞' : freeRankSettings.maxClaims - freeRankSettings.claimedCount;
 
-      const embed = new EmbedBuilder()
-        .setTitle('📊 إحصائيات الرتبة المجانية')
-        .setColor(0x667eea)
-        .addFields(
-          { name: '📌 الحالة:', value: freeRankSettings.enabled ? '✅ مفعّل' : '❌ معطّل', inline: true },
-          { name: '🎭 الرتبة:', value: freeRankSettings.roleName || 'غير محددة', inline: true },
-          { name: '🔢 الحد الأقصى:', value: freeRankSettings.maxClaims === 0 ? 'غير محدود' : freeRankSettings.maxClaims.toString(), inline: true },
-          { name: '✅ المستخدمة:', value: freeRankSettings.claimedCount.toString(), inline: true },
-          { name: '📦 المتبقية:', value: remaining.toString(), inline: true },
-          { name: '👥 عدد المستخدمين:', value: freeRankSettings.claimedUsers.size.toString(), inline: true }
-        )
-        .setFooter({ text: 'Unit S | Free Rank System' })
-        .setTimestamp();
-
-      await message.channel.send({ embeds: [embed] });
-      if (!message.deleted) message.delete().catch(() => {});
-      return;
-    }
-
-    // Enable
-    if (action === 'enable') {
-      freeRankSettings.enabled = true;
-      await message.channel.send('✅ تم تفعيل الرتبة المجانية!');
-      if (!message.deleted) message.delete().catch(() => {});
-      return;
-    }
-
-    // Disable
-    if (action === 'disable') {
-      freeRankSettings.enabled = false;
-      await message.channel.send('❌ تم تعطيل الرتبة المجانية!');
-      if (!message.deleted) message.delete().catch(() => {});
-      return;
-    }
-
-    // Set log channel
-    if (action === 'setlog') {
-      const channel = message.mentions.channels.first();
-      if (!channel) {
-        await message.channel.send('❌ استخدم: `!freerank setlog #قناة`');
-        if (!message.deleted) message.delete().catch(() => {});
-        return;
-      }
-      freeRankSettings.logChannelId = channel.id;
-      await message.channel.send(`✅ تم تعيين قناة اللوج: ${channel.name}`);
-      if (!message.deleted) message.delete().catch(() => {});
-      return;
-    }
-
-    // Unknown command
-    await message.channel.send(`❌ أمر غير معروف: \`${action}\`\n💡 استخدم \`!freerank\` لعرض قائمة الأوامر.`);
-    if (!message.deleted) message.delete().catch(() => {});
-  },
+                  await panelMessage.edit({
+                    content: '_ _',
+                    embeds: [{
+                      color: 0xff0000,
+                      author: {
+                        name: 'رتبة مجانية',
+                        iconURL: 'https://media.discordapp.net/attachments/1397309666752593920/1495169429741240511/UNIT_4306000.png?ex=69e6960a&is=69e5448a&hm=bc63944a60898ed0271e92008aaccaa3be3945d85455fcbe3a4e32d1a8559c37&=format=webp&quality=lossless&width=788&height=788'
+                      },
+                      image: { url: 'https://cdn.discordapp.com/attachments/1397309666752593920/1495543234166919351/4cc71a18-6f61-459e-8e8a-293c31b199b4.png?ex=69e6a0ac&is=69e54f2c&hm=247d340eb85f00962d3e650df57c9221a78c33f75de0b5938a2340f503dfa33d&' },
+                      description: [
+                        '**__<:zO_246:1495222454530871346> للحصول على رتبة بيع مجانية اضغط على  زر <a:Taj:1449677193738195047> بالأسفل   :__**',
+                        '',
+                        '**الـرتب الـمـسـتـخـدمـة :**',
+                        '',
+                        '> **' + freeRankSettings.claimedCount + '**',
+                        '',
+                        '**الـرتـب الـمتـبـقـيـة :**',
+                        '',
+                        '> **' + remaining + '**'
+                      ].join('\n')
+                    }],
+                    components: [{
+                      type: 1,
+                      components: [{
+                        type: 2,
+                        style: 2,
+                        label: '',
+                        customId: 'free_rank_claim',
+                        emoji: { name: '🎁', id: null }
+                      }]
+                    }]
+                  });
 });
 
 // ============ BAN COMMAND ============
@@ -3379,40 +3343,38 @@ client.on('interactionCreate', async (interaction) => {
                 if (panelMessage) {
                   const remaining = freeRankSettings.maxClaims === 0 ? '∞' : freeRankSettings.maxClaims - freeRankSettings.claimedCount;
 
-                  const updatedEmbed = new EmbedBuilder()
-                    .setColor(0x667eea)
-                    .setAuthor({
-                      name: 'رتبة مجانية',
-                      iconURL: 'https://media.discordapp.net/attachments/1397309666752593920/1495169429741240511/UNIT_4306000.png?ex=69e6960a&is=69e5448a&hm=bc63944a60898ed0271e92008aaccaa3be3945d85455fcbe3a4e32d1a8559c37&=format=webp&quality=lossless&width=788&height=788'
-                    })
-                    .setImage('https://cdn.discordapp.com/attachments/1397309666752593920/1495543234166919351/4cc71a18-6f61-459e-8e8a-293c31b199b4.png?ex=69e6a0ac&is=69e54f2c&hm=247d340eb85f00962d3e650df57c9221a78c33f75de0b5938a2340f503dfa33d&')
-                    .setDescription(
-                      '**__<:zO_246:1495222454530871346> للحصول على رتبة بيع مجانية اضغط على زر <a:Taj:1449677193738195047> بالأسفل :__**\n' +
-                      '\n' +
-                      '**الـرتب الـمـسـتـخـدمـة :**\n' +
-                      '\n' +
-                      `> **${freeRankSettings.claimedCount}**\n` +
-                      '\n' +
-                      '**الـرتـب الـمتـبـقـيـة :**\n' +
-                      '\n' +
-                      `> **${remaining}**`
-                    )
-                    .setFooter({ text: 'UNIT S | System Bot' });
-
-                  // Check if button should be disabled
-                  let components = [];
-                  if (freeRankSettings.maxClaims === 0 || freeRankSettings.claimedCount < freeRankSettings.maxClaims) {
-                    const claimButton = new ButtonBuilder()
-                      .setCustomId('free_rank_claim')
-                      .setLabel('احصل على رتبتك المجانية')
-                      .setStyle(ButtonStyle.Secondary)
-                      .setEmoji('🎁');
-                    components = [new ActionRowBuilder().addComponents(claimButton)];
-                  }
-
                   await panelMessage.edit({
-                    embeds: [updatedEmbed],
-                    components: components
+                    content: '_ _',
+                    embeds: [{
+                      color: 0xff0000,
+                      author: {
+                        name: 'رتبة مجانية',
+                        iconURL: 'https://media.discordapp.net/attachments/1397309666752593920/1495169429741240511/UNIT_4306000.png?ex=69e6960a&is=69e5448a&hm=bc63944a60898ed0271e92008aaccaa3be3945d85455fcbe3a4e32d1a8559c37&=format=webp&quality=lossless&width=788&height=788'
+                      },
+                      image: { url: 'https://cdn.discordapp.com/attachments/1397309666752593920/1495543234166919351/4cc71a18-6f61-459e-8e8a-293c31b199b4.png?ex=69e6a0ac&is=69e54f2c&hm=247d340eb85f00962d3e650df57c9221a78c33f75de0b5938a2340f503dfa33d&' },
+                      description: [
+                        '**__<:zO_246:1495222454530871346> للحصول على رتبة بيع مجانية اضغط على  زر <a:Taj:1449677193738195047> بالأسفل   :__**',
+                        '',
+                        '**الـرتب الـمـسـتـخـدمـة :**',
+                        '',
+                        '> **' + freeRankSettings.claimedCount + '**',
+                        '',
+                        '**الـرتـب الـمتـبـقـيـة :**',
+                        '',
+                        '> **' + remaining + '**'
+                      ].join('\n')
+                    }],
+                    components: [{
+                      type: 1,
+                      components: [{
+                        type: 2,
+                        style: 2,
+                        label: '',
+                        customId: 'free_rank_claim',
+                        emoji: { name: '🎁', id: null }
+                      }]
+                    }]
+                  });
                   });
                 }
               }
@@ -3439,7 +3401,6 @@ client.on('interactionCreate', async (interaction) => {
 });
 
 // ============ MESSAGE COMMANDS ============
-client.on('messageCreate', async (message) => {
   if (message.author.bot) return;
   if (!message.content.startsWith(PREFIX)) return;
 
@@ -4078,29 +4039,21 @@ client.commands.set('freerank', {
       const remaining = freeRankSettings.maxUses - freeRankSettings.usedCount;
 
       const embed = new EmbedBuilder()
+        .setColor(0xDC2626)
         .setAuthor({
           name: 'رتبة مجانية',
-          iconURL: 'https://media.discordapp.net/attachments/1397309666752593920/1495169429741240511/UNIT_4306000.png'
+          iconURL: 'https://media.discordapp.net/attachments/1397309666752593920/1495169429741240511/UNIT_4306000.png?ex=69e6960a&is=69e5448a&hm=bc63944a60898ed0271e92008aaccaa3be3945d85455fcbe3a4e32d1a8559c37=&format=webp&quality=lossless&width=788&height=788'
         })
-        .setTitle('👑 رتبة مجانية')
-        .setDescription('**للحصول على رتبة بيع مجانية اضغط على زر 👑 بالأسفل**')
-        .setColor(0xDC2626)
-        .addFields(
-          { name: 'الرتب المستخدمة :', value: `${freeRankSettings.usedCount}`, inline: true },
-          { name: 'الرتب المتبقية :', value: `${remaining}`, inline: true }
-        )
-        .setImage('https://cdn.discordapp.net/attachments/1397309666752593920/1495543234166919351/4cc71a18-6f61-459e-8e8a-293c31b199b4.png')
-        .setFooter({ text: 'Unit S | Free Rank' });
+        .setImage('https://cdn.discordapp.com/attachments/1397309666752593920/1495543234166919351/4cc71a18-6f61-459e-8e8a-293c31b199b4.png?ex=69e6a0ac&is=69e54f2c&hm=247d340eb85f00962d3e650df57c9221a78c33f75de0b5938a2340f503dfa33d&')
+        .setDescription(`**__<:zO_246:1495222454530871346> للحصول على رتبة بيع مجانية اضغط على زر <a:Taj:1449677193738195047> بالأسفل   :__**\n\n**الـرتب الـمـسـتـخـدمـة :**\n\n> ${freeRankSettings.usedCount}\n\n**الـرتـب الـمتـبـقـيـة :**\n\n> ${remaining}`);
 
       const button = new ButtonBuilder()
         .setCustomId('get_free_rank')
-        .setLabel('احصل على رتبتك المجانية')
-        .setStyle(ButtonStyle.Success)
+        .setLabel('')
+        .setStyle(ButtonStyle.Secondary)
         .setEmoji('👑');
 
-      const row = new ActionRowBuilder().addComponents(button);
-
-      await message.channel.send({ embeds: [embed], components: [row] });
+      await message.channel.send({ content: '_ _', embeds: [embed], components: [new ActionRowBuilder().addComponents(button)] });
 
       if (!message.deleted) message.delete().catch(() => {});
     } catch (error) {
