@@ -2,6 +2,7 @@
 // نظام الحماية والتشفير وتذكرة بانيل
 
 import { Client, GatewayIntentBits, Collection, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, ComponentType } from 'discord.js';
+import { readFileSync, writeFileSync, existsSync } from 'fs';
 
 const TOKEN = process.env.DISCORD_TOKEN || 'YOUR_BOT_TOKEN';
 const PREFIX = '!';
@@ -33,6 +34,35 @@ const COLORS = {
   info: 0x3B82F6,
   primary: 0x667eea,
 };
+
+// ============ Free Rank Settings ============
+const FREE_RANK_FILE = './free_rank_settings.json';
+
+function loadFreeRankSettings() {
+  try {
+    if (existsSync(FREE_RANK_FILE)) {
+      const data = readFileSync(FREE_RANK_FILE, 'utf8');
+      return JSON.parse(data);
+    }
+  } catch (err) {
+    console.error('Error loading free rank settings:', err);
+  }
+  return {
+    roleId: '1494685867749539861',
+    maxUses: 100,
+    usedCount: 0
+  };
+}
+
+function saveFreeRankSettings(settings) {
+  try {
+    writeFileSync(FREE_RANK_FILE, JSON.stringify(settings, null, 2));
+  } catch (err) {
+    console.error('Error saving free rank settings:', err);
+  }
+}
+
+const freeRankSettings = loadFreeRankSettings();
 
 // ============ Log Channels Settings ============
 const logSettings = {
@@ -4045,12 +4075,6 @@ client.commands.set('freerank', {
   description: 'إنشاء لوحة رتبة مجانية',
   execute: async (message) => {
     try {
-      const freeRankSettings = {
-        roleId: '1494685867749539861',
-        maxUses: 100,
-        usedCount: 0
-      };
-
       const remaining = freeRankSettings.maxUses - freeRankSettings.usedCount;
 
       const embed = new EmbedBuilder()
@@ -4090,12 +4114,6 @@ client.on('interactionCreate', async (interaction) => {
   if (!interaction.isButton()) return;
 
   if (interaction.customId === 'get_free_rank') {
-    const freeRankSettings = {
-      roleId: '1494685867749539861',
-      maxUses: 100,
-      usedCount: 0
-    };
-
     const remaining = freeRankSettings.maxUses - freeRankSettings.usedCount;
 
     if (remaining <= 0) {
@@ -4110,6 +4128,7 @@ client.on('interactionCreate', async (interaction) => {
     if (role) {
       await interaction.member.roles.add(role);
       freeRankSettings.usedCount++;
+      saveFreeRankSettings(freeRankSettings);
 
       await interaction.reply({
         content: `✅ تم منحك رتبة ${role.name} بنجاح!`,
@@ -4117,4 +4136,69 @@ client.on('interactionCreate', async (interaction) => {
       });
     }
   }
+});
+
+// ============ FREE RANK SETTINGS COMMANDS ============
+client.commands.set('freerankset', {
+  name: 'freerankset',
+  description: 'إعادة تعيين أرقام الرتبة المجانية',
+  execute: async (message, args) => {
+    if (!message.member.permissions.has('Administrator')) {
+      await message.channel.send('❌ ليس لديك صلاحية!');
+      if (!message.deleted) message.delete().catch(() => {});
+      return;
+    }
+
+    if (args.length < 1) {
+      await message.channel.send('❌ استخدم: `!freerankset [العدد]`\nمثال: `!freerankset 50`');
+      if (!message.deleted) message.delete().catch(() => {});
+      return;
+    }
+
+    const newCount = parseInt(args[0]);
+    if (isNaN(newCount) || newCount < 0) {
+      await message.channel.send('❌ يرجى إدخال رقم صحيح!');
+      if (!message.deleted) message.delete().catch(() => {});
+      return;
+    }
+
+    freeRankSettings.usedCount = newCount;
+    saveFreeRankSettings(freeRankSettings);
+
+    const remaining = freeRankSettings.maxUses - freeRankSettings.usedCount;
+    await message.channel.send(`✅ تم تعيين الأرقام:\n- الرتب المستخدمة: **${freeRankSettings.usedCount}**\n- الرتب المتبقية: **${remaining}**`);
+    if (!message.deleted) message.delete().catch(() => {});
+  },
+});
+
+client.commands.set('freeranksetmax', {
+  name: 'freeranksetmax',
+  description: 'تعيين العدد الكلي للرتب',
+  execute: async (message, args) => {
+    if (!message.member.permissions.has('Administrator')) {
+      await message.channel.send('❌ ليس لديك صلاحية!');
+      if (!message.deleted) message.delete().catch(() => {});
+      return;
+    }
+
+    if (args.length < 1) {
+      await message.channel.send('❌ استخدم: `!freeranksetmax [العدد]`\nمثال: `!freeranksetmax 100`');
+      if (!message.deleted) message.delete().catch(() => {});
+      return;
+    }
+
+    const newMax = parseInt(args[0]);
+    if (isNaN(newMax) || newMax < 0) {
+      await message.channel.send('❌ يرجى إدخال رقم صحيح!');
+      if (!message.deleted) message.delete().catch(() => {});
+      return;
+    }
+
+    freeRankSettings.maxUses = newMax;
+    saveFreeRankSettings(freeRankSettings);
+
+    const remaining = freeRankSettings.maxUses - freeRankSettings.usedCount;
+    await message.channel.send(`✅ تم تعيين العدد الكلي: **${freeRankSettings.maxUses}**\n- الرتب المستخدمة: **${freeRankSettings.usedCount}**\n- الرتب المتبقية: **${remaining}**`);
+    if (!message.deleted) message.delete().catch(() => {});
+  },
 });
