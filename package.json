@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "type": "module",
   "description": "Discord Bot with Protection & Encryption",
-  "main": "src/index.js",
+  "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "dev": "node src/index.js"
+    "dev": "node index.js"
   },
   "dependencies": {
     "discord.js": "^14.26.3"
