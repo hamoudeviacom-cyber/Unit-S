@@ -873,7 +873,7 @@ client.commands.set('freerank', {
           type: 1,
           components: [{
             type: 2,
-            style: 5,
+            style: 4,
             label: 'مجاني',
             customId: 'free_rank_claim',
             emoji: { name: '🎁', id: null }
@@ -989,7 +989,7 @@ client.commands.set('freerank', {
               type: 1,
               components: [{
                 type: 2,
-                style: 5,
+                style: 4,
                 label: 'مجاني',
                 customId: 'free_rank_claim',
                 emoji: { name: '🎁', id: null }
@@ -3382,8 +3382,8 @@ client.on('interactionCreate', async (interaction) => {
                       type: 1,
                       components: [{
                         type: 2,
-                        style: 2,
-                        label: '',
+                        style: 4,
+                        label: 'مجاني',
                         customId: 'free_rank_claim',
                         emoji: { name: '🎁', id: null }
                       }]
