@@ -50,7 +50,7 @@ function loadFreeRankSettings() {
   return {
     enabled: true,
     roleId: '1494685867749539861',
-    roleName: 'Rank',
+    roleName: '🜲・〢↝ Excellent',
     maxUses: 100,
     claimedCount: 0,
     claimedUsers: [],
@@ -1625,7 +1625,7 @@ client.commands.set('modsettings', {
 // ============ TICKET MENU - Viper S Design ============
 client.commands.set('ticket', {
   name: 'ticket',
-  description: 'Open ticket menu - Viper S design',
+  description: 'Open ticket menu - UNIT S design',
   execute: async (message) => {
     if (!hasAllowedRole(message.member)) {
       await message.channel.send('❌ ليس لديك صلاحية لفتح تذكرة!');
@@ -3167,7 +3167,7 @@ client.on('interactionCreate', async (interaction) => {
               { name: '👤 المستخدم:', value: interaction.user.toString(), inline: true },
               { name: '🎭 الرتبة:', value: freeRankSettings.roleName, inline: true }
             )
-            .setFooter({ text: 'Viper S | System Bot' })
+            .setFooter({ text: 'Unit S | System Bot' })
             .setTimestamp();
 
           await interaction.reply({
