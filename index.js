@@ -50,10 +50,14 @@ function loadFreeRankSettings() {
   return {
     enabled: true,
     roleId: '1494685867749539861',
+    roleName: 'Rank',
     maxUses: 100,
     claimedCount: 0,
     claimedUsers: [],
-    maxClaims: 100
+    maxClaims: 100,
+    logChannelId: null,
+    panelChannelId: null,
+    panelMessageId: null
   };
 }
 
