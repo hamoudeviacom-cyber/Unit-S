@@ -870,10 +870,10 @@ client.commands.set('freerank', {
           ]
         }],
         components: [{
-          type: 1,
+          type: ComponentType.Button,
           components: [{
-            type: 2,
-            style: 4,
+            type: ComponentType.Button,
+            style: ButtonStyle.Primary,
             label: 'مجاني',
             customId: 'free_rank_claim',
             emoji: { name: '🎁', id: null }
