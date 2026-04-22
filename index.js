@@ -1005,6 +1005,8 @@ client.commands.set('freerank', {
       if (!message.deleted) message.delete().catch(() => {});
       return;
     }
+  }
+});
 
 // ============ BAN COMMAND ============
 client.commands.set('ban', {
