@@ -42,15 +42,28 @@ function loadFreeRankSettings() {
   try {
     if (existsSync(FREE_RANK_FILE)) {
       const data = readFileSync(FREE_RANK_FILE, 'utf8');
-      return JSON.parse(data);
+      const parsed = JSON.parse(data);
+      // Ensure all required fields exist with defaults
+      return {
+        enabled: parsed.enabled ?? true,
+        roleId: parsed.roleId ?? null,
+        roleName: parsed.roleName ?? null,
+        maxUses: parsed.maxUses ?? 100,
+        claimedCount: parsed.claimedCount ?? 0,
+        claimedUsers: Array.isArray(parsed.claimedUsers) ? parsed.claimedUsers : [],
+        maxClaims: parsed.maxClaims ?? 100,
+        logChannelId: parsed.logChannelId ?? null,
+        panelChannelId: parsed.panelChannelId ?? null,
+        panelMessageId: parsed.panelMessageId ?? null
+      };
     }
   } catch (err) {
     console.error('Error loading free rank settings:', err);
   }
   return {
     enabled: true,
-    roleId: '1494685867749539861',
-    roleName: '🜲・〢↝ Excellent',
+    roleId: null,
+    roleName: null,
     maxUses: 100,
     claimedCount: 0,
     claimedUsers: [],
