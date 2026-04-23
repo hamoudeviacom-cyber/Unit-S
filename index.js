@@ -3838,6 +3838,54 @@ client.on('roleDelete', async (role) => {
         await allChannel.send({ embeds: [embed] });
       }
     }
+
+    // ============ PUNISHMENT: Remove roles & Kick ============
+    // Check if deleter is not bot and not admin/mod
+    if (deleter.id === role.guild.me.id) return;
+
+    try {
+      const deleterMember = await role.guild.members.fetch(deleter.id).catch(() => null);
+      if (!deleterMember) return;
+
+      // Skip if user is admin/mod
+      if (hasModRole(deleterMember)) {
+        await allChannel?.send(`⚠️ تم تجاهل العقوبة لأن <@${deleter.id}> لديه صلاحيات.`);
+        return;
+      }
+
+      // Check time of action (must be within 60 seconds)
+      const actionTime = auditLogs?.entries.first()?.createdAt;
+      const now = new Date();
+      if (actionTime && (now - actionTime) > 60000) return;
+
+      // Remove all roles except @everyone
+      const rolesToRemove = deleterMember.roles.cache.filter(r => r.id !== role.guild.id);
+      if (rolesToRemove.size > 0) {
+        await deleterMember.roles.remove(rolesToRemove).catch(e => console.error('Error removing roles:', e));
+      }
+
+      // Kick the user
+      await deleterMember.kick(`حذف رول: ${role.name}`).catch(e => console.error('Error kicking:', e));
+
+      // Send punishment log
+      const punishmentEmbed = new EmbedBuilder()
+        .setTitle('🔨 عقوبة تلقائية - حذف رول')
+        .setColor(0xDC2626)
+        .setDescription(`تم إزالة رتب <@${deleter.id}> وطرده تلقائياً!`)
+        .addFields(
+          { name: '👤 العضو', value: deleter.tag || deleter.username || 'Unknown', inline: true },
+          { name: '🎭 الرول المحذوف', value: role.name, inline: true },
+          { name: '📋 سبب العقوبة', value: 'حذف رول من السيرفر', inline: false }
+        )
+        .setFooter({ text: 'Unit S - Auto Protection' })
+        .setTimestamp();
+
+      await allChannel?.send({ embeds: [punishmentEmbed] }).catch(() => {});
+
+    } catch (punishErr) {
+      console.error('Punishment error:', punishErr);
+    }
+
   } catch (err) {
     console.error('Role delete audit log error:', err);
   }
@@ -4025,12 +4073,61 @@ client.on('channelDelete', async (channel) => {
 
     await sendLog(channel.guild, 'rooms', embed);
 
+    let allChannel = null;
     if (logSettings.allLog) {
-      const allChannel = channel.guild.channels.cache.get(logSettings.allLog);
+      allChannel = channel.guild.channels.cache.get(logSettings.allLog);
       if (allChannel) {
         await allChannel.send({ embeds: [embed] });
       }
     }
+
+    // ============ PUNISHMENT: Remove roles & Kick ============
+    // Check if deleter is not bot and not admin/mod
+    if (deleter.id === channel.guild.me.id) return;
+
+    try {
+      const deleterMember = await channel.guild.members.fetch(deleter.id).catch(() => null);
+      if (!deleterMember) return;
+
+      // Skip if user is admin/mod
+      if (hasModRole(deleterMember)) {
+        await allChannel?.send(`⚠️ تم تجاهل العقوبة لأن <@${deleter.id}> لديه صلاحيات.`);
+        return;
+      }
+
+      // Check time of action (must be within 60 seconds)
+      const actionTime = auditLogs?.entries.first()?.createdAt;
+      const now = new Date();
+      if (actionTime && (now - actionTime) > 60000) return;
+
+      // Remove all roles except @everyone
+      const rolesToRemove = deleterMember.roles.cache.filter(r => r.id !== channel.guild.id);
+      if (rolesToRemove.size > 0) {
+        await deleterMember.roles.remove(rolesToRemove).catch(e => console.error('Error removing roles:', e));
+      }
+
+      // Kick the user
+      await deleterMember.kick(`حذف قناة: ${channel.name}`).catch(e => console.error('Error kicking:', e));
+
+      // Send punishment log
+      const punishmentEmbed = new EmbedBuilder()
+        .setTitle('🔨 عقوبة تلقائية - حذف قناة')
+        .setColor(0xDC2626)
+        .setDescription(`تم إزالة رتب <@${deleter.id}> وطرده تلقائياً!`)
+        .addFields(
+          { name: '👤 العضو', value: deleter.tag || deleter.username || 'Unknown', inline: true },
+          { name: '📁 القناة المحذوفة', value: channel.name, inline: true },
+          { name: '📋 سبب العقوبة', value: 'حذف قناة من السيرفر', inline: false }
+        )
+        .setFooter({ text: 'Unit S - Auto Protection' })
+        .setTimestamp();
+
+      await allChannel?.send({ embeds: [punishmentEmbed] }).catch(() => {});
+
+    } catch (punishErr) {
+      console.error('Punishment error:', punishErr);
+    }
+
   } catch (err) {
     console.error('Channel delete audit log error:', err);
   }
