@@ -1009,7 +1009,7 @@ client.commands.set('freerank', {
                 '**الـرتـب الـمتـبـقـيـة :**',
                 '',
                 '> **' + remaining + '**'
-              ]
+              ].join('\n')
             }],
             components: [{
               type: 1,
