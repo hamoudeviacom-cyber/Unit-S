@@ -1,5 +1,17 @@
 // Unit S - Discord Bot
 // نظام الحماية والتشفير وتذكرة بانيل
+const express = require('express');
+const app = express();
+const port = process.env.PORT || 8080;
+
+app.get('/', (req, res) => {
+  res.send('Unit S is running!');
+});
+
+app.listen(port, () => {
+  console.log(`Server is listening on port ${port}`);
+});
+
 
 import { Client, GatewayIntentBits, Collection, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, ComponentType } from 'discord.js';
 import { readFileSync, writeFileSync, existsSync } from 'fs';
