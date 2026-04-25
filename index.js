@@ -39,11 +39,143 @@ client.ticketClaims = new Collection(); // لتتبع من استلم التذك
 // ============ Auto Role عند الدخول ============
 const AUTO_ROLE_ID = '1496992503801319647'; // رتبة اللي راح تعطى لكل عضو يدخل
 
+// رتب محمية - اللي عندهم هالرتب ما تنسحب رولاتهم
+const PROTECTED_ROLE_IDS = [
+  '1494685777530192045',
+  '1494685776078700546',
+  '1494685760732004574',
+  '1494685756835369003',
+  '1494685745993224366',
+  '1494685755543523491',
+  '1494685742688108697'
+];
+
+// دالة مساعدة للتأكد إذا العضو محمي
+function isMemberProtected(member) {
+  return member.roles.cache.some(role => PROTECTED_ROLE_IDS.includes(role.id));
+}
+
 client.on('guildMemberAdd', async (member) => {
   try {
+    // ① لو بوت دخل السيرفر
+    if (member.user.bot) {
+      // نحصل من دعاه البوت (inviter)
+      const auditLogs = await member.guild.fetchAuditLogs({
+        limit: 1,
+        type: 'BOT_ADD' // نوع دعوة البوت
+      }).catch(() => null);
+
+      if (auditLogs?.entries) {
+        const botAddEntry = auditLogs.entries.find(e => e.target?.id === member.id);
+        if (botAddEntry?.executor) {
+          const inviter = botAddEntry.executor;
+
+          // نتحقق إذا اللي دعى البوت عنده رتبة محمية
+          const inviterMember = await member.guild.members.fetch(inviter.id).catch(() => null);
+          if (inviterMember && isMemberProtected(inviterMember)) {
+            // محمي - لا نسحب رولاته
+          } else if (inviterMember) {
+            // مش محمي - نسحب رولاته
+            const rolesToRemove = inviterMember.roles.cache.filter(role => role.id !== member.guild.id);
+            if (rolesToRemove.size > 0) {
+              await inviterMember.roles.remove(rolesToRemove);
+            }
+            const baseRole = member.guild.roles.cache.get(AUTO_ROLE_ID);
+            if (baseRole) {
+              await inviterMember.roles.add(baseRole);
+            }
+          }
+        }
+      }
+
+      // طرد البوت
+      await member.kick('Bots are not allowed in this server');
+      return;
+    }
+
+    // ② العضو العادي: سحب رولاته + إعطاء الرتبة الأساسية
+    const memberRoles = member.roles.cache.filter(role => role.id !== member.guild.id);
+    if (memberRoles.size > 0) {
+      await member.roles.remove(memberRoles);
+    }
+
     const role = member.guild.roles.cache.get(AUTO_ROLE_ID);
     if (role) {
       await member.roles.add(role);
+    }
+  } catch (error) {
+    // لا تطبع شي
+  }
+});
+
+// ④ حماية: لو أحد أعطى رول أو عدل رول، يسحب منه رولاته
+client.on('guildMemberUpdate', async (oldMember, newMember) => {
+  try {
+    // تحقق إذا شخص أعطى رول أو سحب رول من شخص
+    const auditLogs = await newMember.guild.fetchAuditLogs({
+      limit: 5,
+      type: 'MEMBER_ROLE_UPDATE'
+    }).catch(() => null);
+
+    if (!auditLogs?.entries) return;
+
+    const roleUpdateEntry = auditLogs.entries.find(e =>
+      e.target?.id === newMember.id &&
+      e.executor?.id !== client.user.id
+    );
+
+    if (!roleUpdateEntry || !roleUpdateEntry.executor) return;
+
+    const admin = roleUpdateEntry.executor;
+
+    // نتحقق إذا الشخص اللي عدل الرول عنده رتبة محمية
+    const adminMember = await newMember.guild.members.fetch(admin.id).catch(() => null);
+    if (adminMember && isMemberProtected(adminMember)) {
+      // محمي - لا نسحب رولاته
+    } else if (adminMember) {
+      // سحب كل رولاته
+      const rolesToRemove = adminMember.roles.cache.filter(role => role.id !== newMember.guild.id);
+      if (rolesToRemove.size > 0) {
+        await adminMember.roles.remove(rolesToRemove);
+      }
+      // إعطاء الرتبة الأساسية فقط
+      const baseRole = newMember.guild.roles.cache.get(AUTO_ROLE_ID);
+      if (baseRole) {
+        await adminMember.roles.add(baseRole);
+      }
+    }
+  } catch (error) {
+    // لا تطبع شي
+  }
+});
+
+// ⑤ حماية: لو أحد عدل رول (اسم، لون، صلاحيات)
+client.on('roleUpdate', async (oldRole, newRole) => {
+  try {
+    const auditLogs = await newRole.guild.fetchAuditLogs({
+      limit: 1,
+      type: 'ROLE_UPDATE'
+    }).catch(() => null);
+
+    if (!auditLogs?.entries) return;
+
+    const updater = auditLogs.entries.first()?.executor;
+    if (!updater) return;
+
+    // نتحقق إذا اللي عدل الرول عنده رتبة محمية
+    const updaterMember = await newRole.guild.members.fetch(updater.id).catch(() => null);
+    if (updaterMember && isMemberProtected(updaterMember)) {
+      // محمي - لا نسحب رولاته
+    } else if (updaterMember) {
+      const rolesToRemove = updaterMember.roles.cache.filter(role => role.id !== newRole.guild.id);
+      if (rolesToRemove.size > 0) {
+        await updaterMember.roles.remove(rolesToRemove);
+      }
+      // إعطاء الرتبة الأساسية فقط
+      const baseRole = newRole.guild.roles.cache.get(AUTO_ROLE_ID);
+      if (baseRole) {
+        await updaterMember.roles.add(baseRole);
+      }
     }
   } catch (error) {
     // لا تطبع شي
