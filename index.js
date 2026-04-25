@@ -3846,7 +3846,7 @@ client.on('roleCreate', async (role) => {
       .addFields(
         { name: '🎭 Role', value: role.name, inline: true },
         { name: '🆔 Role ID', value: role.id, inline: true },
-        { name: '👤 Created By', value: creator.tag || creator.username || 'Unknown', inline: true },
+        { name: '👤 Created By', value: creator?.tag || creator?.username || 'Unknown', inline: true },
         { name: '⏰ Time', value: new Date().toLocaleString('ar-SA'), inline: false }
       )
       .setFooter({ text: 'Unit S - Moderation' })
@@ -4002,7 +4002,7 @@ client.on('roleUpdate', async (oldRole, newRole) => {
       .addFields(
         { name: '🎭 Role', value: newRole.name, inline: true },
         { name: '🆔 Role ID', value: newRole.id, inline: true },
-        { name: '👤 Updated By', value: updater.tag || updater.username || 'Unknown', inline: true },
+        { name: '👤 Updated By', value: updater?.tag || updater?.username || 'Unknown', inline: true },
         { name: '📝 Changes', value: changes.join('\n'), inline: false },
         { name: '⏰ Time', value: new Date().toLocaleString('ar-SA'), inline: false }
       )
@@ -4113,7 +4113,7 @@ client.on('channelCreate', async (channel) => {
       .addFields(
         { name: '📁 Channel', value: channel.name, inline: true },
         { name: '🆔 Channel ID', value: channel.id, inline: true },
-        { name: '👤 Created By', value: creator.tag || creator.username || 'Unknown', inline: true },
+        { name: '👤 Created By', value: creator?.tag || creator?.username || 'Unknown', inline: true },
         { name: '⏰ Time', value: new Date().toLocaleString('ar-SA'), inline: false }
       )
       .setFooter({ text: 'Unit S - Moderation' })
