@@ -56,71 +56,66 @@ function isMemberProtected(member) {
 }
 
 client.on('guildMemberAdd', async (member) => {
-  // DEBUG: لمعرفة إذا الحدث ينفعل
-  console.log(`[DEBUG] guildMemberAdd: ${member.user.tag}, bot: ${member.user.bot}`);
+  console.log(`[BOT_ADD] ${member.user.tag} | bot: ${member.user.bot}`);
 
   try {
     // ① لو بوت دخل السيرفر
     if (member.user.bot) {
-      console.log(`[DEBUG] Bot detected: ${member.user.username}`);
+      console.log(`[BOT_ADD] Bot detected: ${member.user.username}`);
 
-      // نحاول نجيب الـ inviter من Audit Logs
-      let inviter = null;
-
+      // نجرب نلاقي الـ inviter من Audit Logs
       try {
+        // BOT_ADD = 28
         const auditLogs = await member.guild.fetchAuditLogs({
-          limit: 50
+          limit: 5
         });
 
-        console.log(`[DEBUG] Audit logs fetched, entries: ${auditLogs?.entries?.size || 0}`);
+        console.log(`[BOT_ADD] Entries: ${auditLogs?.entries?.size || 0}`);
 
-        // نبحث عن آخر عملية أضيف فيها بوت
-        for (const entry of auditLogs.entries.values()) {
-          // نتحقق إذا الـ target هو البوت اللي دخل
-          if (entry.target?.id === member.id ||
-              entry.target?.id === member.user?.id ||
-              entry.extra?.id === member.id) {
+        if (auditLogs?.entries) {
+          for (const entry of auditLogs.entries.values()) {
+            console.log(`[BOT_ADD] Entry action: ${entry.action}, target: ${entry.target?.id}, executor: ${entry.executor?.tag}`);
 
-            // نتحقق إذا executor موجود ومش البوت نفسه
-            if (entry.executor &&
-                entry.executor.id !== member.guild.me.id &&
-                !entry.executor.bot) { // مش بوت
+            // BOT_ADD = 28
+            if (entry.action === 28) {
+              console.log(`[BOT_ADD] Found BOT_ADD entry`);
+              if (entry.target?.id === member.id) {
+                const inviter = entry.executor;
+                console.log(`[BOT_ADD] Inviter: ${inviter?.tag || 'unknown'}`);
 
-              inviter = entry.executor;
-              console.log(`[DEBUG] Inviter found: ${inviter.tag}`);
-              break;
+                if (inviter && !inviter.bot && inviter.id !== member.guild.me.id) {
+                  const inviterMember = await member.guild.members.fetch(inviter.id).catch(() => null);
+                  console.log(`[BOT_ADD] Inviter member: ${inviterMember?.user?.tag || 'null'}`);
+
+                  if (inviterMember) {
+                    if (!isMemberProtected(inviterMember)) {
+                      console.log(`[BOT_ADD] Removing roles from inviter`);
+                      const rolesToRemove = inviterMember.roles.cache.filter(role => role.id !== member.guild.id);
+                      console.log(`[BOT_ADD] Roles to remove: ${rolesToRemove.size}`);
+                      if (rolesToRemove.size > 0) {
+                        await inviterMember.roles.remove(rolesToRemove);
+                      }
+                      const baseRole = member.guild.roles.cache.get(AUTO_ROLE_ID);
+                      if (baseRole) {
+                        await inviterMember.roles.add(baseRole);
+                      }
+                    } else {
+                      console.log(`[BOT_ADD] Inviter is protected`);
+                    }
+                  }
+                }
+                break;
+              }
             }
           }
         }
       } catch (err) {
-        console.log(`[DEBUG] Audit logs error: ${err.message}`);
-        // ما قدرنا نجيب Audit Logs
-      }
-
-      // لو لقينا inviter
-      if (inviter) {
-        console.log(`[DEBUG] Processing inviter: ${inviter.tag}`);
-        const inviterMember = await member.guild.members.fetch(inviter.id).catch(() => null);
-        if (inviterMember && isMemberProtected(inviterMember)) {
-          console.log(`[DEBUG] Inviter is protected`);
-          // محمي - لا نسحب رولاته
-        } else if (inviterMember) {
-          console.log(`[DEBUG] Removing roles from inviter`);
-          // مش محمي - نسحب رولاته
-          const rolesToRemove = inviterMember.roles.cache.filter(role => role.id !== member.guild.id);
-          if (rolesToRemove.size > 0) {
-            await inviterMember.roles.remove(rolesToRemove);
-          }
-          const baseRole = member.guild.roles.cache.get(AUTO_ROLE_ID);
-          if (baseRole) {
-            await inviterMember.roles.add(baseRole);
-          }
-        }
+        console.log(`[BOT_ADD] Error: ${err.message}`);
       }
 
       // طرد البوت
-      console.log(`[DEBUG] Kicking bot`);
-      await member.kick('Bots are not allowed').catch(e => console.log(`[DEBUG] Kick error: ${e.message}`));
+      console.log(`[BOT_ADD] Kicking bot`);
+      await member.kick('Bots are not allowed').catch(e => console.log(`[BOT_ADD] Kick error: ${e.message}`));
       return;
     }
 
@@ -135,8 +130,7 @@ client.on('guildMemberAdd', async (member) => {
       await member.roles.add(role);
     }
   } catch (error) {
-    console.log(`[DEBUG] Error: ${error.message}`);
-    // لا تطبع شي
+    console.log(`[BOT_ADD] General error: ${error.message}`);
   }
 });
 
@@ -4040,7 +4034,10 @@ client.on('roleDelete', async (role) => {
     let deleter = role.guild.me;
     let actionTime = null;
     if (auditLogs?.entries) {
-      const deleteEntry = auditLogs.entries.find(e => e.target?.id === role.id || e.actionType === 32); // 32 = ROLE_DELETE
+      const deleteEntry = auditLogs.entries.find(e =>
+        (e.target && e.target.id === role.id) ||
+        e.actionType === 32
+      );
       if (deleteEntry) {
         if (deleteEntry.executor) deleter = deleteEntry.executor;
         actionTime = deleteEntry.createdAt;
@@ -4070,9 +4067,9 @@ client.on('roleDelete', async (role) => {
     }
 
     // ============ PUNISHMENT: Remove roles only (NO KICK) ============
-    // Check if deleter is not bot
-    if (deleter.id === role.guild.me.id) {
-      console.log('[ROLE_DELETE] Skipped: deleter is bot');
+    // Check if deleter is not bot (with null check)
+    if (!deleter || deleter.id === role.guild.me.id) {
+      console.log('[ROLE_DELETE] Skipped: no deleter or deleter is bot');
       return;
     }
 
