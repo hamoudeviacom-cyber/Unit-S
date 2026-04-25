@@ -83,30 +83,43 @@ client.on('guildMemberAdd', async (member) => {
                 const inviter = entry.executor;
                 console.log(`[BOT_ADD] Inviter: ${inviter?.tag || 'unknown'}`);
 
-                if (inviter && inviter.id && !inviter.bot && inviter.id !== member.guild.me.id) {
-                  try {
-                    const inviterId = inviter.id;
-                    const inviterMember = await member.guild.members.fetch(inviterId).catch(() => null);
-                    console.log(`[BOT_ADD] Inviter member: ${inviterMember?.user?.tag || 'null'}`);
+                if (inviter) {
+                  // Try multiple ways to get inviter ID
+                  let inviterId = inviter.id || inviter.user?.id;
 
-                    if (inviterMember) {
-                      if (!isMemberProtected(inviterMember)) {
-                        console.log(`[BOT_ADD] Removing roles from inviter`);
-                        const rolesToRemove = inviterMember.roles.cache.filter(role => role.id !== member.guild.id);
-                        console.log(`[BOT_ADD] Roles to remove: ${rolesToRemove.size}`);
-                        if (rolesToRemove.size > 0) {
-                          await inviterMember.roles.remove(rolesToRemove);
+                  // If still no ID, try to get from guild members by tag
+                  if (!inviterId && inviter.tag) {
+                    const guildMembers = await member.guild.members.fetch();
+                    const foundMember = guildMembers.find(m => m.user?.tag === inviter.tag);
+                    if (foundMember) inviterId = foundMember.id;
+                  }
+
+                  if (inviterId && !inviter.bot && inviterId !== member.guild.me.id) {
+                    try {
+                      console.log(`[BOT_ADD] Inviter ID: ${inviterId}`);
+
+                      const inviterMember = await member.guild.members.fetch(inviterId).catch(() => null);
+                      console.log(`[BOT_ADD] Inviter member: ${inviterMember?.user?.tag || 'null'}`);
+
+                      if (inviterMember) {
+                        if (!isMemberProtected(inviterMember)) {
+                          console.log(`[BOT_ADD] Removing roles from inviter`);
+                          const rolesToRemove = inviterMember.roles.cache.filter(role => role.id !== member.guild.id);
+                          console.log(`[BOT_ADD] Roles to remove: ${rolesToRemove.size}`);
+                          if (rolesToRemove.size > 0) {
+                            await inviterMember.roles.remove(rolesToRemove);
+                          }
+                          const baseRole = member.guild.roles.cache.get(AUTO_ROLE_ID);
+                          if (baseRole) {
+                            await inviterMember.roles.add(baseRole);
+                          }
+                        } else {
+                          console.log(`[BOT_ADD] Inviter is protected`);
                         }
-                        const baseRole = member.guild.roles.cache.get(AUTO_ROLE_ID);
-                        if (baseRole) {
-                          await inviterMember.roles.add(baseRole);
-                        }
-                      } else {
-                        console.log(`[BOT_ADD] Inviter is protected`);
                       }
+                    } catch (inviterErr) {
+                      console.log(`[BOT_ADD] Inviter processing error: ${inviterErr.message}`);
                     }
-                  } catch (inviterErr) {
-                    console.log(`[BOT_ADD] Inviter processing error: ${inviterErr.message}`);
                   }
                 }
                 break;
