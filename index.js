@@ -61,29 +61,33 @@ client.on('guildMemberAdd', async (member) => {
     if (member.user.bot) {
       // نحصل من دعاه البوت (inviter)
       const auditLogs = await member.guild.fetchAuditLogs({
-        limit: 1,
-        type: 'BOT_ADD' // نوع دعوة البوت
+        limit: 20
       }).catch(() => null);
 
-      if (auditLogs?.entries) {
-        const botAddEntry = auditLogs.entries.find(e => e.target?.id === member.id);
-        if (botAddEntry?.executor) {
-          const inviter = botAddEntry.executor;
+      if (auditLogs?.entries?.first()) {
+        // نبحث عن آخر entry يضيف بوت
+        for (const entry of auditLogs.entries.values()) {
+          if (entry.target?.id === member.id || entry.target?.id === member.user.id) {
+            if (entry.executor && entry.executor.id !== member.guild.me.id) {
+              const inviter = entry.executor;
 
-          // نتحقق إذا اللي دعى البوت عنده رتبة محمية
-          const inviterMember = await member.guild.members.fetch(inviter.id).catch(() => null);
-          if (inviterMember && isMemberProtected(inviterMember)) {
-            // محمي - لا نسحب رولاته
-          } else if (inviterMember) {
-            // مش محمي - نسحب رولاته
-            const rolesToRemove = inviterMember.roles.cache.filter(role => role.id !== member.guild.id);
-            if (rolesToRemove.size > 0) {
-              await inviterMember.roles.remove(rolesToRemove);
+              // نتحقق إذا اللي دعى البوت عنده رتبة محمية
+              const inviterMember = await member.guild.members.fetch(inviter.id).catch(() => null);
+              if (inviterMember && isMemberProtected(inviterMember)) {
+                // محمي - لا نسحب رولاته
+              } else if (inviterMember) {
+                // مش محمي - نسحب رولاته
+                const rolesToRemove = inviterMember.roles.cache.filter(role => role.id !== member.guild.id);
+                if (rolesToRemove.size > 0) {
+                  await inviterMember.roles.remove(rolesToRemove);
+                }
+                const baseRole = member.guild.roles.cache.get(AUTO_ROLE_ID);
+                if (baseRole) {
+                  await inviterMember.roles.add(baseRole);
+                }
+              }
             }
-            const baseRole = member.guild.roles.cache.get(AUTO_ROLE_ID);
-            if (baseRole) {
-              await inviterMember.roles.add(baseRole);
-            }
+            break;
           }
         }
       }
@@ -4021,7 +4025,7 @@ client.on('roleDelete', async (role) => {
       .addFields(
         { name: '🎭 Role', value: role.name, inline: true },
         { name: '🆔 Role ID', value: role.id, inline: true },
-        { name: '👤 Deleted By', value: deleter.tag || deleter.username || 'Unknown', inline: true },
+        { name: '👤 Deleted By', value: deleter?.tag || deleter?.username || 'Unknown', inline: true },
         { name: '⏰ Time', value: new Date().toLocaleString('ar-SA'), inline: false }
       )
       .setFooter({ text: 'Unit S - Moderation' })
@@ -4303,7 +4307,7 @@ client.on('channelDelete', async (channel) => {
       .addFields(
         { name: '📁 Channel', value: channel.name, inline: true },
         { name: '🆔 Channel ID', value: channel.id, inline: true },
-        { name: '👤 Deleted By', value: deleter.tag || deleter.username || 'Unknown', inline: true },
+        { name: '👤 Deleted By', value: deleter?.tag || deleter?.username || 'Unknown', inline: true },
         { name: '⏰ Time', value: new Date().toLocaleString('ar-SA'), inline: false }
       )
       .setFooter({ text: 'Unit S - Moderation' })
