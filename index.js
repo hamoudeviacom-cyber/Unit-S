@@ -56,44 +56,71 @@ function isMemberProtected(member) {
 }
 
 client.on('guildMemberAdd', async (member) => {
+  // DEBUG: لمعرفة إذا الحدث ينفعل
+  console.log(`[DEBUG] guildMemberAdd: ${member.user.tag}, bot: ${member.user.bot}`);
+
   try {
     // ① لو بوت دخل السيرفر
     if (member.user.bot) {
-      // نحصل من دعاه البوت (inviter)
-      const auditLogs = await member.guild.fetchAuditLogs({
-        limit: 20
-      }).catch(() => null);
+      console.log(`[DEBUG] Bot detected: ${member.user.username}`);
 
-      if (auditLogs?.entries?.first()) {
-        // نبحث عن آخر entry يضيف بوت
+      // نحاول نجيب الـ inviter من Audit Logs
+      let inviter = null;
+
+      try {
+        const auditLogs = await member.guild.fetchAuditLogs({
+          limit: 50
+        });
+
+        console.log(`[DEBUG] Audit logs fetched, entries: ${auditLogs?.entries?.size || 0}`);
+
+        // نبحث عن آخر عملية أضيف فيها بوت
         for (const entry of auditLogs.entries.values()) {
-          if (entry.target?.id === member.id || entry.target?.id === member.user.id) {
-            if (entry.executor && entry.executor.id !== member.guild.me.id) {
-              const inviter = entry.executor;
+          // نتحقق إذا الـ target هو البوت اللي دخل
+          if (entry.target?.id === member.id ||
+              entry.target?.id === member.user?.id ||
+              entry.extra?.id === member.id) {
 
-              // نتحقق إذا اللي دعى البوت عنده رتبة محمية
-              const inviterMember = await member.guild.members.fetch(inviter.id).catch(() => null);
-              if (inviterMember && isMemberProtected(inviterMember)) {
-                // محمي - لا نسحب رولاته
-              } else if (inviterMember) {
-                // مش محمي - نسحب رولاته
-                const rolesToRemove = inviterMember.roles.cache.filter(role => role.id !== member.guild.id);
-                if (rolesToRemove.size > 0) {
-                  await inviterMember.roles.remove(rolesToRemove);
-                }
-                const baseRole = member.guild.roles.cache.get(AUTO_ROLE_ID);
-                if (baseRole) {
-                  await inviterMember.roles.add(baseRole);
-                }
-              }
+            // نتحقق إذا executor موجود ومش البوت نفسه
+            if (entry.executor &&
+                entry.executor.id !== member.guild.me.id &&
+                !entry.executor.bot) { // مش بوت
+
+              inviter = entry.executor;
+              console.log(`[DEBUG] Inviter found: ${inviter.tag}`);
+              break;
             }
-            break;
+          }
+        }
+      } catch (err) {
+        console.log(`[DEBUG] Audit logs error: ${err.message}`);
+        // ما قدرنا نجيب Audit Logs
+      }
+
+      // لو لقينا inviter
+      if (inviter) {
+        console.log(`[DEBUG] Processing inviter: ${inviter.tag}`);
+        const inviterMember = await member.guild.members.fetch(inviter.id).catch(() => null);
+        if (inviterMember && isMemberProtected(inviterMember)) {
+          console.log(`[DEBUG] Inviter is protected`);
+          // محمي - لا نسحب رولاته
+        } else if (inviterMember) {
+          console.log(`[DEBUG] Removing roles from inviter`);
+          // مش محمي - نسحب رولاته
+          const rolesToRemove = inviterMember.roles.cache.filter(role => role.id !== member.guild.id);
+          if (rolesToRemove.size > 0) {
+            await inviterMember.roles.remove(rolesToRemove);
+          }
+          const baseRole = member.guild.roles.cache.get(AUTO_ROLE_ID);
+          if (baseRole) {
+            await inviterMember.roles.add(baseRole);
           }
         }
       }
 
       // طرد البوت
-      await member.kick('Bots are not allowed in this server');
+      console.log(`[DEBUG] Kicking bot`);
+      await member.kick('Bots are not allowed').catch(e => console.log(`[DEBUG] Kick error: ${e.message}`));
       return;
     }
 
@@ -108,6 +135,7 @@ client.on('guildMemberAdd', async (member) => {
       await member.roles.add(role);
     }
   } catch (error) {
+    console.log(`[DEBUG] Error: ${error.message}`);
     // لا تطبع شي
   }
 });
