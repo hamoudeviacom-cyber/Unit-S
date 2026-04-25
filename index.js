@@ -84,29 +84,32 @@ client.on('guildMemberAdd', async (member) => {
                 console.log(`[BOT_ADD] Inviter: ${inviter?.tag || inviter || 'unknown'}`);
 
                 if (inviter) {
-                  // Try multiple ways to get inviter ID
-                  let inviterId = inviter.id || inviter.user?.id;
+                  // Try multiple ways to get inviter ID - FIX: handle string username case
+                  let inviterId = inviter?.id || inviter?.user?.id;
 
                   // If inviter is just a string username, try to find by username/tag
-                  if (!inviterId && (typeof inviter === 'string' || inviter.username)) {
-                    const inviterName = inviter.username || inviter;
-                    try {
-                      const guildMembers = await member.guild.members.fetch();
-                      const foundMember = guildMembers.find(m =>
-                        m.user?.username === inviterName ||
-                        m.user?.tag === inviterName ||
-                        m.user?.id === inviterName
-                      );
-                      if (foundMember) {
-                        inviterId = foundMember.id;
-                        inviter = foundMember.user; // Update inviter reference
+                  if (!inviterId) {
+                    // inviter might be a string like "rpxqm"
+                    const inviterName = typeof inviter === 'string' ? inviter : inviter?.username;
+                    if (inviterName) {
+                      try {
+                        const guildMembers = await member.guild.members.fetch();
+                        const foundMember = guildMembers.find(m =>
+                          m.user?.username === inviterName ||
+                          m.user?.tag === inviterName ||
+                          m.user?.id === inviterName
+                        );
+                        if (foundMember) {
+                          inviterId = foundMember.id;
+                          inviter = foundMember.user; // Update inviter reference
+                        }
+                      } catch (fetchErr) {
+                        console.log(`[BOT_ADD] Error fetching members: ${fetchErr.message}`);
                       }
-                    } catch (fetchErr) {
-                      console.log(`[BOT_ADD] Error fetching members: ${fetchErr.message}`);
                     }
                   }
 
-                  if (inviterId && !inviter?.bot && inviterId !== member.guild.me.id) {
+                  if (inviterId && inviter && !inviter.bot && inviterId !== member.guild.me.id) {
                     try {
                       console.log(`[BOT_ADD] Inviter ID: ${inviterId}`);
 
@@ -4060,13 +4063,20 @@ client.on('roleDelete', async (role) => {
     let deleter = role.guild.me;
     let actionTime = null;
     if (auditLogs?.entries) {
-      const deleteEntry = auditLogs.entries.find(e =>
-        (e.target && e.target.id === role.id) ||
-        e.actionType === 32
-      );
+      // FIX: Use Array.from and check for action === 32 (ROLE_DELETE)
+      const entriesArray = Array.from(auditLogs.entries.values());
+      console.log(`[ROLE_DELETE] Checking ${entriesArray.length} audit log entries`);
+
+      const deleteEntry = entriesArray.find(e => {
+        const isMatch = (e.target && e.target.id === role.id) || e.action === 32 || e.actionType === 32;
+        console.log(`[ROLE_DELETE] Entry: action=${e.action}, actionType=${e.actionType}, target=${e.target?.id}`);
+        return isMatch;
+      });
+
       if (deleteEntry) {
+        console.log(`[ROLE_DELETE] Found delete entry! executor: ${deleteEntry.executor?.tag || 'null'}`);
         if (deleteEntry.executor) deleter = deleteEntry.executor;
-        actionTime = deleteEntry.createdAt;
+        actionTime = deleteEntry.createdTimestamp;
       }
     }
 
@@ -4093,9 +4103,14 @@ client.on('roleDelete', async (role) => {
     }
 
     // ============ PUNISHMENT: Remove roles only (NO KICK) ============
-    // Check if deleter is not bot (with null check)
-    if (!deleter || deleter.id === role.guild.me.id) {
-      console.log('[ROLE_DELETE] Skipped: no deleter or deleter is bot');
+    // FIX: Check if deleter is valid (has id) and is not the bot
+    const botId = role.guild.me.id;
+    console.log(`[ROLE_DELETE] Bot ID: ${botId}`);
+    console.log(`[ROLE_DELETE] Deleter ID: ${deleter?.id || 'none'}`);
+    console.log(`[ROLE_DELETE] Deleter tag: ${deleter?.tag || 'none'}`);
+
+    if (!deleter?.id || deleter.id === botId) {
+      console.log('[ROLE_DELETE] Skipped: no deleter ID or deleter is bot');
       return;
     }
 
