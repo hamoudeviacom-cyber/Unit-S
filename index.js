@@ -1157,11 +1157,15 @@ client.commands.set('24voice', {
       voiceChannelId = channelId;
 
       // Create audio player to stay in voice (prevents disconnect)
-      const player = createAudioPlayer();
-      const resource = createAudioResource('https://www.youtube.com/watch?v=dQw4w9WgXcQ', { inlineVolume: true });
-
-      player.play(resource);
-      connection.subscribe(player);
+      // ملاحظة: يحتاج FFmpeg مثبت على السيرفر
+      try {
+        const player = createAudioPlayer();
+        const resource = createAudioResource('https://www.youtube.com/watch?v=dQw4w9WgXcQ', { inlineVolume: true });
+        player.play(resource);
+        connection.subscribe(player);
+      } catch (audioErr) {
+        console.log('[24/7 VOICE] Audio not available, staying connected without audio');
+      }
 
       const embed = new EmbedBuilder()
         .setTitle('🔊 تم الاتصال بالقناة الصوتية')
@@ -4036,7 +4040,13 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
           if (voiceConnection) {
             voiceConnection.destroy();
           }
-          voiceConnection = await channel.join();
+          // Reconnect using @discordjs/voice
+          voiceConnection = joinVoiceChannel({
+            channelId: channel.id,
+            guildId: guild.id,
+            adapterCreator: guild.voiceAdapterCreator,
+          });
+          voiceChannelId = channelId;
           console.log('[24/7 VOICE] Reconnected successfully!');
         }
       } catch (err) {
