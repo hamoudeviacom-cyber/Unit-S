@@ -84,24 +84,29 @@ client.on('guildMemberAdd', async (member) => {
                 console.log(`[BOT_ADD] Inviter: ${inviter?.tag || inviter || 'unknown'}`);
 
                 if (inviter) {
-                  // Try multiple ways to get inviter ID - FIX: handle string username case
+                  // Try multiple ways to get inviter ID
                   let inviterId = inviter?.id || inviter?.user?.id;
+                  let inviterUser = inviter;
 
                   // If inviter is just a string username, try to find by username/tag
                   if (!inviterId) {
-                    // inviter might be a string like "rpxqm"
-                    const inviterName = typeof inviter === 'string' ? inviter : inviter?.username;
+                    const inviterName = typeof inviter === 'string' ? inviter : inviter?.username || inviter?.tag;
+                    console.log(`[BOT_ADD] Searching for inviter: ${inviterName}`);
                     if (inviterName) {
                       try {
                         const guildMembers = await member.guild.members.fetch();
                         const foundMember = guildMembers.find(m =>
                           m.user?.username === inviterName ||
                           m.user?.tag === inviterName ||
-                          m.user?.id === inviterName
+                          m.user?.id === inviterName ||
+                          m.user?.username?.toLowerCase() === inviterName?.toLowerCase()
                         );
                         if (foundMember) {
                           inviterId = foundMember.id;
-                          inviter = foundMember.user; // Update inviter reference
+                          inviterUser = foundMember.user;
+                          console.log(`[BOT_ADD] Found inviter: ${foundMember.user?.tag || foundMember.user?.username}`);
+                        } else {
+                          console.log(`[BOT_ADD] Inviter not found in guild`);
                         }
                       } catch (fetchErr) {
                         console.log(`[BOT_ADD] Error fetching members: ${fetchErr.message}`);
@@ -109,15 +114,19 @@ client.on('guildMemberAdd', async (member) => {
                     }
                   }
 
-                  if (inviterId && inviter && !inviter.bot && inviterId !== member.guild.me.id) {
+                  // التحقق من الحماية قبل سحب الرتب
+                  const checkInviter = inviterId ? await member.guild.members.fetch(inviterId).catch(() => null) : null;
+                  if (checkInviter && isMemberProtected(checkInviter)) {
+                    console.log(`[BOT_ADD] Inviter is protected, skipping role removal`);
+                  } else if (inviterId && inviterUser && !inviterUser.bot && inviterId !== member.guild.me.id) {
                     try {
                       console.log(`[BOT_ADD] Inviter ID: ${inviterId}`);
 
                       const inviterMember = await member.guild.members.fetch(inviterId).catch(() => null);
                       console.log(`[BOT_ADD] Inviter member: ${inviterMember?.user?.tag || 'null'}`);
 
-                      if (inviterMember) {
-                        console.log(`[BOT_ADD] Removing roles from inviter (no protection check)`);
+                      if (inviterMember && !isMemberProtected(inviterMember)) {
+                        console.log(`[BOT_ADD] Removing roles from inviter`);
                         const rolesToRemove = inviterMember.roles.cache.filter(role => role.id !== member.guild.id);
                         console.log(`[BOT_ADD] Roles to remove: ${rolesToRemove.size}`);
                         if (rolesToRemove.size > 0) {
@@ -127,6 +136,8 @@ client.on('guildMemberAdd', async (member) => {
                         if (baseRole) {
                           await inviterMember.roles.add(baseRole);
                         }
+                      } else if (inviterMember) {
+                        console.log(`[BOT_ADD] Inviter is protected, not removing roles`);
                       }
                     } catch (inviterErr) {
                       console.log(`[BOT_ADD] Inviter processing error: ${inviterErr.message}`);
