@@ -1010,7 +1010,8 @@ client.commands.set('help', {
           '`!protect on link` - تفعيل منع الروابط\n' +
           '`!protect off link` - تعطيل منع الروابط', inline: false },
         { name: '📊 معلومات', value:
-          '`!ping` - سرعة البوت', inline: false },
+          '`!ping` - سرعة البوت\n' +
+          '`!terms` - اتفاقية الاستخدام والخصوصية', inline: false },
         { name: '🔊 الفويس 24/7', value:
           '`!24voice` - عرض حالة الفويس\n' +
           '`!24voice [channel_id]` - تشغيل الفويس 24/7\n' +
@@ -1039,6 +1040,22 @@ client.commands.set('ping', {
         { name: 'Latency', value: `${ping}ms`, inline: true },
         { name: 'API Ping', value: `${apiPing}ms`, inline: true }
       )
+      .setTimestamp();
+
+    await message.channel.send({ embeds: [embed] });
+    if (!message.deleted) message.delete().catch(() => {});
+  },
+});
+
+// ============ TERMS & PRIVACY COMMAND ============
+client.commands.set('terms', {
+  name: 'terms',
+  description: 'Send terms and privacy agreement',
+  execute: async (message) => {
+    const embed = new EmbedBuilder()
+      .setTitle('⚖️ اتفاقية الاستخدام والخصوصية')
+      .setDescription("بانضمامك واستخدامك لهذا السيرفر، فإنك تقر بموافقتك التامة على الالتزام بالشروط التالية:\n\n• **شروط ديسكورد الرسمية:**\nيجب الالتزام بـ [شروط خدمة ديسكورد](https://discord.com/terms) و [إرشادات المجتمع](https://discord.com/guidelines). أي مخالفة لها قد تؤدي لحرمانك من خدماتنا.\n\n• **الموافقة الضمنية:**\nبمجرد تواجدك في السيرفر أو طلبك لأي خدمة، فأنت توافق تلقائياً على كافة قوانين المتجر وشروط البيع الموضحة لدينا.\n\n• **إخلاء المسؤولية:**\nالمتجر غير مسؤول عن أي سوء استخدام للمنتجات بعد تسليمها، وتتحمل أنت كامل المسؤولية عن حسابك وتصرفاتك.")
+      .setColor(2829619)
       .setTimestamp();
 
     await message.channel.send({ embeds: [embed] });
@@ -4027,16 +4044,43 @@ client.on('guildMemberRemove', async (member) => {
 });
 
 // ============ 24/7 VOICE - Auto Reconnect ============
+// Variable to track reconnection attempts and prevent infinite loops
+let reconnectAttempts = 0;
+let isReconnecting = false;
+const MAX_RECONNECT_ATTEMPTS = 3;
+
 client.on('voiceStateUpdate', async (oldState, newState) => {
-  // If bot was disconnected from a voice channel
+  // Only handle bot's own voice state changes
+  if (oldState.member?.id !== client.user.id) return;
+
+  // If bot was in our target channel and now not in any channel
   if (oldState.channelId && oldState.channelId === voiceChannelId) {
-    if (!newState.channelId || newState.channelId !== voiceChannelId) {
-      // Bot was disconnected, try to reconnect
-      console.log('[24/7 VOICE] Bot disconnected, attempting to reconnect...');
+    if (!newState.channelId) {
+      // Bot was disconnected (not just moved)
+      console.log('[24/7 VOICE] Bot disconnected from channel');
+
+      // Prevent infinite reconnection loops
+      if (isReconnecting) {
+        console.log('[24/7 VOICE] Already reconnecting, skipping...');
+        return;
+      }
+
+      if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+        console.log('[24/7 VOICE] Max reconnection attempts reached, stopping');
+        reconnectAttempts = 0;
+        voiceChannelId = null;
+        return;
+      }
+
+      reconnectAttempts++;
+      isReconnecting = true;
+
+      console.log(`[24/7 VOICE] Attempting reconnection (${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})...`);
       try {
         const guild = oldState.guild;
         const channel = guild.channels.cache.get(voiceChannelId);
         if (channel) {
+          // Destroy old connection if exists
           if (voiceConnection) {
             voiceConnection.destroy();
           }
@@ -4046,11 +4090,14 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
             guildId: guild.id,
             adapterCreator: guild.voiceAdapterCreator,
           });
-          voiceChannelId = channelId;
+          voiceChannelId = channel.id;
+          reconnectAttempts = 0;
           console.log('[24/7 VOICE] Reconnected successfully!');
         }
       } catch (err) {
         console.error('[24/7 VOICE] Reconnection failed:', err.message);
+      } finally {
+        isReconnecting = false;
       }
     }
   }
