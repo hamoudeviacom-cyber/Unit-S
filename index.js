@@ -15,6 +15,7 @@ app.listen(port, () => {
 
 import { Client, GatewayIntentBits, Collection, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, ComponentType } from 'discord.js';
 import { readFileSync, writeFileSync, existsSync } from 'fs';
+import { joinVoiceChannel, createAudioPlayer, createAudioResource, AudioPlayerStatus, entersState, VoiceConnectionStatus, getVoiceConnection } from '@discordjs/voice';
 
 const TOKEN = process.env.DISCORD_TOKEN || 'YOUR_BOT_TOKEN';
 const PREFIX = '!';
@@ -1143,10 +1144,24 @@ client.commands.set('24voice', {
         voiceConnection.destroy();
       }
 
-      // Join the voice channel
+      // Join the voice channel using @discordjs/voice
       await message.channel.send('🔄 جاري الاتصال بالقناة الصوتية...');
-      voiceConnection = await channel.join();
+
+      const connection = joinVoiceChannel({
+        channelId: channel.id,
+        guildId: message.guild.id,
+        adapterCreator: message.guild.voiceAdapterCreator,
+      });
+
+      voiceConnection = connection;
       voiceChannelId = channelId;
+
+      // Create audio player to stay in voice (prevents disconnect)
+      const player = createAudioPlayer();
+      const resource = createAudioResource('https://www.youtube.com/watch?v=dQw4w9WgXcQ', { inlineVolume: true });
+
+      player.play(resource);
+      connection.subscribe(player);
 
       const embed = new EmbedBuilder()
         .setTitle('🔊 تم الاتصال بالقناة الصوتية')
