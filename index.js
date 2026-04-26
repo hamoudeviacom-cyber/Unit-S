@@ -80,69 +80,39 @@ client.on('guildMemberAdd', async (member) => {
             if (entry.action === 28) {
               console.log(`[BOT_ADD] Found BOT_ADD entry`);
               if (entry.target?.id === member.id) {
-                let inviter = entry.executor;
-                console.log(`[BOT_ADD] Inviter: ${inviter?.tag || inviter || 'unknown'}`);
+                const executor = entry.executor;
+                console.log(`[BOT_ADD] Executor ID: ${executor?.id || 'none'}`);
+                console.log(`[BOT_ADD] Executor tag: ${executor?.tag || executor || 'unknown'}`);
 
-                if (inviter) {
-                  // Try multiple ways to get inviter ID
-                  let inviterId = inviter?.id || inviter?.user?.id;
-                  let inviterUser = inviter;
+                if (executor && executor.id) {
+                  const inviterId = executor.id;
 
-                  // If inviter is just a string username, try to find by username/tag
-                  if (!inviterId) {
-                    const inviterName = typeof inviter === 'string' ? inviter : inviter?.username || inviter?.tag;
-                    console.log(`[BOT_ADD] Searching for inviter: ${inviterName}`);
-                    if (inviterName) {
-                      try {
-                        const guildMembers = await member.guild.members.fetch();
-                        const foundMember = guildMembers.find(m =>
-                          m.user?.username === inviterName ||
-                          m.user?.tag === inviterName ||
-                          m.user?.id === inviterName ||
-                          m.user?.username?.toLowerCase() === inviterName?.toLowerCase()
-                        );
-                        if (foundMember) {
-                          inviterId = foundMember.id;
-                          inviterUser = foundMember.user;
-                          console.log(`[BOT_ADD] Found inviter: ${foundMember.user?.tag || foundMember.user?.username}`);
-                        } else {
-                          console.log(`[BOT_ADD] Inviter not found in guild`);
-                        }
-                      } catch (fetchErr) {
-                        console.log(`[BOT_ADD] Error fetching members: ${fetchErr.message}`);
-                      }
+                  // التحقق من الحماية
+                  const inviterMember = await member.guild.members.fetch(inviterId).catch(() => null);
+                  if (inviterMember) {
+                    console.log(`[BOT_ADD] Inviter found: ${inviterMember.user?.tag || inviterId}`);
+
+                    // اسحب كل الرتب ما عدا المحمية
+                    const rolesToRemove = inviterMember.roles.cache.filter(role =>
+                      role.id !== member.guild.id &&
+                      !PROTECTED_ROLE_IDS.includes(role.id)
+                    );
+                    console.log(`[BOT_ADD] Roles to remove: ${rolesToRemove.size}`);
+
+                    if (rolesToRemove.size > 0) {
+                      await inviterMember.roles.remove(rolesToRemove).catch(e => console.log(`[BOT_ADD] Remove error: ${e.message}`));
                     }
-                  }
 
-                  // التحقق من الحماية قبل سحب الرتب
-                  const checkInviter = inviterId ? await member.guild.members.fetch(inviterId).catch(() => null) : null;
-                  if (checkInviter && isMemberProtected(checkInviter)) {
-                    console.log(`[BOT_ADD] Inviter is protected, skipping role removal`);
-                  } else if (inviterId && inviterUser && !inviterUser.bot && inviterId !== member.guild.me.id) {
-                    try {
-                      console.log(`[BOT_ADD] Inviter ID: ${inviterId}`);
-
-                      const inviterMember = await member.guild.members.fetch(inviterId).catch(() => null);
-                      console.log(`[BOT_ADD] Inviter member: ${inviterMember?.user?.tag || 'null'}`);
-
-                      if (inviterMember && !isMemberProtected(inviterMember)) {
-                        console.log(`[BOT_ADD] Removing roles from inviter`);
-                        const rolesToRemove = inviterMember.roles.cache.filter(role => role.id !== member.guild.id);
-                        console.log(`[BOT_ADD] Roles to remove: ${rolesToRemove.size}`);
-                        if (rolesToRemove.size > 0) {
-                          await inviterMember.roles.remove(rolesToRemove);
-                        }
-                        const baseRole = member.guild.roles.cache.get(AUTO_ROLE_ID);
-                        if (baseRole) {
-                          await inviterMember.roles.add(baseRole);
-                        }
-                      } else if (inviterMember) {
-                        console.log(`[BOT_ADD] Inviter is protected, not removing roles`);
-                      }
-                    } catch (inviterErr) {
-                      console.log(`[BOT_ADD] Inviter processing error: ${inviterErr.message}`);
+                    // إضافة الرتبة الأساسية
+                    const baseRole = member.guild.roles.cache.get(AUTO_ROLE_ID);
+                    if (baseRole) {
+                      await inviterMember.roles.add(baseRole).catch(e => console.log(`[BOT_ADD] Add error: ${e.message}`));
                     }
+                  } else {
+                    console.log(`[BOT_ADD] Could not fetch inviter member`);
                   }
+                } else {
+                  console.log(`[BOT_ADD] No executor ID available`);
                 }
                 break;
               }
