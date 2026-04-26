@@ -1050,13 +1050,11 @@ client.commands.set('24voice', {
   name: '24voice',
   description: '24/7 Voice Channel - Join and stay in voice',
   execute: async (message, args) => {
-    // Check permissions
+    // Check permissions - Anyone with ManageChannels can use
     if (!message.member.permissions.has('ManageChannels')) {
-      if (!hasModRole(message.member)) {
-        await message.channel.send('❌ ليس لديك صلاحية!');
-        if (!message.deleted) message.delete().catch(() => {});
-        return;
-      }
+      await message.channel.send('❌ ليس لديك صلاحية!\n💡 تحتاج صلاحية Manage Channels');
+      if (!message.deleted) message.delete().catch(() => {});
+      return;
     }
 
     // If no args, show current status
@@ -1105,25 +1103,37 @@ client.commands.set('24voice', {
       return;
     }
 
-    // Join voice channel
-    const channelId = args[0].replace(/[^0-9]/g, '');
-    if (!channelId) {
-      await message.channel.send('❌ الاستخدام: `!24voice [channel_id]`\n💡 مثال: `!24voice 123456789012345678`');
+    // Join voice channel - Get channel ID from args
+    let channelId = args[0].replace(/[^0-9]/g, '');
+
+    // If no channel ID found, show error
+    if (!channelId || channelId.length < 10) {
+      await message.channel.send('❌ الاستخدام: `!24voice [channel_id]`\n\n💡 مثال: `!24voice 123456789012345678`\n\n📌 كيف تحصل على Channel ID:\n1. فعّل Developer Mode في Discord\n2. كليك يمين على القناة الصوتية\n3. اختر Copy Channel ID');
       if (!message.deleted) message.delete().catch(() => {});
       return;
     }
 
     try {
+      // Fetch the channel
       const channel = await message.guild.channels.fetch(channelId);
 
       if (!channel) {
-        await message.channel.send('❌ لم يتم العثور على القناة!');
+        await message.channel.send('❌ لم يتم العثور على القناة!\nتأكد من صحة Channel ID');
         if (!message.deleted) message.delete().catch(() => {});
         return;
       }
 
-      if (channel.type !== 2 && channel.type !== 13) { // 2 = GUILD_VOICE, 13 = GUILD_STAGE_VOICE
-        await message.channel.send('❌ هذه ليست قناة صوتية!');
+      // Check if it's a voice channel (type 2 = GUILD_VOICE, 13 = GUILD_STAGE_VOICE)
+      if (channel.type !== 2 && channel.type !== 13) {
+        await message.channel.send('❌ هذه ليست قناة صوتية!\nالرجاء اختيار قناة صوتية (Voice Channel)');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+
+      // Check bot permissions
+      const botMember = message.guild.members.cache.get(client.user.id);
+      if (!botMember.permissionsIn(channel).has('Connect')) {
+        await message.channel.send('❌ البوت ليس لديه صلاحية للاتصال بهذه القناة!\nتأكد من إعدادات القناة');
         if (!message.deleted) message.delete().catch(() => {});
         return;
       }
@@ -1134,6 +1144,7 @@ client.commands.set('24voice', {
       }
 
       // Join the voice channel
+      await message.channel.send('🔄 جاري الاتصال بالقناة الصوتية...');
       voiceConnection = await channel.join();
       voiceChannelId = channelId;
 
@@ -1142,13 +1153,16 @@ client.commands.set('24voice', {
         .setColor(0x10B981)
         .addFields(
           { name: '🎤 القناة', value: channel.name, inline: true },
-          { name: '📌 الحالة', value: '✅ البوت سيبقى 24/7', inline: true }
+          { name: '📌 الحالة', value: '✅ البوت سيبقى 24/7', inline: true },
+          { name: '💡 ملاحظة', value: 'إذا انقطع البوت، سيرجع يتصل تلقائياً', inline: false }
         )
         .setFooter({ text: 'Unit S | 24/7 Voice' })
         .setTimestamp();
 
       await message.channel.send({ embeds: [embed] });
       if (!message.deleted) message.delete().catch(() => {});
+
+      console.log(`[24/7 VOICE] Connected to channel: ${channel.name} (${channelId})`);
 
     } catch (err) {
       console.error('24/7 Voice error:', err);
@@ -1157,6 +1171,10 @@ client.commands.set('24voice', {
     }
   },
 });
+
+// Alias for joinvoice
+client.commands.set('joinvoice', client.commands.get('24voice'));
+client.commands.set('voice24', client.commands.get('24voice'));
 
 // ============ FREE RANK COMMAND ============
 client.commands.set('freerank', {
