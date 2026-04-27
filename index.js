@@ -1287,7 +1287,7 @@ client.commands.set('freerank', {
         components: [
           new ActionRowBuilder().addComponents(
             new ButtonBuilder()
-              .setLabel('')
+              .setLabel('1')
               .setCustomId('free_rank_claim')
               .setEmoji({ name: 'Taj', id: '1495224006947639377' })
               .setStyle(ButtonStyle.Secondary)
@@ -1423,7 +1423,7 @@ client.commands.set('freerank', {
               components: [{
                 type: 2,
                 style: 2,
-                label: '',
+                label: '1',
                 customId: 'free_rank_claim',
                 emoji: { name: 'Taj', id: '1495224006947639377' }
               }]
