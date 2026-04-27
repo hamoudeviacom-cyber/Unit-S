@@ -4732,11 +4732,12 @@ client.on('messageCreate', async (message) => {
       let deleteCount = 100; // الافتراضي
 
       if (args.length > 0 && !isNaN(parseInt(args[0]))) {
-        deleteCount = Math.min(parseInt(args[0]), 100); // الحد الأقصى 100
+        deleteCount = Math.min(parseInt(args[0]), 99); // الحد الأقصى 99 (Discord API limit=100)
       }
 
-      // جلب الرسائل
-      const channelMessages = await message.channel.messages.fetch({ limit: deleteCount + 1 }); // +1 لأنه يحذف رسالة الأمر أيضاً
+      // جلب الرسائل (+1 لأنه يحذف رسالة الأمر أيضاً، والـ limit max = 100)
+      const fetchLimit = Math.min(deleteCount + 1, 100);
+      const channelMessages = await message.channel.messages.fetch({ limit: fetchLimit });
 
       // احذف كل الرسائل دفعة واحدة
       const deletePromises = channelMessages.map(msg => msg.delete().catch(() => {}));
