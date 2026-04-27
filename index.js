@@ -285,15 +285,16 @@ function saveFreeRankSettings(settings) {
 const freeRankSettings = loadFreeRankSettings();
 
 // ============ Log Channels Settings ============
+// IDs اللي أعطيتهم - Audit Log channels
 const logSettings = {
-  allLog: null,          // # all-log
-  banLog: null,          // # ban-log
-  kickLog: null,         // # kick-log
-  timeoutLog: null,      // # timeout-log
-  messagesLog: null,     // # messages-log
-  roomsLog: null,        // # rooms-log
-  joinLeaveLog: null,    // # join-leave
-  rolesLog: null,        // # roles-log
+  allLog: '1494686253675839598',      // # all-log
+  banLog: '1494686254866890832',       // # ban-log
+  kickLog: '1494686256087695460',      // # kick-log
+  timeoutLog: '1494686257425416262',   // # timeout-log
+  messagesLog: '1494686258772050011',  // # messages-log
+  roomsLog: '1494686260797771878',     // # rooms-log
+  joinLeaveLog: '1494686262894788712', // # join-leave
+  rolesLog: '1494686265235214347',     // # roles-log
 };
 
 // Admin roles for moderation commands
@@ -1699,6 +1700,100 @@ client.commands.set('kick', {
     } catch (err) {
       console.error('Kick error:', err);
       await message.channel.send(`❌ حدث خطأ أثناء الطرد: ${err.message}`);
+      if (!message.deleted) message.delete().catch(() => {});
+    }
+  },
+});
+
+// ============ PURGE COMMAND (!حذف) ============
+client.commands.set('حذف', {
+  name: 'حذف',
+  aliases: ['purge', 'delete', 'clean'],
+  description: 'Delete messages in bulk',
+  execute: async (message, args) => {
+    // Check permissions
+    if (!message.member.permissions.has('ManageMessages')) {
+      if (!hasModRole(message.member)) {
+        await message.channel.send('❌ ليس لديك صلاحية!');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+    }
+
+    // Parse amount
+    const amountArg = args[0];
+    if (!amountArg) {
+      const embed = new EmbedBuilder()
+        .setTitle('🗑️ PURGE COMMAND')
+        .setColor(0xDC2626)
+        .addFields(
+          { name: 'Usage:', value: '`!حذف [عدد]`', inline: false },
+          { name: 'Example:', value: '`!حذف 10` - لحذف 10 رسائل', inline: false },
+          { name: 'Max:', value: '100 رسالة في المرة', inline: false }
+        )
+        .setFooter({ text: 'Unit S - Moderation' });
+      await message.channel.send({ embeds: [embed] });
+      if (!message.deleted) message.delete().catch(() => {});
+      return;
+    }
+
+    // Parse number - يجب أن يكون بين 1 و 100
+    const amount = parseInt(amountArg);
+
+    if (isNaN(amount) || amount < 1 || amount > 100) {
+      await message.channel.send('❌ استخدم رقم بين 1 و 100!\nمثال: `!حذف 10`');
+      if (!message.deleted) message.delete().catch(() => {});
+      return;
+    }
+
+    // Fetch messages to delete (amount + 1 for the command message)
+    try {
+      const messages = await message.channel.messages.fetch({ limit: amount + 1 });
+
+      if (messages.size === 0) {
+        await message.channel.send('❌ لا توجد رسائل للحذف!');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+
+      // Calculate actual messages to delete (excluding the command message)
+      const toDelete = Math.min(messages.size - 1, amount);
+
+      if (toDelete === 0) {
+        await message.channel.send('❌ لا توجد رسائل للحذف!');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+
+      // Bulk delete messages ( Discord has 14 day limit for bulk delete)
+      const deletedMessages = await message.channel.bulkDelete(toDelete, { filterOld: true });
+
+      // Delete the command message itself
+      if (!message.deleted) {
+        await message.delete().catch(() => {});
+      }
+
+      // Send confirmation
+      const confirmEmbed = new EmbedBuilder()
+        .setTitle('🗑️ تم حذف الرسائل')
+        .setColor(0x10B981)
+        .addFields(
+          { name: 'عدد الرسائل المحذوفة', value: `${deletedMessages.size}`, inline: true },
+          { name: 'بواسطة', value: message.author.tag, inline: true }
+        )
+        .setFooter({ text: 'Unit S - Moderation' })
+        .setTimestamp();
+
+      const confirmMsg = await message.channel.send({ embeds: [confirmEmbed] });
+
+      // Auto-delete confirmation after 3 seconds
+      setTimeout(() => {
+        confirmMsg.delete().catch(() => {});
+      }, 3000);
+
+    } catch (err) {
+      console.error('Purge error:', err);
+      await message.channel.send(`❌ حدث خطأ: ${err.message}`);
       if (!message.deleted) message.delete().catch(() => {});
     }
   },
@@ -3831,7 +3926,19 @@ client.on('messageCreate', async (message) => {
     }
   }
 
-  const cmd = client.commands.get(commandName);
+  // Get command - check both name and aliases
+  let cmd = client.commands.get(commandName);
+
+  // If not found by name, search through all commands for matching alias
+  if (!cmd) {
+    for (const [, command] of client.commands) {
+      if (command.aliases && command.aliases.includes(commandName)) {
+        cmd = command;
+        break;
+      }
+    }
+  }
+
   if (cmd) {
     try {
       await cmd.execute(message, args);
