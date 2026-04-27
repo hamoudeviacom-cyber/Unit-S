@@ -4647,13 +4647,13 @@ client.on('messageDelete', async (message) => {
     const embed = new EmbedBuilder()
       .setColor(0xff0000)
       .setDescription([
-        '**__<:zO_246:1495222454530871346> رسالة محذوفة اضغط على  زر <a:Taj:1495224006947639377> بالأسفل   :__**',
+ ''
         '',
         '**الرسائل المحذوفة :**',
         '',
         '> **' + (message.content?.substring(0, 100) || '[No text/Embed/Attachment]') + '**'
       ].join('\n'))
-      .setFooter({ text: 'Unit S | Free Rank System' })
+      .setFooter({ text: 'Unit S |  System' })
       .setTimestamp();
 
     await sendLog(message.guild, 'messages', embed);
