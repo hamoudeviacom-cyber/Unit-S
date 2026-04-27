@@ -4831,27 +4831,31 @@ client.on('messageCreate', async (message) => {
     }
 
     try {
-      // احذف رسالة الأمر نفسها
-      await message.delete();
-
       // استخراج عدد الرسائل من الأمر
-      const args = message.content.slice(3).trim().split(/\s+/);
-      let deleteCount = 100; // الافتراضي
+      const args = message.content.slice(4).trim().split(/\s+/);
+      let deleteCount = 1; // الافتراضي = 1
 
       if (args.length > 0 && !isNaN(parseInt(args[0]))) {
-        deleteCount = Math.min(parseInt(args[0]), 99); // الحد الأقصى 99 (Discord API limit=100)
+        deleteCount = Math.min(parseInt(args[0]), 99); // الحد الأقصى 99
       }
 
       // جلب الرسائل (+1 لأنه يحذف رسالة الأمر أيضاً، والـ limit max = 100)
       const fetchLimit = Math.min(deleteCount + 1, 100);
       const channelMessages = await message.channel.messages.fetch({ limit: fetchLimit });
 
-      // احذف كل الرسائل دفعة واحدة (بس العدد المطلوب)
-      const deletePromises = channelMessages.first(deleteCount).map(msg => msg.delete().catch(() => {}));
-      await Promise.all(deletePromises);
+      // تحويل لـ Array وإزالة رسالة الأمر نفسها
+      const messagesArray = Array.from(channelMessages.values());
+      const messagesToDelete = messagesArray.slice(0, deleteCount);
+
+      // حذف الرسائل واحدة واحدة
+      let deleted = 0;
+      for (const msg of messagesToDelete) {
+        await msg.delete().catch(() => {});
+        deleted++;
+      }
 
       // أرسل تأكيد
-      await message.channel.send(`🗑️ تم حذف ${deleteCount} رسالة`).then(msg => {
+      await message.channel.send(`🗑️ تم حذف ${deleted} رسالة`).then(msg => {
         setTimeout(() => msg.delete().catch(() => {}), 2000);
       });
 
