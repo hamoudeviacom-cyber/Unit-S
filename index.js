@@ -801,14 +801,14 @@ async function sendLog(guild, logType, embed) {
 
 async function logBan(guild, moderator, target, reason) {
   const embed = new EmbedBuilder()
-    .setTitle('🔨 BAN LOG')
+    .setTitle('BAN LOG')
     .setColor(0xDC2626)
     .addFields(
       { name: '🔨 Admin', value: moderator.tag || moderator.username, inline: true },
       { name: '👤 Banned User', value: target.tag || target.username, inline: true },
-      { name: '🆔 User ID', value: target.id, inline: true },
-      { name: '📝 Reason', value: reason || 'No reason provided', inline: false },
-      { name: '⏰ Time', value: new Date().toLocaleString('ar-SA'), inline: false }
+      { name: 'User ID', value: target.id, inline: true },
+      { name: ' Reason', value: reason || 'No reason provided', inline: false },
+      { name: ' Time', value: new Date().toLocaleString('ar-SA'), inline: false }
     )
     .setFooter({ text: 'Unit S - Moderation' })
     .setTimestamp();
@@ -818,14 +818,14 @@ async function logBan(guild, moderator, target, reason) {
 
 async function logKick(guild, moderator, target, reason) {
   const embed = new EmbedBuilder()
-    .setTitle('🦵 KICK LOG')
+    .setTitle(' KICK LOG')
     .setColor(0xF59E0B)
     .addFields(
-      { name: '🦵 Admin', value: moderator.tag || moderator.username, inline: true },
-      { name: '👤 Kicked User', value: target.tag || target.username, inline: true },
-      { name: '🆔 User ID', value: target.id, inline: true },
-      { name: '📝 Reason', value: reason || 'No reason provided', inline: false },
-      { name: '⏰ Time', value: new Date().toLocaleString('ar-SA'), inline: false }
+      { name: ' Admin', value: moderator.tag || moderator.username, inline: true },
+      { name: 'Kicked User', value: target.tag || target.username, inline: true },
+      { name: 'User ID', value: target.id, inline: true },
+      { name: 'Reason', value: reason || 'No reason provided', inline: false },
+      { name: 'Time', value: new Date().toLocaleString('ar-SA'), inline: false }
     )
     .setFooter({ text: 'Unit S - Moderation' })
     .setTimestamp();
@@ -838,12 +838,12 @@ async function logTimeout(guild, moderator, target, duration, reason) {
     .setTitle('⏱️ TIMEOUT LOG')
     .setColor(0x8B5CF6)
     .addFields(
-      { name: '👮 Admin', value: moderator.tag || moderator.username, inline: true },
-      { name: '👤 User', value: target.tag || target.username, inline: true },
-      { name: '🆔 User ID', value: target.id, inline: true },
-      { name: '⏱️ Duration', value: duration || 'Unknown', inline: true },
-      { name: '📝 Reason', value: reason || 'No reason provided', inline: false },
-      { name: '⏰ Time', value: new Date().toLocaleString('ar-SA'), inline: false }
+      { name: 'Admin', value: moderator.tag || moderator.username, inline: true },
+      { name: 'User', value: target.tag || target.username, inline: true },
+      { name: 'User ID', value: target.id, inline: true },
+      { name: 'Duration', value: duration || 'Unknown', inline: true },
+      { name: 'Reason', value: reason || 'No reason provided', inline: false },
+      { name: 'Time', value: new Date().toLocaleString('ar-SA'), inline: false }
     )
     .setFooter({ text: 'Unit S - Moderation' })
     .setTimestamp();
@@ -856,10 +856,10 @@ async function logMemberJoin(guild, member) {
     .setTitle('✅ MEMBER JOINED')
     .setColor(0x10B981)
     .addFields(
-      { name: '👤 User', value: member.user?.tag || 'Unknown', inline: true },
-      { name: '🆔 User ID', value: member.id, inline: true },
-      { name: '📅 Joined Server', value: new Date(member.joinedTimestamp).toLocaleString('ar-SA'), inline: false },
-      { name: '⏰ Time', value: new Date().toLocaleString('ar-SA'), inline: false }
+      { name: 'User', value: member.user?.tag || 'Unknown', inline: true },
+      { name: 'User ID', value: member.id, inline: true },
+      { name: 'Joined Server', value: new Date(member.joinedTimestamp).toLocaleString('ar-SA'), inline: false },
+      { name: 'Time', value: new Date().toLocaleString('ar-SA'), inline: false }
     )
     .setFooter({ text: 'Unit S - Moderation' })
     .setTimestamp();
@@ -869,13 +869,13 @@ async function logMemberJoin(guild, member) {
 
 async function logMemberLeave(guild, member, kicker) {
   const embed = new EmbedBuilder()
-    .setTitle('👋 MEMBER LEFT')
+    .setTitle('MEMBER LEFT')
     .setColor(0xF59E0B)
     .addFields(
-      { name: '👤 User', value: member.user?.tag || 'Unknown', inline: true },
-      { name: '🆔 User ID', value: member.id, inline: true },
-      { name: '👮 Removed By', value: kicker ? `${kicker.tag || kicker.username}` : 'Left voluntarily', inline: true },
-      { name: '⏰ Time', value: new Date().toLocaleString('ar-SA'), inline: false }
+      { name: 'User', value: member.user?.tag || 'Unknown', inline: true },
+      { name: ' User ID', value: member.id, inline: true },
+      { name: 'Removed By', value: kicker ? `${kicker.tag || kicker.username}` : 'Left voluntarily', inline: true },
+      { name: 'Time', value: new Date().toLocaleString('ar-SA'), inline: false }
     )
     .setFooter({ text: 'Unit S - Moderation' })
     .setTimestamp();
@@ -971,14 +971,14 @@ client.commands.set('help', {
       .setTitle('Unit S - قائمة الأوامر')
       .setColor(0xDC2626)
       .addFields(
-        { name: '🔨 الأدمن', value:
+        { name: ' الأدمن', value:
           '`!ban @user [reason]` - حظر عضو\n' +
           '`!unban [user_id]` - إلغاء الحظر\n' +
           '`!kick @user [reason]` - طرد عضو\n' +
           '`!logs` - إعدادات اللوج\n' +
           '`!logs set [type] #channel` - تعيين قناة اللوج\n' +
           '`!modsettings` - إعدادات الأدمن', inline: false },
-        { name: '🎫 التذاكر', value:
+        { name: 'التذاكر', value:
           '`!ticket` - فتح قائمة التذاكر\n' +
           '`!tmanage` - عرض قائمة التذاكر\n' +
           '`!tmanage close` - إغلاق التذكرة\n' +
@@ -991,17 +991,17 @@ client.commands.set('help', {
           '`!tmanage setlogs #قناة` - تعيين قناة اللوجس\n' +
           '`!tmanage setmention @رول` - تعيين رول للمنشن\n' +
           '`!tmanage mention` - عرض إعدادات المنشن', inline: false },
-        { name: '🎁 الرتبة المجانية', value:
+        { name: 'الرتبة المجانية', value:
           '`!freerank` - عرض أوامر الرتبة المجانية\n' +
           '`!freerank setup` - إنشاء لوحة الرتبة المجانية\n' +
           '`!freerank setrole [ايدي/اسم]` - تعيين الرتبة\n' +
           '`!freerank setmax [عدد]` - تعيين الحد الأقصى\n' +
           '`!freerank stats` - عرض الإحصائيات\n' +
           '`!freerank enable/disable` - تفعيل/تعطيل', inline: false },
-        { name: '🔒 التشفير', value:
+        { name: ' التشفير', value:
           '`!shfr` - لوحة التشفير\n' +
           '`!enc [نص]` - تشفير نص مباشرة', inline: false },
-        { name: '🛡️ الحماية', value:
+        { name: ' الحماية', value:
           '`!protect` - لوحة الحماية\n' +
           '`!protect on filter` - تفعيل فلتر الكلمات\n' +
           '`!protect off filter` - تعطيل فلتر الكلمات\n' +
@@ -1009,10 +1009,10 @@ client.commands.set('help', {
           '`!protect off spam` - تعطيل مضاد السبام\n' +
           '`!protect on link` - تفعيل منع الروابط\n' +
           '`!protect off link` - تعطيل منع الروابط', inline: false },
-        { name: '📊 معلومات', value:
+        { name: 'معلومات', value:
           '`!ping` - سرعة البوت\n' +
           '`!terms` - اتفاقية الاستخدام والخصوصية', inline: false },
-        { name: '🔊 الفويس 24/7', value:
+        { name: 'الفويس 24/7', value:
           '`!24voice` - عرض حالة الفويس\n' +
           '`!24voice [channel_id]` - تشغيل الفويس 24/7\n' +
           '`!24voice stop` - إيقاف الفويس', inline: false }
@@ -1053,7 +1053,7 @@ client.commands.set('terms', {
   description: 'Send terms and privacy agreement',
   execute: async (message) => {
     const embed = new EmbedBuilder()
-      .setTitle('اتفاقية الاستخدام والخصوصية')
+      .setTitle('⚖️ اتفاقية الاستخدام والخصوصية')
       .setDescription("بانضمامك واستخدامك لهذا السيرفر، فإنك تقر بموافقتك التامة على الالتزام بالشروط التالية:\n\n• **شروط ديسكورد الرسمية:**\nيجب الالتزام بـ [شروط خدمة ديسكورد](https://discord.com/terms) و [إرشادات المجتمع](https://discord.com/guidelines). أي مخالفة لها قد تؤدي لحرمانك من خدماتنا.\n\n• **الموافقة الضمنية:**\nبمجرد تواجدك في السيرفر أو طلبك لأي خدمة، فأنت توافق تلقائياً على كافة قوانين المتجر وشروط البيع الموضحة لدينا.\n\n• **إخلاء المسؤولية:**\nالمتجر غير مسؤول عن أي سوء استخدام للمنتجات بعد تسليمها، وتتحمل أنت كامل المسؤولية عن حسابك وتصرفاتك.")
       .setColor(2829619)
       .setTimestamp();
@@ -1095,8 +1095,8 @@ client.commands.set('24voice', {
           .setTitle('🔊 24/7 Voice Status')
           .setColor(0xDC2626)
           .addFields(
-            { name: '📌 الحالة', value: '❌ معطّل', inline: true },
-            { name: '💡 الاستخدام', value: '`!24voice [channel_id]` - تشغيل\n`!24voice stop` - إيقاف', inline: false }
+            { name: 'الحالة', value: '❌ معطّل', inline: true },
+            { name: 'الاستخدام', value: '`!24voice [channel_id]` - تشغيل\n`!24voice stop` - إيقاف', inline: false }
           )
           .setFooter({ text: 'Unit S | 24/7 Voice' })
           .setTimestamp();
@@ -1126,7 +1126,7 @@ client.commands.set('24voice', {
 
     // If no channel ID found, show error
     if (!channelId || channelId.length < 10) {
-      await message.channel.send('❌ الاستخدام: `!24voice [channel_id]`\n\n💡 مثال: `!24voice 123456789012345678`\n\n📌 كيف تحصل على Channel ID:\n1. فعّل Developer Mode في Discord\n2. كليك يمين على القناة الصوتية\n3. اختر Copy Channel ID');
+      await message.channel.send('❌ الاستخدام: `!24voice [channel_id]`\n\n مثال: `!24voice 123456789012345678`\n\n كيف تحصل على Channel ID:\n1. فعّل Developer Mode في Discord\n2. كليك يمين على القناة الصوتية\n3. اختر Copy Channel ID');
       if (!message.deleted) message.delete().catch(() => {});
       return;
     }
@@ -1185,12 +1185,12 @@ client.commands.set('24voice', {
       }
 
       const embed = new EmbedBuilder()
-        .setTitle('🔊 تم الاتصال بالقناة الصوتية')
+        .setTitle(' تم الاتصال بالقناة الصوتية')
         .setColor(0x10B981)
         .addFields(
-          { name: '🎤 القناة', value: channel.name, inline: true },
-          { name: '📌 الحالة', value: '✅ البوت سيبقى 24/7', inline: true },
-          { name: '💡 ملاحظة', value: 'إذا انقطع البوت، سيرجع يتصل تلقائياً', inline: false }
+          { name: ' القناة', value: channel.name, inline: true },
+          { name: ' الحالة', value: '✅ البوت سيبقى 24/7', inline: true },
+          { name: ' ملاحظة', value: 'إذا انقطع البوت، سيرجع يتصل تلقائياً', inline: false }
         )
         .setFooter({ text: 'Unit S | 24/7 Voice' })
         .setTimestamp();
@@ -1227,7 +1227,7 @@ client.commands.set('freerank', {
     // If no args, show help
     if (args.length === 0) {
       const embed = new EmbedBuilder()
-        .setTitle('🎁 Unit S | الرتبة المجانية')
+        .setTitle('Unit S | الرتبة المجانية')
         .setColor(0x667eea)
         .setDescription('أوامر إدارة الرتبة المجانية:')
         .addFields(
@@ -1407,7 +1407,8 @@ client.commands.set('freerank', {
               },
               image: { url: 'https://cdn.discordapp.com/attachments/1397309666752593920/1495543234166919351/4cc71a18-6f61-459e-8e8a-293c31b199b4.png?ex=69e6a0ac&is=69e54f2c&hm=247d340eb85f00962d3e650df57c9221a78c33f75de0b5938a2340f503dfa33d&' },
               description: [
-                '**__<:zO_246:1495222454530871346> للحصول على رتبة بيع مجانية اضغط على  زر <a:Taj:1449677193738195047> بالأسفل   :__**',
+                '**__<:zO_246:1495222454530871346> للحصول على رتبة 
+على رتبة بيع مجانية اضغط على  زر <a:Taj:1449677193738195047> بالأسفل   :__**",
                 '',
                 '**الـرتب الـمـسـتـخـدمـة :**',
                 '',
@@ -1423,9 +1424,9 @@ client.commands.set('freerank', {
               components: [{
                 type: 2,
                 style: 4,
-                label: 'مجاني',
+                label: '',
                 customId: 'free_rank_claim',
-                emoji: { name: '🎁', id: null }
+                emoji: { name: null, id: '<a:Taj:1495224006947639377>' }
               }]
             }]
           });
@@ -1475,7 +1476,7 @@ client.commands.set('ban', {
 
     if (!targetUser) {
       const embed = new EmbedBuilder()
-        .setTitle('🔨 BAN COMMAND')
+        .setTitle('BAN COMMAND')
         .setColor(0xDC2626)
         .addFields(
           { name: 'Usage:', value: '`!ban @user [reason]` or `!ban [user_id] [reason]`', inline: false },
@@ -1514,12 +1515,12 @@ client.commands.set('ban', {
 
       // Confirmation message
       const embed = new EmbedBuilder()
-        .setTitle('🔨 USER BANNED')
+        .setTitle('USER BANNED')
         .setColor(0xDC2626)
         .addFields(
-          { name: '👤 Banned User', value: `${targetUser.tag}`, inline: true },
-          { name: '📝 Reason', value: reason, inline: true },
-          { name: '🔨 By Admin', value: message.author.tag, inline: true }
+          { name: ' Banned User', value: `${targetUser.tag}`, inline: true },
+          { name: 'Reason', value: reason, inline: true },
+          { name: '<:6542stafficonred:1495225057209880706> By Admin', value: message.author.tag, inline: true }
         )
         .setFooter({ text: 'Unit S - Moderation' })
         .setTimestamp();
@@ -1551,7 +1552,7 @@ client.commands.set('unban', {
 
     if (args.length === 0) {
       const embed = new EmbedBuilder()
-        .setTitle('🔓 UNBAN COMMAND')
+        .setTitle('<:6542stafficonred:1495225057209880706> UNBAN COMMAND')
         .setColor(0x10B981)
         .addFields(
           { name: 'Usage:', value: '`!unban [user_id]`', inline: false },
@@ -1584,11 +1585,11 @@ client.commands.set('unban', {
 
       // Send to ban log
       const banLogEmbed = new EmbedBuilder()
-        .setTitle('🔓 UNBAN LOG')
+        .setTitle('<:6542stafficonred:1495225057209880706> UNBAN LOG')
         .setColor(0x10B981)
         .addFields(
-          { name: '🔓 Admin', value: message.author.tag, inline: true },
-          { name: '👤 Unbanned User', value: user.tag, inline: true },
+          { name: '<:6542stafficonred:1495225057209880706> Admin', value: message.author.tag, inline: true },
+          { name: '<:6542stafficonred:1495225057209880706> Unbanned User', value: user.tag, inline: true },
           { name: '🆔 User ID', value: userId, inline: true },
           { name: '⏰ Time', value: new Date().toLocaleString('ar-SA'), inline: false }
         )
@@ -2300,11 +2301,11 @@ client.commands.set('shfr', {
   execute: async (message) => {
     try {
       const embed = new EmbedBuilder()
-        .setTitle('🔒 Unit S | التشفير')
+        .setTitle(' Unit S | التشفير')
         .setDescription('لتشفير منشورك، اضغط على الزر أدناه')
         .setColor(0xDC2626)
         .addFields(
-          { name: '✨ المميزات:', value: '• تشفير الكلمات المحظورة\n• يعمل بكفاءة عالية\n• آمن وسريع', inline: false }
+          { name: ' المميزات:', value: '• تشفير الكلمات المحظورة\n• يعمل بكفاءة عالية\n• آمن وسريع', inline: false }
         )
         .setFooter({ text: 'Unit S | للتشفير اضغط الزر' })
         .setTimestamp();
@@ -2338,7 +2339,7 @@ client.commands.set('enc', {
     const encrypted = encryptText(text);
 
     const embed = new EmbedBuilder()
-      .setTitle('🔒 تم تشفير النص!')
+      .setTitle(' تم تشفير النص!')
       .setColor(0xDC2626)
       .addFields(
         { name: 'النص الأصلي:', value: `\`\`\`\n${text}\n\`\`\`` },
@@ -2367,7 +2368,7 @@ client.commands.set('protect', {
     const antiLinkStatus = protectionSettings.antiLink.enabled ? '✅ مفعّل' : '❌ معطّل';
 
     const embed = new EmbedBuilder()
-      .setTitle('🛡️ لوحة التحكم - الحماية')
+      .setTitle(' لوحة التحكم - الحماية')
       .setColor(0xDC2626)
       .addFields(
         { name: 'حالة الحماية:', value: '━━━━━━━━━━━━━━━', inline: false },
@@ -2462,7 +2463,7 @@ client.commands.set('tmanage', {
       const tickets = message.guild.channels.cache.filter(ch => ch.name.startsWith('ticket-'));
 
       if (tickets.size === 0) {
-        await message.channel.send('📭 لا توجد تذاكر مفتوحة حالياً!');
+        await message.channel.send(' لا توجد تذاكر مفتوحة حالياً!');
         if (!message.deleted) message.delete().catch(() => {});
         return;
       }
@@ -2476,7 +2477,7 @@ client.commands.set('tmanage', {
       });
 
       const embed = new EmbedBuilder()
-        .setTitle('🎫 قائمة التذاكر المفتوحة')
+        .setTitle(' قائمة التذاكر المفتوحة')
         .setColor(0xDC2626)
         .setDescription(ticketList)
         .setFooter({ text: `عدد التذاكر: ${tickets.size}` })
@@ -2499,7 +2500,7 @@ client.commands.set('tmanage', {
 
       if (message.channel.name.startsWith('ticket-')) {
         await logTicketTranscript(message.channel, message.author, 'تم الإغلاق بأمر !tmanage close');
-        await message.channel.send('🔒 جاري إغلاق التذكرة...');
+        await message.channel.send(' جاري إغلاق التذكرة...');
         setTimeout(() => message.channel.delete(), 1000);
       } else {
         await message.channel.send('❌ هذا الأمر يُستخدم داخل قناة تذكرة فقط!');
@@ -2568,11 +2569,11 @@ client.commands.set('tmanage', {
 
     // Show roles
     if (action === 'roles') {
-      let rolesList = '📋 الرولات المسموحة:\n\n';
+      let rolesList = ' الرولات المسموحة:\n\n';
 
       if (ticketSettings.allowedRoles.length === 0 && ticketSettings.allowedRoleNames.length === 0) {
         rolesList += 'لا توجد رولات مضافة حالياً.\n';
-        rolesList += '💡 استخدم `!tmanage addrole @رول` أو `!tmanage addrolename [اسم]`';
+        rolesList += ' استخدم `!tmanage addrole @رول` أو `!tmanage addrolename [اسم]`';
       } else {
         if (ticketSettings.allowedRoles.length > 0) {
           for (const roleId of ticketSettings.allowedRoles) {
@@ -2581,7 +2582,7 @@ client.commands.set('tmanage', {
           }
         }
         if (ticketSettings.allowedRoleNames.length > 0) {
-          rolesList += '\n📝 الرولات المسموحة بالأسماء:\n';
+          rolesList += '\n الرولات المسموحة بالأسماء:\n';
           for (const roleName of ticketSettings.allowedRoleNames) {
             rolesList += `• ${roleName}\n`;
           }
@@ -2710,21 +2711,21 @@ client.commands.set('tmanage', {
 
     // Show mention settings
     if (action === 'mention') {
-      let mentionInfo = '🎯 إعدادات المنشن التلقائي:\n\n';
+      let mentionInfo = ' إعدادات المنشن التلقائي:\n\n';
 
       if (ticketSettings.mentionRoleId) {
         const role = message.guild.roles.cache.get(ticketSettings.mentionRoleId);
-        mentionInfo += `📌 الرول: ${role ? role.name : 'محذوفة'}\n`;
-        mentionInfo += `🔢 ID: ${ticketSettings.mentionRoleId}\n`;
+        mentionInfo += `الرول: ${role ? role.name : 'محذوفة'}\n`;
+        mentionInfo += `ID: ${ticketSettings.mentionRoleId}\n`;
       } else if (ticketSettings.mentionRoleName) {
         const role = message.guild.roles.cache.find(r =>
           r.name.toLowerCase().includes(ticketSettings.mentionRoleName.toLowerCase())
         );
-        mentionInfo += `📌 الرول: ${role ? role.name : 'غير موجودة'}\n`;
-        mentionInfo += `📝 الاسم: "${ticketSettings.mentionRoleName}"\n`;
+        mentionInfo += ` الرول: ${role ? role.name : 'غير موجودة'}\n`;
+        mentionInfo += ` الاسم: "${ticketSettings.mentionRoleName}"\n`;
       } else {
         mentionInfo += '⚠️ لم يتم تعيين رول للمنشن التلقائي.\n';
-        mentionInfo += '💡 استخدم: `!tmanage setmention @رول` أو `!tmanage setmentionname [اسم]`';
+        mentionInfo += ' استخدم: `!tmanage setmention @رول` أو `!tmanage setmentionname [اسم]`';
       }
 
       await message.channel.send(mentionInfo);
@@ -2734,11 +2735,11 @@ client.commands.set('tmanage', {
 
     // Show admins
     if (action === 'admins') {
-      let adminsList = '👮 أدمنز التذاكر:\n\n';
+      let adminsList = ' <:6542stafficonred:1495225057209880706> أدمنز التذاكر:\n\n';
 
       if (ticketSettings.ticketAdminRoles.length === 0 && ticketSettings.ticketAdminRoleNames.length === 0) {
         adminsList += 'لا توجد أدمنز مضافين.\n';
-        adminsList += '💡 استخدم `!tmanage addadmin @رول` أو `!tmanage addadminname [اسم]`';
+        adminsList += ' استخدم `!tmanage addadmin @رول` أو `!tmanage addadminname [اسم]`';
       } else {
         if (ticketSettings.ticketAdminRoles.length > 0) {
           for (const roleId of ticketSettings.ticketAdminRoles) {
@@ -2747,7 +2748,7 @@ client.commands.set('tmanage', {
           }
         }
         if (ticketSettings.ticketAdminRoleNames.length > 0) {
-          adminsList += '\n📝 بالأسماء:\n';
+          adminsList += '\n بالأسماء:\n';
           for (const roleName of ticketSettings.ticketAdminRoleNames) {
             adminsList += `• ${roleName}\n`;
           }
@@ -2769,7 +2770,7 @@ client.commands.set('tmanage', {
     // Help
     if (action === 'help' || action === '?') {
       const embed = new EmbedBuilder()
-        .setTitle('🎫 أوامر إدارة التذاكر')
+        .setTitle(' أوامر إدارة التذاكر')
         .setColor(0xDC2626)
         .addFields(
           { name: 'الأوامر الأساسية:', value:
@@ -2831,7 +2832,7 @@ client.on('interactionCreate', async (interaction) => {
         // For inquiry/reset menu - show main ticket menu
         if (ticketType === 'ticket_inquiry') {
           const embed = new EmbedBuilder()
-            .setTitle('🎫 Unit S | لوحة التذاكر')
+            .setTitle(' Unit S | لوحة التذاكر')
             .setDescription('مرحباً بك في نظام الدعم الفني\nيرجى تحديد سبب فتح التذكرة من القائمة أدناه')
             .setColor(0x667eea)
             .setFooter({ text: 'Unit S | Support System' });
@@ -2856,19 +2857,19 @@ client.on('interactionCreate', async (interaction) => {
                 label: 'إعادة تعيين القائمة',
                 description: 'لإعادة عرض قائمة التذاكر',
                 value: 'ticket_inquiry',
-                emoji: '🔄',
+                emoji: '',
               }),
               new StringSelectMenuOptionBuilder({
                 label: 'شراء',
                 description: 'للشراء من السيرفر',
                 value: 'ticket_purchase',
-                emoji: '💰',
+                emoji: '',
               }),
               new StringSelectMenuOptionBuilder({
                 label: 'عروض الرتب',
                 description: 'عرض رتب متاحة للشراء',
                 value: 'ticket_ranks',
-                emoji: '👑',
+                emoji: '',
               }),
             ]);
 
@@ -2985,7 +2986,7 @@ client.on('interactionCreate', async (interaction) => {
             if (!botMember.permissions.has('ManageChannels')) {
               return await interaction.reply({
                 content: '❌ لا توجد لدي الصلاحية اللازمة لإنشاء قناة!',
-                flags: 0
+                flags: 64
               });
             }
 
@@ -3004,7 +3005,7 @@ client.on('interactionCreate', async (interaction) => {
               const existingTicket = existingTickets.first();
               return await interaction.reply({
                 content: `❌ لديك تذكرة مفتوحة بالفعل!\n${existingTicket.toString()}`,
-                flags: 0
+                flags: 64
               });
             }
 
@@ -3180,14 +3181,14 @@ client.on('interactionCreate', async (interaction) => {
 
             await interaction.reply({
               content: `✅ تم إنشاء تذكرة ${interaction.user.username} بنجاح! <#${ticketChannel.id}>`,
-              flags: 0
+              flags: 64
             });
 
           } catch (error) {
             console.error('Ticket creation error:', error);
             await interaction.reply({
               content: `❌ حدث خطأ أثناء إنشاء التذكرة!\nالخطأ: \`${error.message}\``,
-              flags: 0
+              flags: 64
             });
           }
           return;
@@ -3437,7 +3438,7 @@ client.on('interactionCreate', async (interaction) => {
       // ============ BACK TO MENU BUTTON ============
       if (interaction.customId === 'back_to_menu') {
         const embed = new EmbedBuilder()
-          .setTitle('🎫 Unit S | لوحة التذاكر')
+          .setTitle(' Unit S | لوحة التذاكر')
           .setDescription('مرحباً بك في نظام الدعم الفني\nيرجى تحديد سبب فتح التذكرة من القائمة أدناه')
           .setColor(0x667eea)
           .setFooter({ text: 'Unit S | Support System' });
@@ -3491,7 +3492,7 @@ client.on('interactionCreate', async (interaction) => {
       if (interaction.customId === 'shfr_post') {
         const modal = new ModalBuilder()
           .setCustomId('shfr_modal')
-          .setTitle('🔒 تشفير المنشور');
+          .setTitle(' تشفير المنشور');
 
         const textInput = new TextInputBuilder()
           .setCustomId('shfr_text')
@@ -3514,7 +3515,7 @@ client.on('interactionCreate', async (interaction) => {
         if (!freeRankSettings.enabled) {
           return await interaction.reply({
             content: '❌ نظام الرتبة المجانية معطّل حالياً!',
-            flags: 0
+            flags: 64
           });
         }
 
@@ -3522,7 +3523,7 @@ client.on('interactionCreate', async (interaction) => {
         if (!freeRankSettings.roleId) {
           return await interaction.reply({
             content: '❌ لم يتم تعيين الرتبة! تواصل مع الإدارة.',
-            flags: 0
+            flags: 64
           });
         }
 
@@ -3542,7 +3543,7 @@ client.on('interactionCreate', async (interaction) => {
         if (freeRankSettings.maxClaims > 0 && freeRankSettings.claimedCount >= freeRankSettings.maxClaims) {
           return await interaction.reply({
             content: '❌ عذراً! تم استلام جميع الرتب المجانية المتاحة!\nحاول لاحقاً أو تواصل مع الإدارة.',
-            flags: 0
+            flags: 64
           });
         }
 
@@ -3557,7 +3558,7 @@ client.on('interactionCreate', async (interaction) => {
           if (!role) {
             return await interaction.reply({
               content: '❌ الرتبة غير موجودة! تواصل مع الإدارة.',
-              flags: 0
+              flags: 64
             });
           }
 
@@ -3573,12 +3574,12 @@ client.on('interactionCreate', async (interaction) => {
 
           // Success message
           const successEmbed = new EmbedBuilder()
-            .setTitle('🎉 تهانينا!')
+            .setTitle(' تهانينا!')
             .setColor(0x10B981)
-            .setDescription(`✅ تم منحك رتبة **${freeRankSettings.roleName}** بنجاح!\n\n🎁 هذه الرتبة مجانية ومرة واحدة فقط!`)
+            .setDescription(`✅ تم منحك رتبة **${freeRankSettings.roleName}** بنجاح!\n\n هذه الرتبة مجانية ومرة واحدة فقط!`)
             .addFields(
-              { name: '👤 المستخدم:', value: interaction.user.toString(), inline: true },
-              { name: '🎭 الرتبة:', value: freeRankSettings.roleName, inline: true }
+              { name: ' المستخدم:', value: interaction.user.toString(), inline: true },
+              { name: ' الرتبة:', value: freeRankSettings.roleName, inline: true }
             )
             .setFooter({ text: 'Unit S | System Bot' })
             .setTimestamp();
@@ -3644,7 +3645,7 @@ client.on('interactionCreate', async (interaction) => {
                         style: 4,
                         label: 'مجاني',
                         customId: 'free_rank_claim',
-                        emoji: { name: '🎁', id: null }
+                        emoji: { name:null , id:'<a:Taj:1495224006947639377>' }
                       }]
                     }]
                   });
@@ -3660,7 +3661,7 @@ client.on('interactionCreate', async (interaction) => {
           console.error('Free rank claim error:', error);
           return await interaction.reply({
             content: '❌ حدث خطأ أثناء منح الرتبة! تواصل مع الإدارة.',
-            flags: 0
+            flags: 64
           });
         }
       }
@@ -3677,14 +3678,14 @@ client.on('interactionCreate', async (interaction) => {
         if (!hasTicketAdminRole(interaction.member)) {
           return await interaction.reply({
             content: '❌ ليس لديك صلاحية لاستلام التذكرة!',
-            flags: 0
+            flags: 64
           });
         }
 
         if (ticketData.claimedBy) {
           return await interaction.reply({
             content: '❌ هذه التذكرة تم استلامها مسبقاً!',
-            flags: 0
+            flags: 64
           });
         }
 
@@ -3719,12 +3720,12 @@ client.on('interactionCreate', async (interaction) => {
           .setDescription(`Welcome ${interaction.user}.\nThank you for opening a ticket. A staff member will be with you shortly.`)
           .addFields(
             {
-              name: '⏰ Opened',
+              name: ' Opened',
               value: `${formatTimeAgo(ticketData.openedAt)}`,
               inline: true
             },
             {
-              name: '📌 Status',
+              name: ' Status',
               value: `🟢 Claimed by ${interaction.user.username}`,
               inline: true
             }
@@ -3750,14 +3751,14 @@ client.on('interactionCreate', async (interaction) => {
         if (!hasTicketAdminRole(interaction.member)) {
           return await interaction.reply({
             content: '❌ ليس لديك صلاحية!',
-            flags: 0
+            flags: 64
           });
         }
 
         if (ticketData.claimedBy?.id !== interaction.user.id) {
           return await interaction.reply({
             content: '❌ يمكنك فقط إلغاء استلام التذكرة التي استلمتها أنت!',
-            flags: 0
+            flags: 64
           });
         }
 
@@ -3792,12 +3793,12 @@ client.on('interactionCreate', async (interaction) => {
           .setDescription(`Welcome ${ticketData.user}.\nThank you for opening a ticket. A staff member will be with you shortly.`)
           .addFields(
             {
-              name: '⏰ Opened',
+              name: ' Opened',
               value: `${formatTimeAgo(ticketData.openedAt)}`,
               inline: true
             },
             {
-              name: '📌 Status',
+              name: ' Status',
               value: '🟡 Unclaimed',
               inline: true
             }
@@ -3814,12 +3815,12 @@ client.on('interactionCreate', async (interaction) => {
         if (!hasTicketAdminRole(interaction.member)) {
           return await interaction.reply({
             content: '❌ ليس لديك صلاحية لإغلاق التذكرة!',
-            flags: 0
+            flags: 64
           });
         }
 
         await logTicketTranscript(channel, interaction.user, 'تم الإغلاق من زر');
-        await interaction.reply('🔒 جاري إغلاق التذكرة...');
+        await interaction.reply(' جاري إغلاق التذكرة...');
         setTimeout(() => channel.delete(), 1000);
         return;
       }
@@ -3835,7 +3836,7 @@ client.on('interactionCreate', async (interaction) => {
 
           // تحويل النص المشفر للون مختلف
           const embed = new EmbedBuilder()
-            .setTitle('🔒 تم تشفير النص!')
+            .setTitle(' تم تشفير النص!')
             .setColor(0xDC2626)
             .addFields(
               { name: 'النص المشفر:', value: `\`\`\`\n${encrypted}\n\`\`\`` }
@@ -3855,7 +3856,7 @@ client.on('interactionCreate', async (interaction) => {
   } catch (error) {
     console.error('Interaction error:', error);
     if (interaction.isRepliable()) {
-      await interaction.reply({ content: '❌ حدث خطأ!', flags: 0 }).catch(() => {});
+      await interaction.reply({ content: '❌ حدث خطأ!', flags: 64 }).catch(() => {});
     }
   }
 });
@@ -3922,7 +3923,7 @@ client.on('messageCreate', async (message) => {
       await message.member.timeout(10 * 60 * 1000);
 
       const embed = new EmbedBuilder()
-        .setTitle('🛡️ UNIT S -SECURITY ADMINISTRATION')
+        .setTitle(' UNIT S -SECURITY ADMINISTRATION')
         .setDescription(`تم تقييد صلاحياتك لمدة 10 دقائق لرصد سلوك غير لائق (سب او شتم) في أحد الرومات\n\nنظام الحماية لا يسمح بالإساءة أو التلفظ نرجو الالتزام بالمعايير والأخلاق\n\nنثق بوعيك لتجنب تكرار المخالفة`)
         .setColor(COLORS.danger)
         .setTimestamp();
@@ -3931,7 +3932,7 @@ client.on('messageCreate', async (message) => {
 
       const logChannel = message.guild?.channels.cache.find(ch => ch.name === 'logs');
       if (logChannel) {
-        logChannel.send(`🛡️ [Word Filter] ${message.author.tag} استخدم كلمات ممنوعة: ${foundWords.join(', ')} - تم كتمه 10 دقائق`);
+        logChannel.send(` [Word Filter] ${message.author.tag} استخدم كلمات ممنوعة: ${foundWords.join(', ')} - تم كتمه 10 دقائق`);
       }
     } catch (err) {
       console.error('Word Filter Mute error:', err);
@@ -3971,7 +3972,7 @@ client.on('messageCreate', async (message) => {
       await message.member.timeout(5 * 60 * 1000);
 
       const embed = new EmbedBuilder()
-        .setTitle('🛡️ UNIT S -SECURITY ADMINISTRATION')
+        .setTitle(' UNIT S -SECURITY ADMINISTRATION')
         .setDescription(`تم تقييد صلاحياتك لمدة 5 دقائق الرصد نشاط (سبام) في احد الرومات\n\nنظام الحماية لا يسمح بتكرار الرسائل المفرط نرجو الألتزام بالمعايير\n\nنثق بوعيك لتجنب تكرار المخالفة `)
         .setColor(COLORS.danger)
         .setTimestamp();
@@ -3980,7 +3981,7 @@ client.on('messageCreate', async (message) => {
 
       const logChannel = message.guild?.channels.cache.find(ch => ch.name === 'logs');
       if (logChannel) {
-        logChannel.send(`🛡️ [Anti-Spam] ${message.author.tag} تم كتمه لمدة 5 دقائق - Spam detected`);
+        logChannel.send(` [Anti-Spam] ${message.author.tag} تم كتمه لمدة 5 دقائق - Spam detected`);
       }
     } catch (err) {
       console.error('Mute error:', err);
@@ -4006,7 +4007,7 @@ client.on('messageCreate', async (message) => {
       await message.member.timeout(5 * 60 * 1000);
 
       const embed = new EmbedBuilder()
-        .setTitle('🛡️ Unit S -SECURITY ADMINISTRATION')
+        .setTitle(' Unit S -SECURITY ADMINISTRATION')
         .setDescription(`تم تقييد صلاحياتك لمدة 5 دقائق لرصد رابط في أحد الرومات\n\nنظام الحماية لا يسمح بالروابط ألخارجية نرجو ألألتزام بالمعايير\n\nنثق بوعيك لتجنب تكرار المخالفة`)
         .setColor(COLORS.danger)
         .setTimestamp();
@@ -4015,7 +4016,7 @@ client.on('messageCreate', async (message) => {
 
       const logChannel = message.guild?.channels.cache.find(ch => ch.name === 'logs');
       if (logChannel) {
-        logChannel.send(`🛡️ [Anti-Link] ${message.author.tag} تم كتمه لمدة 5 دقائق - أرسل رابط`);
+        logChannel.send(` [Anti-Link] ${message.author.tag} تم كتمه لمدة 5 دقائق - أرسل رابط`);
       }
     } catch (err) {
       console.error('Anti-Link Mute error:', err);
