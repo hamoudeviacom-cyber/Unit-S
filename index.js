@@ -809,7 +809,7 @@ async function logBan(guild, moderator, target, reason) {
       { name: '👤 Banned User', value: target.tag || target.username, inline: true },
       { name: 'User ID', value: target.id, inline: true },
       { name: ' Reason', value: reason || 'No reason provided', inline: false },
-      { name: ' Time', value: new Date().toLocaleString('ar-SA'), inline: false }
+      { name: ' Time', value: new Date().toLocaleString('en-US', { timeZone: 'Asia/Riyadh' }), inline: false }
     )
     .setFooter({ text: 'Unit S - Moderation' })
     .setTimestamp();
@@ -826,7 +826,7 @@ async function logKick(guild, moderator, target, reason) {
       { name: 'Kicked User', value: target.tag || target.username, inline: true },
       { name: 'User ID', value: target.id, inline: true },
       { name: 'Reason', value: reason || 'No reason provided', inline: false },
-      { name: 'Time', value: new Date().toLocaleString('ar-SA'), inline: false }
+      { name: 'Time', value: new Date().toLocaleString('en-US', { timeZone: 'Asia/Riyadh' }), inline: false }
     )
     .setFooter({ text: 'Unit S - Moderation' })
     .setTimestamp();
@@ -844,7 +844,7 @@ async function logTimeout(guild, moderator, target, duration, reason) {
       { name: 'User ID', value: target.id, inline: true },
       { name: 'Duration', value: duration || 'Unknown', inline: true },
       { name: 'Reason', value: reason || 'No reason provided', inline: false },
-      { name: 'Time', value: new Date().toLocaleString('ar-SA'), inline: false }
+      { name: 'Time', value: new Date().toLocaleString('en-US', { timeZone: 'Asia/Riyadh' }), inline: false }
     )
     .setFooter({ text: 'Unit S - Moderation' })
     .setTimestamp();
@@ -860,7 +860,7 @@ async function logMemberJoin(guild, member) {
       { name: 'User', value: member.user?.tag || 'Unknown', inline: true },
       { name: 'User ID', value: member.id, inline: true },
       { name: 'Joined Server', value: new Date(member.joinedTimestamp).toLocaleString('ar-SA'), inline: false },
-      { name: 'Time', value: new Date().toLocaleString('ar-SA'), inline: false }
+      { name: 'Time', value: new Date().toLocaleString('en-US', { timeZone: 'Asia/Riyadh' }), inline: false }
     )
     .setFooter({ text: 'Unit S - Moderation' })
     .setTimestamp();
@@ -876,7 +876,7 @@ async function logMemberLeave(guild, member, kicker) {
       { name: 'User', value: member.user?.tag || 'Unknown', inline: true },
       { name: ' User ID', value: member.id, inline: true },
       { name: 'Removed By', value: kicker ? `${kicker.tag || kicker.username}` : 'Left voluntarily', inline: true },
-      { name: 'Time', value: new Date().toLocaleString('ar-SA'), inline: false }
+      { name: 'Time', value: new Date().toLocaleString('en-US', { timeZone: 'Asia/Riyadh' }), inline: false }
     )
     .setFooter({ text: 'Unit S - Moderation' })
     .setTimestamp();
@@ -924,7 +924,7 @@ async function logTicketTranscript(channel, closedBy, reason = 'لم يذكر') 
     const sortedMessages = messages.sort((a, b) => a.createdTimestamp - b.createdTimestamp);
 
     let transcript = `=== لوجس التذكرة: ${channel.name} ===\n`;
-    transcript += `تاريخ الإغلاق: ${new Date().toLocaleString('ar-SA')}\n`;
+    transcript += `تاريخ الإغلاق: ${new Date().toLocaleString('en-US', { timeZone: 'Asia/Riyadh' })}\n`;
     transcript += `مقام من: ${closedBy.tag || closedBy.username || 'غير معروف'}\n`;
     transcript += `السبب: ${reason}\n`;
     transcript += `عدد الرسائل: ${messages.size}\n`;
@@ -1594,7 +1594,7 @@ client.commands.set('unban', {
           { name: '<:6542stafficonred:1495225057209880706> Admin', value: message.author.tag, inline: true },
           { name: '<:6542stafficonred:1495225057209880706> Unbanned User', value: user.tag, inline: true },
           { name: '🆔 User ID', value: userId, inline: true },
-          { name: '⏰ Time', value: new Date().toLocaleString('ar-SA'), inline: false }
+          { name: '⏰ Time', value: new Date().toLocaleString('en-US', { timeZone: 'Asia/Riyadh' }), inline: false }
         )
         .setFooter({ text: 'Unit S - Moderation' })
         .setTimestamp();
@@ -4187,7 +4187,7 @@ client.on('guildBanAdd', async (guild, user) => {
         { name: '👤 Banned User', value: user.tag || user.username, inline: true },
         { name: '🆔 User ID', value: user.id, inline: true },
         { name: '📝 Reason', value: reason, inline: false },
-        { name: '⏰ Time', value: new Date().toLocaleString('ar-SA'), inline: false }
+        { name: '⏰ Time', value: new Date().toLocaleString('en-US', { timeZone: 'Asia/Riyadh' }), inline: false }
       )
       .setFooter({ text: 'Unit S - Moderation' })
       .setTimestamp();
@@ -4224,7 +4224,7 @@ client.on('guildBanRemove', async (guild, user) => {
         { name: '🔓 Admin', value: moderator.tag || moderator.username || 'Unknown', inline: true },
         { name: '👤 Unbanned User', value: user.tag || user.username, inline: true },
         { name: '🆔 User ID', value: user.id, inline: true },
-        { name: '⏰ Time', value: new Date().toLocaleString('ar-SA'), inline: false }
+        { name: '⏰ Time', value: new Date().toLocaleString('en-US', { timeZone: 'Asia/Riyadh' }), inline: false }
       )
       .setFooter({ text: 'Unit S - Moderation' })
       .setTimestamp();
@@ -4272,7 +4272,7 @@ client.on('guildMemberRemove', async (member) => {
           { name: '👤 Kicked User', value: member.user.tag || member.user.username, inline: true },
           { name: '🆔 User ID', value: member.id, inline: true },
           { name: '📝 Reason', value: reason, inline: false },
-          { name: '⏰ Time', value: new Date().toLocaleString('ar-SA'), inline: false }
+          { name: '⏰ Time', value: new Date().toLocaleString('en-US', { timeZone: 'Asia/Riyadh' }), inline: false }
         )
         .setFooter({ text: 'Unit S - Moderation' })
         .setTimestamp();
@@ -4313,7 +4313,7 @@ client.on('roleCreate', async (role) => {
         { name: '🎭 Role', value: role.name, inline: true },
         { name: '🆔 Role ID', value: role.id, inline: true },
         { name: '👤 Created By', value: creator?.tag || creator?.username || 'Unknown', inline: true },
-        { name: '⏰ Time', value: new Date().toLocaleString('ar-SA'), inline: false }
+        { name: '⏰ Time', value: new Date().toLocaleString('en-US', { timeZone: 'Asia/Riyadh' }), inline: false }
       )
       .setFooter({ text: 'Unit S - Moderation' })
       .setTimestamp();
@@ -4366,7 +4366,7 @@ client.on('roleDelete', async (role) => {
         { name: '🎭 Role', value: role.name, inline: true },
         { name: '🆔 Role ID', value: role.id, inline: true },
         { name: '👤 Deleted By', value: deleter?.tag || deleter?.username || 'Unknown', inline: true },
-        { name: '⏰ Time', value: new Date().toLocaleString('ar-SA'), inline: false }
+        { name: '⏰ Time', value: new Date().toLocaleString('en-US', { timeZone: 'Asia/Riyadh' }), inline: false }
       )
       .setFooter({ text: 'Unit S - Moderation' })
       .setTimestamp();
@@ -4485,7 +4485,7 @@ client.on('roleUpdate', async (oldRole, newRole) => {
         { name: '🆔 Role ID', value: newRole.id, inline: true },
         { name: '👤 Updated By', value: updater?.tag || updater?.username || 'Unknown', inline: true },
         { name: '📝 Changes', value: changes.join('\n'), inline: false },
-        { name: '⏰ Time', value: new Date().toLocaleString('ar-SA'), inline: false }
+        { name: '⏰ Time', value: new Date().toLocaleString('en-US', { timeZone: 'Asia/Riyadh' }), inline: false }
       )
       .setFooter({ text: 'Unit S - Moderation' })
       .setTimestamp();
@@ -4528,7 +4528,7 @@ client.on('guildMemberUpdate', async (oldMember, newMember) => {
           { name: '👤 User', value: newMember.user.tag || newMember.user.username, inline: true },
           { name: '🆔 User ID', value: newMember.id, inline: true },
           { name: '🎭 Role Added', value: role.name, inline: true },
-          { name: '⏰ Time', value: new Date().toLocaleString('ar-SA'), inline: false }
+          { name: '⏰ Time', value: new Date().toLocaleString('en-US', { timeZone: 'Asia/Riyadh' }), inline: false }
         )
         .setFooter({ text: 'Unit S - Moderation' })
         .setTimestamp();
@@ -4552,7 +4552,7 @@ client.on('guildMemberUpdate', async (oldMember, newMember) => {
           { name: '👤 User', value: newMember.user.tag || newMember.user.username, inline: true },
           { name: '🆔 User ID', value: newMember.id, inline: true },
           { name: '🎭 Role Removed', value: role.name, inline: true },
-          { name: '⏰ Time', value: new Date().toLocaleString('ar-SA'), inline: false }
+          { name: '⏰ Time', value: new Date().toLocaleString('en-US', { timeZone: 'Asia/Riyadh' }), inline: false }
         )
         .setFooter({ text: 'Unit S - Moderation' })
         .setTimestamp();
@@ -4595,7 +4595,7 @@ client.on('channelCreate', async (channel) => {
         { name: '📁 Channel', value: channel.name, inline: true },
         { name: '🆔 Channel ID', value: channel.id, inline: true },
         { name: '👤 Created By', value: creator?.tag || creator?.username || 'Unknown', inline: true },
-        { name: '⏰ Time', value: new Date().toLocaleString('ar-SA'), inline: false }
+        { name: '⏰ Time', value: new Date().toLocaleString('en-US', { timeZone: 'Asia/Riyadh' }), inline: false }
       )
       .setFooter({ text: 'Unit S - Moderation' })
       .setTimestamp();
@@ -4653,7 +4653,7 @@ client.on('channelDelete', async (channel) => {
         { name: '📁 Channel', value: channel.name, inline: true },
         { name: '🆔 Channel ID', value: channel.id, inline: true },
         { name: '👤 Deleted By', value: deleter?.tag || deleter?.username || 'Unknown', inline: true },
-        { name: '⏰ Time', value: new Date().toLocaleString('ar-SA'), inline: false }
+        { name: '⏰ Time', value: new Date().toLocaleString('en-US', { timeZone: 'Asia/Riyadh' }), inline: false }
       )
       .setFooter({ text: 'Unit S - Moderation' })
       .setTimestamp();
