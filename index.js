@@ -4776,16 +4776,8 @@ client.on('messageCreate', async (message) => {
           .setColor(0x8B5CF6)
           .addFields(
             { name: 'الاستخدام:', value: '`!timeout @user [مدة] [سبب]`', inline: false },
-            { name: 'أمثلة:', value:
-              '`!timeout @user 1h سبام\n' +
-              '`!timeout @user 30m'\n' +
-              '`!timeout @user 1d причиной\n' +
-              '`!timeout @user 60s`', inline: false },
-            { name: 'المدد المتاحة:', value:
-              '`s` - ثواني\n' +
-              '`m` - دقائق\n' +
-              '`h` - ساعات\n' +
-              '`d` - أيام', inline: false }
+            { name: 'أمثلة:', value: '`!timeout @user 1h` - ساعة\n`!timeout @user 30m` - 30 دقيقة\n`!timeout @user 60s` - 60 ثانية\n`!timeout @user 1d` - يوم', inline: false },
+            { name: 'المدد المتاحة:', value: '`s` - ثواني\n`m` - دقائق\n`h` - ساعات\n`d` - أيام', inline: false }
           )
           .setFooter({ text: 'Unit S - Moderation' });
         await message.channel.send({ embeds: [embed] }).then(msg => {
