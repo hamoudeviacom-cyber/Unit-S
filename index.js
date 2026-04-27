@@ -47,13 +47,13 @@ const AUTO_ROLE_ID = '1496992503801319647'; // رتبة اللي راح تعطى
 
 // رتب محمية - اللي عندهم هالرتب ما تنسحب رولاتهم
 const PROTECTED_ROLE_IDS = [
-  '1494685777530192045',
-  '1494685776078700546',
-  '1494685760732004574',
-  '1494685756835369003',
-  '1494685745993224366',
-  '1494685755543523491',
-  '1494685742688108697'
+  '',
+  '',
+  '',
+  '',
+  '',
+  '',
+  ''
 ];
 
 // دالة مساعدة للتأكد إذا العضو محمي
@@ -265,7 +265,7 @@ function loadFreeRankSettings() {
     roleId: '1494685867749539861',
     roleName: '🜲・〢↝ Excellent',
     maxUses: 100,
-    claimedCount: 0,
+    claimedCount: 7,
     claimedUsers: [],
     maxClaims: 100,
     logChannelId: null,
@@ -300,7 +300,7 @@ const logSettings = {
 const modSettings = {
   adminRoles: [],           // الرولات المسموح لها بالحظر والطرد
   adminRoleNames: ['عمر', 'ا'],  // بالأسماء
-  adminUsers: ['عمر'],     // المستخدمين المسموح لهم
+  adminUsers: ['l59g'],     // المستخدمين المسموح لهم
 };
 
 // ============ Immune Users & Protected Role ============
