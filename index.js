@@ -4647,7 +4647,6 @@ client.on('messageDelete', async (message) => {
     const embed = new EmbedBuilder()
       .setColor(0xff0000)
       .setDescription([
- ''
         '',
         '**الرسائل المحذوفة :**',
         '',
