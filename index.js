@@ -4722,5 +4722,59 @@ client.on('error', (error) => {
   console.error('Bot Error:', error);
 });
 
+// ============ AUTO ANNOUNCEMENT ON MESSAGE ============
+const ANNOUNCEMENT_IMAGE_URL = 'https://cdn.discordapp.com/attachments/1492609437351936051/1494143849117782186/UNIT_32005050.png?ex=69ef6125&is=69ee0fa5&hm=23ad52ded150fe1bf93589f499c026e71ecfe05bd7b870da63eb22a28940ff60&';
+const SUPERVISOR_ID = '1484650917310500905';
+
+// جميع Channel IDs اللي رح يُرسل فيها الإعلان بعد كل رسالة
+const ANNOUNCEMENT_CHANNELS = [
+  '1495543632852287689',
+  '1494696079768293517',
+  '1494686078941139056',
+  '1494686084037349396',
+  '1494691284214878340',
+  '1494686092488741076',
+  '1494686093969330327',
+  '1494686087623475402',
+  '1494686114567422123',
+  '1494686120322273320',
+  '1494856605286662306',
+  '1494879445012578345',
+  '1494686157110378596',
+  '1494686158557413396',
+  '1494686181567238244',
+  '1494686123962929393',
+  '1494686125686657135',
+  '1494686127158984785',
+  '1494686130053058651',
+  '1494686143382421584',
+  '1494686144573476904',
+  '1494686146045808873',
+  '1494686147467546814',
+  '1494859059554422835',
+  '1494686152840450132',
+];
+
+client.on('messageCreate', async (message) => {
+  if (message.author.bot) return;
+  if (!message.guild) return;
+
+  // تحقق إذا الرسالة في إحدى القنوات المحددة
+  if (!ANNOUNCEMENT_CHANNELS.includes(message.channel.id)) return;
+
+  // تجاهل الأوامر (تبدأ بـ !)
+  if (message.content.startsWith('!')) return;
+
+  // أرسل الصورة فوراً بدون انتظار
+  try {
+    await message.channel.send({
+      content: '@everyone\n**🔓 تم فتح رومات بيع**\n**المشرف المسؤول:** <@' + SUPERVISOR_ID + '>\n**الجدول:** سيتم فتح رومات بيع تلقائيًا كل يوم الساعة 9 صباحًا بتوقيت السعودية',
+      files: [{ attachment: ANNOUNCEMENT_IMAGE_URL }]
+    });
+  } catch (err) {
+    console.error('فشل إرسال الصورة:', err);
+  }
+});
+
 // ============ LOGIN ============
 client.login(TOKEN);
