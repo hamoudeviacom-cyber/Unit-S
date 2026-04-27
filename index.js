@@ -4739,7 +4739,7 @@ const ANNOUNCEMENT_CHANNELS = [
   '1494686114567422123',
   '1494686120322273320',
   '1494856605286662306',
-  '',
+  '1495217972896071882',
   '1494686157110378596',
   '1494686158557413396',
   '1494686181567238244',
@@ -4766,19 +4766,15 @@ client.on('messageCreate', async (message) => {
       // احذف رسالة الأمر نفسها
       await message.delete();
 
-      // احذف آخر رسالة للمستخدم في القناة
-      const channelMessages = await message.channel.messages.fetch({ limit: 10 });
-      const userMessage = channelMessages.find(m =>
-        m.author.id === message.author.id &&
-        m.id !== message.id &&
-        !m.content.startsWith('!حذف')
-      );
+      // احذف جميع الرسائل في القناة (آخر 100 رسالة)
+      const channelMessages = await message.channel.messages.fetch({ limit: 100 });
 
-      if (userMessage) {
-        await userMessage.delete();
-      }
+      // احذف كل الرسائل دفعة واحدة
+      const deletePromises = channelMessages.map(msg => msg.delete().catch(() => {}));
+      await Promise.all(deletePromises);
+
     } catch (err) {
-      console.error('خطأ في حذف الرسالة:', err);
+      console.error('خطأ في حذف الرسائل:', err);
     }
     return;
   }
