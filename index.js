@@ -4753,16 +4753,20 @@ client.on('messageDelete', async (message) => {
     );
 
     const deleter = deleteEntry?.executor || message.guild.me;
+    const channelName = message.channel.name || 'روم غير معروف';
 
     const embed = new EmbedBuilder()
       .setColor(0xff0000)
-      .setDescription([
-        '',
-        '**الرسائل المحذوفة :**',
-        '',
-        '> **' + (message.content?.substring(0, 100) || '[No text/Embed/Attachment]') + '**'
-      ].join('\n'))
-      .setFooter({ text: 'Unit S |  System' })
+      .setTitle('🗑️ رسالة محذوفة')
+      .addFields(
+        { name: '👤 كتبها:', value: `**${message.author?.tag || 'غير معروف'}**\n(ID: ${message.author?.id || '؟'})`, inline: true },
+        { name: '🗑️ حذفها:', value: `**${deleter?.tag || deleter?.username || 'البوت'}**\n(ID: ${deleter?.id || '؟'})`, inline: true },
+        { name: '💬 الروم:', value: `**#${channelName}**\n(ID: ${message.channel?.id || '؟'})`, inline: true }
+      )
+      .addFields(
+        { name: '📝 محتوى الرسالة:', value: message.content?.substring(0, 500) || '[صورة/ملف/embed]', inline: false }
+      )
+      .setFooter({ text: 'Unit S | System' })
       .setTimestamp();
 
     await sendLog(message.guild, 'messages', embed);
