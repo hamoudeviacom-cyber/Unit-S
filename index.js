@@ -4846,13 +4846,12 @@ client.on('messageCreate', async (message) => {
       const fetchLimit = Math.min(deleteCount + 1, 100);
       const channelMessages = await message.channel.messages.fetch({ limit: fetchLimit });
 
-      // احذف كل الرسائل دفعة واحدة
-      const deletePromises = channelMessages.map(msg => msg.delete().catch(() => {}));
+      // احذف كل الرسائل دفعة واحدة (بس العدد المطلوب)
+      const deletePromises = channelMessages.first(deleteCount).map(msg => msg.delete().catch(() => {}));
       await Promise.all(deletePromises);
 
       // أرسل تأكيد
-      const deletedCount = channelMessages.size;
-      await message.channel.send(`🗑️ تم حذف ${deletedCount} رسالة`).then(msg => {
+      await message.channel.send(`🗑️ تم حذف ${deleteCount} رسالة`).then(msg => {
         setTimeout(() => msg.delete().catch(() => {}), 2000);
       });
 
