@@ -975,6 +975,9 @@ client.commands.set('help', {
           '`!ban @user [reason]` - حظر عضو\n' +
           '`!unban [user_id]` - إلغاء الحظر\n' +
           '`!kick @user [reason]` - طرد عضو\n' +
+          '`!timeout @user [مدة] [سبب]` - تعطيل مؤقت\n' +
+          '`!untimeout @user` - إلغاء التعطيل\n' +
+          '`!حذف [عدد]` - حذف الرسائل\n' +
           '`!logs` - إعدادات اللوج\n' +
           '`!logs set [type] #channel` - تعيين قناة اللوج\n' +
           '`!modsettings` - إعدادات الأدمن', inline: false },
@@ -4715,19 +4718,225 @@ client.on('messageCreate', async (message) => {
 
   // ============ !حذف COMMAND ============
   if (message.content.startsWith('!حذف')) {
+    // التحقق من الصلاحية
+    if (!hasModRole(message.member) && !message.member.permissions.has('ManageMessages')) {
+      return;
+    }
+
     try {
       // احذف رسالة الأمر نفسها
       await message.delete();
 
-      // احذف جميع الرسائل في القناة (آخر 100 رسالة)
-      const channelMessages = await message.channel.messages.fetch({ limit: 100 });
+      // استخراج عدد الرسائل من الأمر
+      const args = message.content.slice(3).trim().split(/\s+/);
+      let deleteCount = 100; // الافتراضي
+
+      if (args.length > 0 && !isNaN(parseInt(args[0]))) {
+        deleteCount = Math.min(parseInt(args[0]), 100); // الحد الأقصى 100
+      }
+
+      // جلب الرسائل
+      const channelMessages = await message.channel.messages.fetch({ limit: deleteCount + 1 }); // +1 لأنه يحذف رسالة الأمر أيضاً
 
       // احذف كل الرسائل دفعة واحدة
       const deletePromises = channelMessages.map(msg => msg.delete().catch(() => {}));
       await Promise.all(deletePromises);
 
+      // أرسل تأكيد
+      const deletedCount = channelMessages.size;
+      await message.channel.send(`🗑️ تم حذف ${deletedCount} رسالة`).then(msg => {
+        setTimeout(() => msg.delete().catch(() => {}), 2000);
+      });
+
     } catch (err) {
       console.error('خطأ في حذف الرسائل:', err);
+    }
+    return;
+  }
+
+  // ============ !timeout COMMAND ============
+  if (message.content.startsWith('!timeout')) {
+    // التحقق من الصلاحية
+    if (!hasModRole(message.member) && !message.member.permissions.has('ModerateMembers')) {
+      await message.channel.send('❌ ليس لديك صلاحية!');
+      if (!message.deleted) message.delete().catch(() => {});
+      return;
+    }
+
+    try {
+      // حذف رسالة الأمر
+      await message.delete();
+
+      // تحليل الأوامر
+      const args = message.content.slice(9).trim().split(/\s+/);
+
+      if (args.length < 2) {
+        const embed = new EmbedBuilder()
+          .setTitle('⏱️ TIMEOUT COMMAND')
+          .setColor(0x8B5CF6)
+          .addFields(
+            { name: 'الاستخدام:', value: '`!timeout @user [مدة] [سبب]`', inline: false },
+            { name: 'أمثلة:', value:
+              '`!timeout @user 1h سبام\n' +
+              '`!timeout @user 30m'\n' +
+              '`!timeout @user 1d причиной\n' +
+              '`!timeout @user 60s`', inline: false },
+            { name: 'المدد المتاحة:', value:
+              '`s` - ثواني\n' +
+              '`m` - دقائق\n' +
+              '`h` - ساعات\n' +
+              '`d` - أيام', inline: false }
+          )
+          .setFooter({ text: 'Unit S - Moderation' });
+        await message.channel.send({ embeds: [embed] }).then(msg => {
+          setTimeout(() => msg.delete().catch(() => {}), 10000);
+        });
+        return;
+      }
+
+      // استخراج المتغيرات
+      const userMention = args[0];
+      const timeString = args[1];
+      const reason = args.slice(2).join(' ') || 'لم يذكر';
+
+      // استخراج المستخدم
+      const userId = userMention.replace(/<@!?/g, '').replace(/>/g, '');
+      let targetMember;
+
+      try {
+        targetMember = await message.guild.members.fetch(userId);
+      } catch (err) {
+        await message.channel.send('❌ لم يتم العثور على المستخدم!').then(msg => {
+          setTimeout(() => msg.delete().catch(() => {}), 3000);
+        });
+        return;
+      }
+
+      // تحليل المدة
+      const timeMatch = timeString.match(/^(\d+)([smhd])$/i);
+      if (!timeMatch) {
+        await message.channel.send('❌ صيغة المدة غير صحيحة! مثال: `1h`, `30m`, `60s`, `1d`').then(msg => {
+          setTimeout(() => msg.delete().catch(() => {}), 3000);
+        });
+        return;
+      }
+
+      const amount = parseInt(timeMatch[1]);
+      const unit = timeMatch[2].toLowerCase();
+
+      // تحويل المدة إلى milliseconds
+      let durationMs;
+      switch (unit) {
+        case 's': durationMs = amount * 1000; break;
+        case 'm': durationMs = amount * 60 * 1000; break;
+        case 'h': durationMs = amount * 60 * 60 * 1000; break;
+        case 'd': durationMs = amount * 24 * 60 * 60 * 1000; break;
+        default: durationMs = 0;
+      }
+
+      // الحد الأقصى: 28 يوم
+      const maxDuration = 28 * 24 * 60 * 60 * 1000;
+      if (durationMs > maxDuration) {
+        await message.channel.send('❌ المدة القصوى هي 28 يوم!').then(msg => {
+          setTimeout(() => msg.delete().catch(() => {}), 3000);
+        });
+        return;
+      }
+
+      // تنسيق المدة للعرض
+      let durationText = '';
+      if (unit === 's') durationText = `${amount} ثانية`;
+      else if (unit === 'm') durationText = `${amount} دقيقة`;
+      else if (unit === 'h') durationText = `${amount} ساعة`;
+      else if (unit === 'd') durationText = `${amount} يوم`;
+
+      // تطبيق الـ timeout
+      await targetMember.timeout(durationMs, `بواسطة: ${message.author.tag} | السبب: ${reason}`);
+
+      // Log الـ timeout
+      await logTimeout(message.guild, message.author, targetMember.user, durationText, reason);
+
+      // رسالة التأكيد
+      const embed = new EmbedBuilder()
+        .setTitle('⏱️ تم تعطيل العضو مؤقتاً')
+        .setColor(0x8B5CF6)
+        .addFields(
+          { name: '👤 العضو', value: targetMember.user.tag, inline: true },
+          { name: '⏱️ المدة', value: durationText, inline: true },
+          { name: '📋 السبب', value: reason, inline: false },
+          { name: '🔨 بواسطة', value: message.author.tag, inline: true }
+        )
+        .setFooter({ text: 'Unit S - Moderation' })
+        .setTimestamp();
+
+      await message.channel.send({ embeds: [embed] });
+
+    } catch (err) {
+      console.error('خطأ في timeout:', err);
+      await message.channel.send(`❌ حدث خطأ: ${err.message}`).then(msg => {
+        setTimeout(() => msg.delete().catch(() => {}), 5000);
+      });
+    }
+    return;
+  }
+
+  // ============ !untimeout COMMAND (إلغاء التايم اوت) ============
+  if (message.content.startsWith('!untimeout')) {
+    // التحقق من الصلاحية
+    if (!hasModRole(message.member) && !message.member.permissions.has('ModerateMembers')) {
+      await message.channel.send('❌ ليس لديك صلاحية!');
+      if (!message.deleted) message.delete().catch(() => {});
+      return;
+    }
+
+    try {
+      // حذف رسالة الأمر
+      await message.delete();
+
+      // استخراج المستخدم
+      const args = message.content.slice(11).trim().split(/\s+/);
+
+      if (args.length < 1) {
+        await message.channel.send('❌ الاستخدام: `!untimeout @user`').then(msg => {
+          setTimeout(() => msg.delete().catch(() => {}), 3000);
+        });
+        return;
+      }
+
+      const userMention = args[0];
+      const userId = userMention.replace(/<@!?/g, '').replace(/>/g, '');
+      let targetMember;
+
+      try {
+        targetMember = await message.guild.members.fetch(userId);
+      } catch (err) {
+        await message.channel.send('❌ لم يتم العثور على المستخدم!').then(msg => {
+          setTimeout(() => msg.delete().catch(() => {}), 3000);
+        });
+        return;
+      }
+
+      // إلغاء الـ timeout
+      await targetMember.timeout(null);
+
+      // رسالة التأكيد
+      const embed = new EmbedBuilder()
+        .setTitle('✅ تم إلغاء التعطيل')
+        .setColor(0x10B981)
+        .addFields(
+          { name: '👤 العضو', value: targetMember.user.tag, inline: true },
+          { name: '🔓 بواسطة', value: message.author.tag, inline: true }
+        )
+        .setFooter({ text: 'Unit S - Moderation' })
+        .setTimestamp();
+
+      await message.channel.send({ embeds: [embed] });
+
+    } catch (err) {
+      console.error('خطأ في untimeout:', err);
+      await message.channel.send(`❌ حدث خطأ: ${err.message}`).then(msg => {
+        setTimeout(() => msg.delete().catch(() => {}), 5000);
+      });
     }
     return;
   }
