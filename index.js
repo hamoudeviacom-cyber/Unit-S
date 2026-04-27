@@ -1270,7 +1270,7 @@ client.commands.set('freerank', {
         })
         .setImage('https://cdn.discordapp.net/attachments/1397309666752593920/1495543234166919351/4cc71a18-6f61-459e-8e8a-293c31b199b4.png?ex=69e6a0ac&is=69e54f2c&hm=247d340eb85f00962d3e650df57c9221a78c33f75de0b5938a2340f503dfa33d&')
         .setDescription([
-          '**__<:zO_246:1495222454530871346> للحصول على رتبة بيع مجانية اضغط على  زر <a:Taj:1449677193738195047> بالأسفل   :__**',
+          '**__<:zO_246:1495222454530871346> للحصول على رتبة بيع مجانية اضغط على زر <a:Taj:1495224006947639377> بالأسفل :__**',
           '',
           '**الـرتب الـمـسـتـخـدمـة :**',
           '',
@@ -1287,10 +1287,10 @@ client.commands.set('freerank', {
         components: [
           new ActionRowBuilder().addComponents(
             new ButtonBuilder()
-              .setLabel('مجاني')
+              .setLabel('')
               .setCustomId('free_rank_claim')
-              .setEmoji({ name: '🎁' })
-              .setStyle(ButtonStyle.Primary)
+              .setEmoji({ name: 'Taj', id: '1495224006947639377' })
+              .setStyle(ButtonStyle.Secondary)
           )
         ]
       });
