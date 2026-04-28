@@ -277,7 +277,7 @@ function loadFreeRankSettings() {
     roleId: '1494685867749539861',
     roleName: '🜲・〢↝ Excellent',
     maxUses: 100,
-    claimedCount: '',
+    claimedCount: 7,
     claimedUsers: [],
     maxClaims: 100,
     logChannelId: null,
@@ -1027,6 +1027,7 @@ client.commands.set('help', {
           '`!protect off link` - تعطيل منع الروابط', inline: false },
         { name: 'معلومات', value:
           '`!ping` - سرعة البوت\n' +
+          '`!say [رسالة]` - جعل البوت يرسل رسالة\n' +
           '`!terms` - اتفاقية الاستخدام والخصوصية', inline: false },
         { name: 'الفويس 24/7', value:
           '`!24voice` - عرض حالة الفويس\n' +
@@ -1076,6 +1077,41 @@ client.commands.set('terms', {
 
     await message.channel.send({ embeds: [embed] });
     if (!message.deleted) message.delete().catch(() => {});
+  },
+});
+
+// ============ SAY COMMAND ============
+client.commands.set('say', {
+  name: 'say',
+  description: 'Make the bot send a message',
+  execute: async (message, args) => {
+    // Check if user has admin permissions
+    if (!hasModRole(message.member) && !modSettings.adminUsers.includes(message.author.username)) {
+      await message.channel.send('❌ ليس لديك صلاحية!');
+      if (!message.deleted) message.delete().catch(() => {});
+      return;
+    }
+
+    // Check if there's text to send
+    if (args.length === 0) {
+      const embed = new EmbedBuilder()
+        .setTitle('📝 أمر Say')
+        .setColor(0xDC2626)
+        .setDescription('الاستخدام: `!say [الرسالة]`\n\nمثال: `!say مرحباً بالجميع!`')
+        .setFooter({ text: 'Unit S Bot' });
+      await message.channel.send({ embeds: [embed] });
+      if (!message.deleted) message.delete().catch(() => {});
+      return;
+    }
+
+    // Get the text to send
+    const text = args.join(' ');
+
+    // Delete the command message
+    if (!message.deleted) message.delete().catch(() => {});
+
+    // Send the message
+    await message.channel.send(text);
   },
 });
 
