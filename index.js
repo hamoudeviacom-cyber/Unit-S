@@ -277,7 +277,7 @@ function loadFreeRankSettings() {
     roleId: '1494685867749539861',
     roleName: '🜲・〢↝ Excellent',
     maxUses: 100,
-    claimedCount:'' ,
+    claimedCount: '',
     claimedUsers: [],
     maxClaims: 100,
     logChannelId: null,
@@ -3777,22 +3777,23 @@ client.on('interactionCreate', async (interaction) => {
       const channel = interaction.channel;
       if (!channel || !channel.name.startsWith('ticket-')) return;
 
+      // ✨ DEFER UPDATE - هذا يمنع خطأ "This interaction failed"
+      await interaction.deferUpdate();
+
       const ticketData = client.ticketClaims.get(channel.id);
       if (!ticketData) return;
 
       // Claim Button
       if (interaction.customId === 'claim_ticket') {
         if (!hasTicketAdminRole(interaction.member)) {
-          return await interaction.reply({
+          return await interaction.editReply({
             content: '❌ ليس لديك صلاحية لاستلام التذكرة!',
-            flags: 64
           });
         }
 
         if (ticketData.claimedBy) {
-          return await interaction.reply({
+          return await interaction.editReply({
             content: '❌ هذه التذكرة تم استلامها مسبقاً!',
-            flags: 64
           });
         }
 
@@ -3846,7 +3847,7 @@ client.on('interactionCreate', async (interaction) => {
           .setColor(0x14b8a6)
           .setTimestamp();
 
-        await interaction.reply({ embeds: [embed, confirmEmbed], components: [row] });
+        await interaction.editReply({ embeds: [embed, confirmEmbed], components: [row] });
 
         // منشن الأدمن
         await channel.send(`${interaction.user}`);
@@ -3856,16 +3857,14 @@ client.on('interactionCreate', async (interaction) => {
       // Unclaim Button
       if (interaction.customId === 'unclaim_ticket') {
         if (!hasTicketAdminRole(interaction.member)) {
-          return await interaction.reply({
+          return await interaction.editReply({
             content: '❌ ليس لديك صلاحية!',
-            flags: 64
           });
         }
 
         if (ticketData.claimedBy?.id !== interaction.user.id) {
-          return await interaction.reply({
+          return await interaction.editReply({
             content: '❌ يمكنك فقط إلغاء استلام التذكرة التي استلمتها أنت!',
-            flags: 64
           });
         }
 
@@ -3913,21 +3912,20 @@ client.on('interactionCreate', async (interaction) => {
           .setFooter({ text: 'Unit S Support System' })
           .setTimestamp();
 
-        await interaction.reply({ embeds: [embed], components: [row] });
+        await interaction.editReply({ embeds: [embed], components: [row] });
         return;
       }
 
       // Close Button
       if (interaction.customId === 'close_ticket') {
         if (!hasTicketAdminRole(interaction.member)) {
-          return await interaction.reply({
+          return await interaction.editReply({
             content: '❌ ليس لديك صلاحية لإغلاق التذكرة!',
-            flags: 64
           });
         }
 
         await logTicketTranscript(channel, interaction.user, 'تم الإغلاق من زر');
-        await interaction.reply(' جاري إغلاق التذكرة...');
+        await interaction.editReply(' جاري إغلاق التذكرة...');
         setTimeout(() => channel.delete(), 1000);
         return;
       }
