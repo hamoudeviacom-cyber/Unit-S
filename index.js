@@ -235,6 +235,18 @@ const COLORS = {
   primary: 0x667eea,
 };
 
+// ============ Date Formatting Helper ============
+function formatDate(date) {
+  const d = new Date(date);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  const hours = String(d.getHours()).padStart(2, '0');
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+  const seconds = String(d.getSeconds()).padStart(2, '0');
+  return `${day}/${month}/${year}, ${hours}:${minutes}:${seconds}`;
+}
+
 // ============ Free Rank Settings ============
 const FREE_RANK_FILE = './free_rank_settings.json';
 
@@ -809,7 +821,7 @@ async function logBan(guild, moderator, target, reason) {
       { name: '👤 Banned User', value: target.tag || target.username, inline: true },
       { name: 'User ID', value: target.id, inline: true },
       { name: ' Reason', value: reason || 'No reason provided', inline: false },
-      { name: ' Time', value: new Date().toLocaleString('en-US', { timeZone: 'Asia/Riyadh' }), inline: false }
+      { name: ' Time', value: formatDate(new Date()), inline: false }
     )
     .setFooter({ text: 'Unit S - Moderation' })
     .setTimestamp();
@@ -826,7 +838,7 @@ async function logKick(guild, moderator, target, reason) {
       { name: 'Kicked User', value: target.tag || target.username, inline: true },
       { name: 'User ID', value: target.id, inline: true },
       { name: 'Reason', value: reason || 'No reason provided', inline: false },
-      { name: 'Time', value: new Date().toLocaleString('en-US', { timeZone: 'Asia/Riyadh' }), inline: false }
+      { name: 'Time', value: formatDate(new Date()), inline: false }
     )
     .setFooter({ text: 'Unit S - Moderation' })
     .setTimestamp();
@@ -844,7 +856,7 @@ async function logTimeout(guild, moderator, target, duration, reason) {
       { name: 'User ID', value: target.id, inline: true },
       { name: 'Duration', value: duration || 'Unknown', inline: true },
       { name: 'Reason', value: reason || 'No reason provided', inline: false },
-      { name: 'Time', value: new Date().toLocaleString('en-US', { timeZone: 'Asia/Riyadh' }), inline: false }
+      { name: 'Time', value: formatDate(new Date()), inline: false }
     )
     .setFooter({ text: 'Unit S - Moderation' })
     .setTimestamp();
@@ -859,8 +871,8 @@ async function logMemberJoin(guild, member) {
     .addFields(
       { name: 'User', value: member.user?.tag || 'Unknown', inline: true },
       { name: 'User ID', value: member.id, inline: true },
-      { name: 'Joined Server', value: new Date(member.joinedTimestamp).toLocaleString('ar-SA'), inline: false },
-      { name: 'Time', value: new Date().toLocaleString('en-US', { timeZone: 'Asia/Riyadh' }), inline: false }
+      { name: 'Joined Server', value: formatDate(member.joinedTimestamp), inline: false },
+      { name: 'Time', value: formatDate(new Date()), inline: false }
     )
     .setFooter({ text: 'Unit S - Moderation' })
     .setTimestamp();
@@ -876,7 +888,7 @@ async function logMemberLeave(guild, member, kicker) {
       { name: 'User', value: member.user?.tag || 'Unknown', inline: true },
       { name: ' User ID', value: member.id, inline: true },
       { name: 'Removed By', value: kicker ? `${kicker.tag || kicker.username}` : 'Left voluntarily', inline: true },
-      { name: 'Time', value: new Date().toLocaleString('en-US', { timeZone: 'Asia/Riyadh' }), inline: false }
+      { name: 'Time', value: formatDate(new Date()), inline: false }
     )
     .setFooter({ text: 'Unit S - Moderation' })
     .setTimestamp();
@@ -924,14 +936,14 @@ async function logTicketTranscript(channel, closedBy, reason = 'لم يذكر') 
     const sortedMessages = messages.sort((a, b) => a.createdTimestamp - b.createdTimestamp);
 
     let transcript = `=== لوجس التذكرة: ${channel.name} ===\n`;
-    transcript += `تاريخ الإغلاق: ${new Date().toLocaleString('en-US', { timeZone: 'Asia/Riyadh' })}\n`;
+    transcript += `تاريخ الإغلاق: ${formatDate(new Date())}\n`;
     transcript += `مقام من: ${closedBy.tag || closedBy.username || 'غير معروف'}\n`;
     transcript += `السبب: ${reason}\n`;
     transcript += `عدد الرسائل: ${messages.size}\n`;
     transcript += '================================\n\n';
 
     for (const msg of sortedMessages.values()) {
-      const timestamp = new Date(msg.createdTimestamp).toLocaleString('ar-SA');
+      const timestamp = formatDate(msg.createdTimestamp);
       const author = msg.author.tag;
       const content = msg.content || '[رسالة بدون نص]';
 
