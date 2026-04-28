@@ -277,7 +277,7 @@ function loadFreeRankSettings() {
     roleId: '1494685867749539861',
     roleName: '🜲・〢↝ Excellent',
     maxUses: 100,
-    claimedCount: 7,
+    claimedCount: ,
     claimedUsers: [],
     maxClaims: 100,
     logChannelId: null,
