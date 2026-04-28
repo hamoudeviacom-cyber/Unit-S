@@ -5052,21 +5052,9 @@ client.on('messageCreate', async (message) => {
   // تحقق إذا الرسالة في إحدى القنوات المحددة
   if (!ANNOUNCEMENT_CHANNELS.includes(message.channel.id)) return;
 
-  const MAIN_CHANNEL_ID = '1494879445012578345';
-
   try {
-    // إذا كانت القناة الرئيسية - أرسل الرسالة + الصورة معاً
-    if (message.channel.id === MAIN_CHANNEL_ID) {
-      await message.channel.send({
-        content: '@everyone\n**🔓 تم فتح رومات بيع**\n**المشرف المسؤول:** <@' + SUPERVISOR_ID + '>\n**الجدول:** سيتم فتح رومات بيع تلقائيًا كل يوم الساعة 9 صباحًا بتوقيت السعودية',
-        files: [{ attachment: ANNOUNCEMENT_IMAGE_URL }]
-      });
-    } else {
-      // باقي القنوات - أرسل الصورة فقط بدون رسالة
-      await message.channel.send({
-        files: [{ attachment: ANNOUNCEMENT_IMAGE_URL }]
-      });
-    }
+    // إرسال الصورة فقط (بدون أي نص)
+    await message.channel.send(ANNOUNCEMENT_IMAGE_URL);
   } catch (err) {
     console.error('فشل إرسال الصورة:', err);
   }
