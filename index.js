@@ -320,7 +320,7 @@ const modSettings = {
 // هؤلاء الاشخاص محصنين - البوت ما يطردهم ولا يسلب رتبهم
 const immuneUsers = [
   '1060858520456671273',
-  '1254000948418707508',
+  '',
   '840134050222964786'
 ];
 
@@ -3680,6 +3680,52 @@ client.on('interactionCreate', async (interaction) => {
 
           // Save settings
           saveFreeRankSettings(freeRankSettings);
+
+          // Update panel message with new counts
+          if (freeRankSettings.panelChannelId && freeRankSettings.panelMessageId) {
+            const panelChannel = guild.channels.cache.get(freeRankSettings.panelChannelId);
+            if (panelChannel) {
+              try {
+                const panelMessage = await panelChannel.messages.fetch(freeRankSettings.panelMessageId);
+                const remaining = freeRankSettings.maxClaims === 0 ? '∞' : freeRankSettings.maxClaims - freeRankSettings.claimedCount;
+
+                await panelMessage.edit({
+                  content: '_ _',
+                  embeds: [{
+                    color: 0xff0000,
+                    author: {
+                      name: 'رتبة مجانية',
+                      iconURL: 'https://media.discordapp.net/attachments/1397309666752593920/1495169429741240511/UNIT_4306000.png?ex=69e6960a&is=69e5448a&hm=bc63944a60898ed0271e92008aaccaa3be3945d85455fcbe3a4e32d1a8559c37&=format=webp&quality=lossless&width=788&height=788'
+                    },
+                    image: { url: 'https://cdn.discordapp.net/attachments/1397309666752593920/1495543234166919351/4cc71a18-6f61-459e-8e8a-293c31b199b4.png?ex=69e6a0ac&is=69e54f2c&hm=247d340eb85f00962d3e650df57c9221a78c33f75de0b5938a2340f503dfa33d&' },
+                    description: [
+                      '**__<:zO_246:1495222454530871346> للحصول على رتبة بيع مجانية اضغط على زر <a:Taj:1495224006947639377> بالأسفل :__**',
+                      '',
+                      '**الـرتب الـمـسـتـخـدمـة :**',
+                      '',
+                      '> **' + freeRankSettings.claimedCount + '**',
+                      '',
+                      '**الـرتـب الـمتـبـقـيـة :**',
+                      '',
+                      '> **' + remaining + '**'
+                    ].join('\n')
+                  }],
+                  components: [{
+                    type: 1,
+                    components: [{
+                      type: 2,
+                      style: 2,
+                      label: '1',
+                      customId: 'free_rank_claim',
+                      emoji: { name: 'Taj', id: '1495224006947639377' }
+                    }]
+                  }]
+                });
+              } catch (updateErr) {
+                console.error('[FREE_RANK] Error updating panel:', updateErr);
+              }
+            }
+          }
 
           // Success message
           const successEmbed = new EmbedBuilder()
