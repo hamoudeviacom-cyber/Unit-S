@@ -3254,8 +3254,8 @@ client.on('interactionCreate', async (interaction) => {
               channelContent += ' ' + mentionedRoles.map(r => r.toString()).join(' ');
             }
 
-            // Ticket Embed - Unit S Design
-            const ticketEmbed = {
+            // ============ رسالة الترحيب (الأولى) - بدون أزرار ============
+            const welcomeEmbed = {
               content: channelContent,
               embeds: [
                 {
@@ -3289,6 +3289,38 @@ client.on('interactionCreate', async (interaction) => {
                     url: 'https://cdn.discordapp.com/attachments/1397309666752593920/1495169428738936852/UNIT_406004040.webp?ex=69e5448a&is=69e3f30a&hm=be61008c6e62b1b6783e3af827d9a737804a90f617421c905fa4881c90a03994&'
                   }
                 }
+              ]
+            };
+
+            // إرسال رسالة الترحيب (بدون مكونات)
+            await ticketChannel.send(welcomeEmbed);
+
+            // ============ رسالة الـ Panel (الثانية) - مع الأزرار والقائمة ============
+            const panelEmbed = {
+              content: `📌 **${interaction.user.toString()} - إليك دليل التذكرة**\n━━━━━━━━━━━━━━━━━━━━━━━`,
+              embeds: [
+                {
+                  color: 0x8B5CF6,
+                  title: '📋 دليل استخدام التذكرة',
+                  description: [
+                    'مرحباً بك في تذكرة Unit S!',
+                    'يرجى اتباع الخطوات التالية:',
+                    '',
+                    '🔹 **الخطوة 1:** اختر نوع الطلب من القائمة أدناه',
+                    '🔹 **الخطوة 2:** اكتب تفاصيل مشكلتك أو استفسارك',
+                    '🔹 **الخطوة 3:** انتظر الرد من فريق الدعم',
+                    '',
+                    '⚠️ **ملاحظة:** يُمنع السب والشتم والمنشن العشوائي',
+                    'سيتم كتمك تلقائياً في حال المخالفة'
+                  ].join('\n'),
+                  thumbnail: {
+                    url: 'https://cdn.discordapp.net/attachments/1397309666752593920/1495169429741240511/UNIT_4306000.png?ex=69e5448a&is=69e3f30a&hm=d1143eeac3289c0b55d81d3275a529dbc46a324607e5a8dc5326486b1b08c327&=format=webp&quality=lossless&width=788&height=788'
+                  },
+                  footer: {
+                    text: 'Unit S | Support System'
+                  },
+                  timestamp: new Date().toISOString()
+                }
               ],
               components: [
                 {
@@ -3318,82 +3350,65 @@ client.on('interactionCreate', async (interaction) => {
                       style: 4
                     }
                   ]
+                },
+                {
+                  type: 1,
+                  components: [
+                    {
+                      type: 3,
+                      custom_id: 'ticket_guide_select',
+                      options: [
+                        {
+                          label: 'شراء رتب عادية',
+                          description: 'للحصول على رتبة بصلاحيات محددة',
+                          value: 'buy_normal_rank',
+                          emoji: { name: '👑' }
+                        },
+                        {
+                          label: 'شراء رتب مميزة',
+                          description: 'للحصول على رتبة مميزة',
+                          value: 'buy_premium_rank',
+                          emoji: { name: '💎' }
+                        },
+                        {
+                          label: 'شراء رومات خاصة',
+                          description: 'إنشاء روم خاص بك',
+                          value: 'buy_private_rooms',
+                          emoji: { name: '🔒' }
+                        },
+                        {
+                          label: 'شراء إعلانات',
+                          description: 'لنشر إعلانك في السيرفر',
+                          value: 'buy_advertisements',
+                          emoji: { name: '📢' }
+                        },
+                        {
+                          label: 'شراء منشورات مميزة',
+                          description: 'لعرض منشورك بشكل مميز',
+                          value: 'buy_featured_posts',
+                          emoji: { name: '⭐' }
+                        },
+                        {
+                          label: 'إزالة تحذيرات البائعين',
+                          description: 'لإزالة تحذيرات البائعين',
+                          value: 'remove_seller_warnings',
+                          emoji: { name: '⚠️' }
+                        }
+                      ],
+                      placeholder: 'اختر نوع طلبك...',
+                      min_values: 1,
+                      max_values: 1
+                    }
+                  ]
                 }
               ]
             };
 
-            await ticketChannel.send(ticketEmbed);
+            const panelMessage = await ticketChannel.send(panelEmbed);
 
-            // ============ إرسال بانيل ثاني منفصل داخل التكت + تثبيته ============
-            // رسالة الدليل مع الشعار على اليمين - Unit S Design
-            const secondPanelEmbed = new EmbedBuilder()
-              .setTitle('📋 دليل استخدام التذكرة')
-              .setColor(0x8B5CF6)
-              .setDescription('مرحباً بك في تذكرة Unit S!\nيرجى اتباع الخطوات التالية:')
-              .addFields(
-                { name: '🔹 الخطوة 1', value: 'اختر نوع الطلب من القائمة أدناه', inline: false },
-                { name: '🔹 الخطوة 2', value: 'اكتب تفاصيل مشكلتك أو استفسارك', inline: false },
-                { name: '🔹 الخطوة 3', value: 'انتظر الرد من فريق الدعم', inline: false },
-                { name: '⚠️ ملاحظة', value: 'يُمنع السب والشتم والمنشن العشوائي\nسيتم كتمك تلقائياً في حال المخالفة', inline: false }
-              )
-              .setFooter({ text: 'Unit S | Support System' })
-              .setTimestamp()
-              .setThumbnail('https://cdn.discordapp.net/attachments/1397309666752593920/1495169429741240511/UNIT_4306000.png?ex=69e5448a&is=69e3f30a&hm=d1143eeac3289c0b55d81d3275a529dbc46a324607e5a8dc5326486b1b08c327&=format=webp&quality=lossless&width=788&height=788');
-
-            const guideSelectMenu = new StringSelectMenuBuilder()
-              .setCustomId('ticket_guide_select')
-              .setPlaceholder('اختر نوع طلبك...')
-              .addOptions([
-                new StringSelectMenuOptionBuilder({
-                  label: 'شراء رتب عادية',
-                  description: 'للحصول على رتبة بصلاحيات محددة',
-                  value: 'buy_normal_rank',
-                  emoji: '👑',
-                }),
-                new StringSelectMenuOptionBuilder({
-                  label: 'شراء رتب مميزة',
-                  description: 'للحصول على رتبة مميزة',
-                  value: 'buy_premium_rank',
-                  emoji: '💎',
-                }),
-                new StringSelectMenuOptionBuilder({
-                  label: 'شراء رومات خاصة',
-                  description: 'إنشاء روم خاص بك',
-                  value: 'buy_private_rooms',
-                  emoji: '🔒',
-                }),
-                new StringSelectMenuOptionBuilder({
-                  label: 'شراء إعلانات',
-                  description: 'لنشر إعلانك في السيرفر',
-                  value: 'buy_advertisements',
-                  emoji: '📢',
-                }),
-                new StringSelectMenuOptionBuilder({
-                  label: 'شراء منشورات مميزة',
-                  description: 'لعرض منشورك بشكل مميز',
-                  value: 'buy_featured_posts',
-                  emoji: '⭐',
-                }),
-                new StringSelectMenuOptionBuilder({
-                  label: 'إزالة تحذيرات البائعين',
-                  description: 'لإزالة تحذيرات البائعين',
-                  value: 'remove_seller_warnings',
-                  emoji: '⚠️',
-                }),
-              ]);
-
-            const guideRow = new ActionRowBuilder().addComponents(guideSelectMenu);
-
-            // رسالة البانيل الثاني منفصلة - مع فاصل وعلامه التثبيت
-            const secondPanelMessage = await ticketChannel.send({
-              content: `📌 **${interaction.user.toString()} - إليك دليل التذكرة**\n━━━━━━━━━━━━━━━━━━━━━━━\n📌 هذه الرسالة مُثبتة - راجعها دائماً قبل الكتابة`,
-              embeds: [secondPanelEmbed],
-              components: [guideRow]
-            });
-
-            // تثبيت الرسالة (Pin)
+            // تثبيت رسالة الـ Panel
             try {
-              await secondPanelMessage.pin();
+              await panelMessage.pin();
             } catch (pinError) {
               console.log('[TICKET] Could not pin message:', pinError.message);
             }
