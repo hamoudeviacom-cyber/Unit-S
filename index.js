@@ -3343,34 +3343,40 @@ client.on('interactionCreate', async (interaction) => {
               .setPlaceholder('اختر نوع طلبك...')
               .addOptions([
                 new StringSelectMenuOptionBuilder({
-                  label: 'مشكلة فنية',
-                  description: 'أبلغ عن مشكلة تقنية',
-                  value: 'guide_technical',
-                  emoji: '🔧',
+                  label: 'شراء رتب عادية',
+                  description: 'للحصول على رتبة بصلاحيات محددة',
+                  value: 'buy_normal_rank',
+                  emoji: '👑',
                 }),
                 new StringSelectMenuOptionBuilder({
-                  label: 'استفسار',
-                  description: 'لاستفسار عام',
-                  value: 'guide_inquiry',
-                  emoji: '❓',
+                  label: 'شراء رتب مميزة',
+                  description: 'للحصول على رتبة مميزة',
+                  value: 'buy_premium_rank',
+                  emoji: '💎',
                 }),
                 new StringSelectMenuOptionBuilder({
-                  label: 'شكوى',
-                  description: 'للتقدم بشكوى',
-                  value: 'guide_complaint',
+                  label: 'شراء رومات خاصة',
+                  description: 'إنشاء روم خاص بك',
+                  value: 'buy_private_rooms',
+                  emoji: '🔒',
+                }),
+                new StringSelectMenuOptionBuilder({
+                  label: 'شراء إعلانات',
+                  description: 'لنشر إعلانك في السيرفر',
+                  value: 'buy_advertisements',
+                  emoji: '📢',
+                }),
+                new StringSelectMenuOptionBuilder({
+                  label: 'شراء منشورات مميزة',
+                  description: 'لعرض منشورك بشكل مميز',
+                  value: 'buy_featured_posts',
+                  emoji: '⭐',
+                }),
+                new StringSelectMenuOptionBuilder({
+                  label: 'إزالة تحذيرات البائعين',
+                  description: 'لإزالة تحذيرات البائعين',
+                  value: 'remove_seller_warnings',
                   emoji: '⚠️',
-                }),
-                new StringSelectMenuOptionBuilder({
-                  label: 'شراء',
-                  description: 'للشراء من السيرفر',
-                  value: 'guide_purchase',
-                  emoji: '💰',
-                }),
-                new StringSelectMenuOptionBuilder({
-                  label: 'أخرى',
-                  description: 'طلب آخر',
-                  value: 'guide_other',
-                  emoji: '📝',
                 }),
               ]);
 
@@ -3532,34 +3538,46 @@ client.on('interactionCreate', async (interaction) => {
         const guideType = interaction.values[0];
 
         const guideResponses = {
-          guide_technical: {
-            title: '🔧 مشكلة فنية',
-            description: 'يرجى كتابة مشكلتك بالتفصيل:\n\n• وصف المشكلة\n• ما الذي حدث\n• ما الذي توقعته\n• أي أخطاء تظهر لك\n\nسيتم الرد عليك في أقرب وقت.',
-            color: 0x3B82F6
-          },
-          guide_inquiry: {
-            title: '❓ استفسار عام',
-            description: 'يرجى كتابة استفسارك هنا:\n\n• اكتب سؤالك بشكل واضح\n• حدد الموضوع\n• أي معلومات إضافية قد تساعد\n\nسنرد عليك بأسرع وقت.',
-            color: 0x10B981
-          },
-          guide_complaint: {
-            title: '⚠️ شكوى',
-            description: 'يرجى كتابة تفاصيل الشكوى:\n\n• اسم الشخص المشتكى منه\n• تاريخ الحادثة\n• وصف ما حدث\n• أي أدلة أو صور متوفرة\n\nسيتم التحقيق في الشكوى.',
+          buy_normal_rank: {
+            title: '👑 شراء رتب عادية',
+            description: 'مرحباً بك في قسم شراء الرتب العادية!\n\nيرجى تحديد الرتبة المطلوبة من القائمة أدناه:\n\n• **Coder S.** - 150,000\n• **Artisan S.** - 200,000\n• **Novice S.** - 250,000\n• **Elite S.** - 300,000\n• **Master S.** - 550,000',
             color: 0xF59E0B
           },
-          guide_purchase: {
-            title: '💰 شراء',
-            description: 'للشراء من السيرفر:\n\n• حدد ما تريد شراؤه\n• رتب متوفرة أو خدمات\n• طريقة الدفع المفضلة\n\nسنتواصل معك لتأكيد الطلب والدفع.',
+          buy_premium_rank: {
+            title: '💎 شراء رتب مميزة',
+            description: 'مرحباً بك في قسم الرتب المميزة!\n\nللحصول على رتبة مميزة، يرجى كتابة:\n\n• نوع الرتبة المطلوبة\n• طريقة الدفع المفضلة\n• أي استفسارات إضافية\n\nسيتم التواصل معك قريباً.',
             color: 0x8B5CF6
           },
-          guide_other: {
-            title: '📝 طلب آخر',
-            description: 'يرجى كتابة طلبك بالتفصيل:\n\n• اكتب ما تحتاجه\n• أي تفاصيل إضافية\n• أفضل طريقة للتواصل\n\nسنساعدك في أقرب وقت.',
-            color: 0x667eea
+          buy_private_rooms: {
+            title: '🔒 شراء رومات خاصة',
+            description: 'مرحباً بك في قسم شراء الرومات الخاصة!\n\nلإنشاء روم خاص بك، يرجى تحديد:\n\n• نوع الروم المطلوب\n• عدد الأشخاص المسموح لهم\n• مدة الاشتراك\n\nسيتم التواصل معك لتأكيد التفاصيل.',
+            color: 0x3B82F6
+          },
+          buy_advertisements: {
+            title: '📢 شراء إعلانات',
+            description: 'مرحباً بك في قسم شراء الإعلانات!\n\nلنشر إعلانك في السيرفر، يرجى تحديد:\n\n• نوع الإعلان\n• مدة الإعلان\n• الروم المستهدف\n\nسيتم التواصل معك لتأكيد الطلب.',
+            color: 0x10B981
+          },
+          buy_featured_posts: {
+            title: '⭐ شراء منشورات مميزة',
+            description: 'مرحباً بك في قسم المنشورات المميزة!\n\nلعرض منشورك بشكل مميز، يرجى تحديد:\n\n• نوع المنشور\n• مدة الظهور\n• أي تفاصيل إضافية\n\nسيتم التواصل معك لتأكيد التفاصيل.',
+            color: 0xEC4899
+          },
+          remove_seller_warnings: {
+            title: '⚠️ إزالة تحذيرات البائعين',
+            description: 'مرحباً بك في قسم إزالة التحذيرات!\n\nلإزالة تحذيرات البائعين، يرجى:\n\n• كتابة اسم حسابك\n• شرح سبب التحذير\n• أي أدلة أو معلومات إضافية\n\nسيتم مراجعة طلبك والتواصل معك قريباً.',
+            color: 0xEF4444
           }
         };
 
         const response = guideResponses[guideType];
+
+        if (!response) {
+          return await interaction.reply({
+            content: '❌ خيار غير معروف!',
+            flags: 64
+          });
+        }
 
         const guideEmbed = new EmbedBuilder()
           .setTitle(response.title)
