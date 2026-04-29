@@ -3324,6 +3324,71 @@ client.on('interactionCreate', async (interaction) => {
 
             await ticketChannel.send(ticketEmbed);
 
+            // ============ إرسال بانيل ثاني داخل التكت + تثبيته ============
+            const secondPanelEmbed = new EmbedBuilder()
+              .setTitle('📋 دليل استخدام التذكرة')
+              .setColor(0x8B5CF6)
+              .setDescription('مرحباً بك في تذكرة Unit S!\nيرجى اتباع الخطوات التالية:')
+              .addFields(
+                { name: '🔹 الخطوة 1', value: 'اختر نوع الطلب من القائمة أدناه', inline: false },
+                { name: '🔹 الخطوة 2', value: 'اكتب تفاصيل مشكلتك أو استفسارك', inline: false },
+                { name: '🔹 الخطوة 3', value: 'انتظر الرد من فريق الدعم', inline: false },
+                { name: '⚠️ ملاحظة', value: 'يُمنع السب والشتم والمنشن العشوائي\nسيتم كتمك تلقائياً في حال المخالفة', inline: false }
+              )
+              .setFooter({ text: 'Unit S | Support System' })
+              .setTimestamp();
+
+            const guideSelectMenu = new StringSelectMenuBuilder()
+              .setCustomId('ticket_guide_select')
+              .setPlaceholder('اختر نوع طلبك...')
+              .addOptions([
+                new StringSelectMenuOptionBuilder({
+                  label: 'مشكلة فنية',
+                  description: 'أبلغ عن مشكلة تقنية',
+                  value: 'guide_technical',
+                  emoji: '🔧',
+                }),
+                new StringSelectMenuOptionBuilder({
+                  label: 'استفسار',
+                  description: 'لاستفسار عام',
+                  value: 'guide_inquiry',
+                  emoji: '❓',
+                }),
+                new StringSelectMenuOptionBuilder({
+                  label: 'شكوى',
+                  description: 'للتقدم بشكوى',
+                  value: 'guide_complaint',
+                  emoji: '⚠️',
+                }),
+                new StringSelectMenuOptionBuilder({
+                  label: 'شراء',
+                  description: 'للشراء من السيرفر',
+                  value: 'guide_purchase',
+                  emoji: '💰',
+                }),
+                new StringSelectMenuOptionBuilder({
+                  label: 'أخرى',
+                  description: 'طلب آخر',
+                  value: 'guide_other',
+                  emoji: '📝',
+                }),
+              ]);
+
+            const guideRow = new ActionRowBuilder().addComponents(guideSelectMenu);
+
+            const secondPanelMessage = await ticketChannel.send({
+              content: `📌 **${interaction.user.toString()} - إليك دليل التذكرة**`,
+              embeds: [secondPanelEmbed],
+              components: [guideRow]
+            });
+
+            // تثبيت الرسالة (Pin)
+            try {
+              await secondPanelMessage.pin();
+            } catch (pinError) {
+              console.log('[TICKET] Could not pin message:', pinError.message);
+            }
+
             await interaction.reply({
               content: `✅ تم إنشاء تذكرة ${interaction.user.username} بنجاح! <#${ticketChannel.id}>`,
               flags: 64
@@ -3457,6 +3522,54 @@ client.on('interactionCreate', async (interaction) => {
 
         await interaction.reply({
           embeds: [confirmEmbed],
+          flags: 0
+        });
+        return;
+      }
+
+      // ============ TICKET GUIDE SELECT (داخل التذكرة) ============
+      if (interaction.customId === 'ticket_guide_select') {
+        const guideType = interaction.values[0];
+
+        const guideResponses = {
+          guide_technical: {
+            title: '🔧 مشكلة فنية',
+            description: 'يرجى كتابة مشكلتك بالتفصيل:\n\n• وصف المشكلة\n• ما الذي حدث\n• ما الذي توقعته\n• أي أخطاء تظهر لك\n\nسيتم الرد عليك في أقرب وقت.',
+            color: 0x3B82F6
+          },
+          guide_inquiry: {
+            title: '❓ استفسار عام',
+            description: 'يرجى كتابة استفسارك هنا:\n\n• اكتب سؤالك بشكل واضح\n• حدد الموضوع\n• أي معلومات إضافية قد تساعد\n\nسنرد عليك بأسرع وقت.',
+            color: 0x10B981
+          },
+          guide_complaint: {
+            title: '⚠️ شكوى',
+            description: 'يرجى كتابة تفاصيل الشكوى:\n\n• اسم الشخص المشتكى منه\n• تاريخ الحادثة\n• وصف ما حدث\n• أي أدلة أو صور متوفرة\n\nسيتم التحقيق في الشكوى.',
+            color: 0xF59E0B
+          },
+          guide_purchase: {
+            title: '💰 شراء',
+            description: 'للشراء من السيرفر:\n\n• حدد ما تريد شراؤه\n• رتب متوفرة أو خدمات\n• طريقة الدفع المفضلة\n\nسنتواصل معك لتأكيد الطلب والدفع.',
+            color: 0x8B5CF6
+          },
+          guide_other: {
+            title: '📝 طلب آخر',
+            description: 'يرجى كتابة طلبك بالتفصيل:\n\n• اكتب ما تحتاجه\n• أي تفاصيل إضافية\n• أفضل طريقة للتواصل\n\nسنساعدك في أقرب وقت.',
+            color: 0x667eea
+          }
+        };
+
+        const response = guideResponses[guideType];
+
+        const guideEmbed = new EmbedBuilder()
+          .setTitle(response.title)
+          .setColor(response.color)
+          .setDescription(response.description)
+          .setFooter({ text: 'Unit S | Support System' })
+          .setTimestamp();
+
+        await interaction.reply({
+          embeds: [guideEmbed],
           flags: 0
         });
         return;
@@ -4897,9 +5010,9 @@ const ANNOUNCEMENT_CHANNELS = [
   '1494686120322273320',
   '1494856605286662306',
   '1495217972896071882',
-  '',
+  '1494686157110378596',
   '1494686158557413396',
-  '',
+  '1494686181567238244',
   '1494686123962929393',
   '1494686125686657135',
   '1494686127158984785',
@@ -4912,7 +5025,6 @@ const ANNOUNCEMENT_CHANNELS = [
   '1494686152840450132',
   '1494686209492910120',
   '1494686203847643248',
-  '1494879445012578345',
 ];
 
 // ============ MESSAGE EVENTS ============
