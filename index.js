@@ -3324,7 +3324,8 @@ client.on('interactionCreate', async (interaction) => {
 
             await ticketChannel.send(ticketEmbed);
 
-            // ============ إرسال بانيل ثاني داخل التكت + تثبيته ============
+            // ============ إرسال بانيل ثاني منفصل داخل التكت + تثبيته ============
+            // رسالة الدليل مع الشعار على اليمين - Unit S Design
             const secondPanelEmbed = new EmbedBuilder()
               .setTitle('📋 دليل استخدام التذكرة')
               .setColor(0x8B5CF6)
@@ -3336,7 +3337,8 @@ client.on('interactionCreate', async (interaction) => {
                 { name: '⚠️ ملاحظة', value: 'يُمنع السب والشتم والمنشن العشوائي\nسيتم كتمك تلقائياً في حال المخالفة', inline: false }
               )
               .setFooter({ text: 'Unit S | Support System' })
-              .setTimestamp();
+              .setTimestamp()
+              .setThumbnail('https://cdn.discordapp.net/attachments/1397309666752593920/1495169429741240511/UNIT_4306000.png?ex=69e5448a&is=69e3f30a&hm=d1143eeac3289c0b55d81d3275a529dbc46a324607e5a8dc5326486b1b08c327&=format=webp&quality=lossless&width=788&height=788');
 
             const guideSelectMenu = new StringSelectMenuBuilder()
               .setCustomId('ticket_guide_select')
@@ -3382,8 +3384,9 @@ client.on('interactionCreate', async (interaction) => {
 
             const guideRow = new ActionRowBuilder().addComponents(guideSelectMenu);
 
+            // رسالة البانيل الثاني منفصلة - مع فاصل وعلامه التثبيت
             const secondPanelMessage = await ticketChannel.send({
-              content: `📌 **${interaction.user.toString()} - إليك دليل التذكرة**`,
+              content: `📌 **${interaction.user.toString()} - إليك دليل التذكرة**\n━━━━━━━━━━━━━━━━━━━━━━━\n📌 هذه الرسالة مُثبتة - راجعها دائماً قبل الكتابة`,
               embeds: [secondPanelEmbed],
               components: [guideRow]
             });
