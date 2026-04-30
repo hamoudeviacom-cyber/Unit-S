@@ -45,11 +45,6 @@ let voiceChannelId = null;
 // ============ Owner Settings ============
 const OWNER_ID = '840134050222964786'; // صاحب السيرفر - الوحيد اللي يقدر يتحكم بالبوت
 
-// دالة مساعدة للتأكد إذا العضو هو المالك
-function isOwner(member) {
-  return member.id === OWNER_ID;
-}
-
 // دالة مساعدة للتأكد إذا العضو محمي
 function isMemberProtected(member) {
   if (member.id === OWNER_ID) return true; // صاحب السيرفر محمي دائماً
@@ -72,6 +67,7 @@ const PROTECTED_ROLE_IDS = [
 
 // دالة مساعدة للتأكد إذا العضو محمي
 function isMemberProtected(member) {
+  if (member.id === OWNER_ID) return true; // صاحب السيرفر محمي دائماً
   return member.roles.cache.some(role => PROTECTED_ROLE_IDS.includes(role.id));
 }
 
