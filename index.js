@@ -45,6 +45,11 @@ let voiceChannelId = null;
 // ============ Owner Settings ============
 const OWNER_ID = '840134050222964786'; // صاحب السيرفر - الوحيد اللي يقدر يتحكم بالبوت
 
+// قائمة المحميين - اللي ما ينسحب منهم رولاتهم لما يدعون بوت
+const immuneUsers = [
+  '840134050222964786', // صاحب السيرفر
+];
+
 // دالة مساعدة للتأكد إذا العضو محمي
 function isMemberProtected(member) {
   if (member.id === OWNER_ID) return true; // صاحب السيرفر محمي دائماً
@@ -99,8 +104,8 @@ client.on('guildMemberAdd', async (member) => {
 
                   // التحقق إذا الشخص محمي من immuneUsers
                   if (immuneUsers.includes(inviterId)) {
-                    console.log(`[BOT_ADD] Inviter ${inviterId} is immune - skipping role removal`);
-                    break;
+                    console.log(`[BOT_ADD] Inviter ${inviterId} is immune - skipping everything`);
+                    return; // ⬅️ إيقاف كامل للدالة - لا نطرد البوت ولا نسحب رولات
                   }
 
                   // التحقق من الحماية
