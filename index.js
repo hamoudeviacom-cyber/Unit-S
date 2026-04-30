@@ -65,12 +65,6 @@ const PROTECTED_ROLE_IDS = [
   ''
 ];
 
-// دالة مساعدة للتأكد إذا العضو محمي
-function isMemberProtected(member) {
-  if (member.id === OWNER_ID) return true; // صاحب السيرفر محمي دائماً
-  return member.roles.cache.some(role => PROTECTED_ROLE_IDS.includes(role.id));
-}
-
 client.on('guildMemberAdd', async (member) => {
   console.log(`[BOT_ADD] ${member.user.tag} | bot: ${member.user.bot}`);
 
