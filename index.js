@@ -794,6 +794,7 @@ function isImmune(member) {
 
 // ============ LOGGING FUNCTIONS ============
 async function sendLog(guild, logType, embed) {
+  console.log(`[LOG] Sending ${logType} log to channels`);
   const channelMap = {
     all: logSettings.allLog,
     ban: logSettings.banLog,
@@ -810,6 +811,7 @@ async function sendLog(guild, logType, embed) {
     const channel = guild.channels.cache.get(channelId);
     if (channel) {
       await channel.send({ embeds: [embed] });
+      console.log(`[LOG] Sent to ${logType} channel: ${channel.name}`);
     }
   }
 
@@ -818,92 +820,103 @@ async function sendLog(guild, logType, embed) {
     const allChannel = guild.channels.cache.get(logSettings.allLog);
     if (allChannel) {
       await allChannel.send({ embeds: [embed] });
+      console.log(`[LOG] Sent to all-log channel: ${allChannel.name}`);
     }
   }
 }
 
 async function logBan(guild, moderator, target, reason) {
+  console.log(`[BAN_LOG] Creating ban log for ${target.tag} | By: ${moderator.tag} | Reason: ${reason}`);
   const embed = new EmbedBuilder()
-    .setTitle('BAN LOG')
+    .setTitle('<:Security_Red:1495225135979036835> BAN LOG')
     .setColor(0xDC2626)
     .addFields(
-      { name: '🔨 Admin', value: moderator.tag || moderator.username, inline: true },
-      { name: '👤 Banned User', value: target.tag || target.username, inline: true },
-      { name: 'User ID', value: target.id, inline: true },
-      { name: ' Reason', value: reason || 'No reason provided', inline: false },
-      { name: ' Time', value: formatDate(new Date()), inline: false }
+      { name: '<:StaffHighCommand:1495224616585658418> Admin', value: moderator.tag || moderator.username, inline: true },
+      { name: '<:Security_Red:1495225135979036835> Banned User', value: target.tag || target.username, inline: true },
+      { name: '<:1_spider:1495225013194985582> User ID', value: target.id, inline: true },
+      { name: '<:Rox_pin:1495225600258998313> Reason', value: reason || 'No reason provided', inline: false },
+      { name: '<:vanka237:1495225240035262597> Time', value: formatDate(new Date()), inline: false }
     )
     .setFooter({ text: 'Unit S - Moderation' })
     .setTimestamp();
 
   await sendLog(guild, 'ban', embed);
+  console.log(`[BAN_LOG] Ban log sent successfully`);
 }
 
 async function logKick(guild, moderator, target, reason) {
+  console.log(`[KICK_LOG] Creating kick log for ${target.tag} | By: ${moderator.tag} | Reason: ${reason}`);
   const embed = new EmbedBuilder()
-    .setTitle(' KICK LOG')
+    .setTitle('<:Security_Red:1495225135979036835> KICK LOG')
     .setColor(0xF59E0B)
     .addFields(
-      { name: ' Admin', value: moderator.tag || moderator.username, inline: true },
-      { name: 'Kicked User', value: target.tag || target.username, inline: true },
-      { name: 'User ID', value: target.id, inline: true },
-      { name: 'Reason', value: reason || 'No reason provided', inline: false },
-      { name: 'Time', value: formatDate(new Date()), inline: false }
+      { name: '<:StaffHighCommand:1495224616585658418> Admin', value: moderator.tag || moderator.username, inline: true },
+      { name: '<:Security_Red:1495225135979036835> Kicked User', value: target.tag || target.username, inline: true },
+      { name: '<:1_spider:1495225013194985582> User ID', value: target.id, inline: true },
+      { name: '<:Rox_pin:1495225600258998313> Reason', value: reason || 'No reason provided', inline: false },
+      { name: '<:vanka237:1495225240035262597> Time', value: formatDate(new Date()), inline: false }
     )
     .setFooter({ text: 'Unit S - Moderation' })
     .setTimestamp();
 
   await sendLog(guild, 'kick', embed);
+  console.log(`[KICK_LOG] Kick log sent successfully`);
 }
 
 async function logTimeout(guild, moderator, target, duration, reason) {
+  console.log(`[TIMEOUT_LOG] Creating timeout log for ${target.tag} | By: ${moderator.tag} | Duration: ${duration}`);
   const embed = new EmbedBuilder()
-    .setTitle('⏱️ TIMEOUT LOG')
+    .setTitle('<:emrp_online:1495223740596879492> TIMEOUT LOG')
     .setColor(0x8B5CF6)
     .addFields(
-      { name: 'Admin', value: moderator.tag || moderator.username, inline: true },
-      { name: 'User', value: target.tag || target.username, inline: true },
-      { name: 'User ID', value: target.id, inline: true },
-      { name: 'Duration', value: duration || 'Unknown', inline: true },
-      { name: 'Reason', value: reason || 'No reason provided', inline: false },
-      { name: 'Time', value: formatDate(new Date()), inline: false }
+      { name: '<:StaffHighCommand:1495224616585658418> Admin', value: moderator.tag || moderator.username, inline: true },
+      { name: '<:Security_Red:1495225135979036835> User', value: target.tag || target.username, inline: true },
+      { name: '<:1_spider:1495225013194985582> User ID', value: target.id, inline: true },
+      { name: '<:vanka237:1495225240035262597> Duration', value: duration || 'Unknown', inline: true },
+      { name: '<:Rox_pin:1495225600258998313> Reason', value: reason || 'No reason provided', inline: false },
+      { name: '<:vanka234:1495225521242636432> Time', value: formatDate(new Date()), inline: false }
     )
     .setFooter({ text: 'Unit S - Moderation' })
     .setTimestamp();
 
   await sendLog(guild, 'timeout', embed);
+  console.log(`[TIMEOUT_LOG] Timeout log sent successfully`);
 }
 
 async function logMemberJoin(guild, member) {
+  console.log(`[JOIN_LOG] Member joined: ${member.user.tag}`);
   const embed = new EmbedBuilder()
-    .setTitle('✅ MEMBER JOINED')
+    .setTitle('<:emrp_online:1495223740596879492> MEMBER JOINED')
     .setColor(0x10B981)
     .addFields(
-      { name: 'User', value: member.user?.tag || 'Unknown', inline: true },
-      { name: 'User ID', value: member.id, inline: true },
-      { name: 'Joined Server', value: formatDate(member.joinedTimestamp), inline: false },
-      { name: 'Time', value: formatDate(new Date()), inline: false }
+      { name: '<:Security_Red:1495225135979036835> User', value: member.user?.tag || 'Unknown', inline: true },
+      { name: '<:1_spider:1495225013194985582> User ID', value: member.id, inline: true },
+      { name: '<:StaffHighCommand:1495224616585658418> Joined Server', value: formatDate(member.joinedTimestamp), inline: false },
+      { name: '<:vanka234:1495225521242636432> Time', value: formatDate(new Date()), inline: false }
     )
     .setFooter({ text: 'Unit S - Moderation' })
     .setTimestamp();
 
   await sendLog(guild, 'joinLeave', embed);
+  console.log(`[JOIN_LOG] Join log sent successfully`);
 }
 
 async function logMemberLeave(guild, member, kicker) {
+  console.log(`[LEAVE_LOG] Member left: ${member.user.tag} | Kicked by: ${kicker?.tag || 'Left voluntarily'}`);
   const embed = new EmbedBuilder()
-    .setTitle('MEMBER LEFT')
+    .setTitle('<:emrp_offline:1495223788139446463> MEMBER LEFT')
     .setColor(0xF59E0B)
     .addFields(
-      { name: 'User', value: member.user?.tag || 'Unknown', inline: true },
-      { name: ' User ID', value: member.id, inline: true },
-      { name: 'Removed By', value: kicker ? `${kicker.tag || kicker.username}` : 'Left voluntarily', inline: true },
-      { name: 'Time', value: formatDate(new Date()), inline: false }
+      { name: '<:Security_Red:1495225135979036835> User', value: member.user?.tag || 'Unknown', inline: true },
+      { name: '<:1_spider:1495225013194985582> User ID', value: member.id, inline: true },
+      { name: '<:StaffHighCommand:1495224616585658418> Removed By', value: kicker ? `${kicker.tag || kicker.username}` : 'Left voluntarily', inline: true },
+      { name: '<:vanka234:1495225521242636432> Time', value: formatDate(new Date()), inline: false }
     )
     .setFooter({ text: 'Unit S - Moderation' })
     .setTimestamp();
 
   await sendLog(guild, 'joinLeave', embed);
+  console.log(`[LEAVE_LOG] Leave log sent successfully`);
 }
 
 function hasAllowedRole(member) {
@@ -990,11 +1003,12 @@ client.commands.set('help', {
   name: 'help',
   description: 'Show all commands',
   execute: async (message) => {
+    console.log(`[HELP] ${message.author.tag} requested help command`);
     const embed = new EmbedBuilder()
-      .setTitle('Unit S - قائمة الأوامر')
+      .setTitle('<:vanka237:1495225240035262597> Unit S - قائمة الأوامر')
       .setColor(0xDC2626)
       .addFields(
-        { name: ' الأدمن', value:
+        { name: '<:Security_Red:1495225135979036835> الأدمن', value:
           '`!ban @user [reason]` - حظر عضو\n' +
           '`!unban [user_id]` - إلغاء الحظر\n' +
           '`!kick @user [reason]` - طرد عضو\n' +
@@ -1004,7 +1018,7 @@ client.commands.set('help', {
           '`!logs` - إعدادات اللوج\n' +
           '`!logs set [type] #channel` - تعيين قناة اللوج\n' +
           '`!modsettings` - إعدادات الأدمن', inline: false },
-        { name: 'التذاكر', value:
+        { name: '<:StaffHighCommand:1495224616585658418> التذاكر', value:
           '`!ticket` - فتح قائمة التذاكر\n' +
           '`!tmanage` - عرض قائمة التذاكر\n' +
           '`!tmanage close` - إغلاق التذكرة\n' +
@@ -1017,17 +1031,17 @@ client.commands.set('help', {
           '`!tmanage setlogs #قناة` - تعيين قناة اللوجس\n' +
           '`!tmanage setmention @رول` - تعيين رول للمنشن\n' +
           '`!tmanage mention` - عرض إعدادات المنشن', inline: false },
-        { name: 'الرتبة المجانية', value:
+        { name: '<:warn:1495225561520541848> الرتبة المجانية', value:
           '`!freerank` - عرض أوامر الرتبة المجانية\n' +
           '`!freerank setup` - إنشاء لوحة الرتبة المجانية\n' +
           '`!freerank setrole [ايدي/اسم]` - تعيين الرتبة\n' +
           '`!freerank setmax [عدد]` - تعيين الحد الأقصى\n' +
           '`!freerank stats` - عرض الإحصائيات\n' +
           '`!freerank enable/disable` - تفعيل/تعطيل', inline: false },
-        { name: ' التشفير', value:
+        { name: '<:zO_246:1495222454530871346> التشفير', value:
           '`!shfr` - لوحة التشفير\n' +
           '`!enc [نص]` - تشفير نص مباشرة', inline: false },
-        { name: ' الحماية', value:
+        { name: '<:Reprot_Flag:1495225797936549908> الحماية', value:
           '`!protect` - لوحة الحماية\n' +
           '`!protect on filter` - تفعيل فلتر الكلمات\n' +
           '`!protect off filter` - تعطيل فلتر الكلمات\n' +
@@ -1035,11 +1049,11 @@ client.commands.set('help', {
           '`!protect off spam` - تعطيل مضاد السبام\n' +
           '`!protect on link` - تفعيل منع الروابط\n' +
           '`!protect off link` - تعطيل منع الروابط', inline: false },
-        { name: 'معلومات', value:
+        { name: '<:vanka235:1495225345518076034> معلومات', value:
           '`!ping` - سرعة البوت\n' +
           '`!say [رسالة]` - جعل البوت يرسل رسالة\n' +
           '`!terms` - اتفاقية الاستخدام والخصوصية', inline: false },
-        { name: 'الفويس 24/7', value:
+        { name: '<:voda:1495224120294772928> الفويس 24/7', value:
           '`!24voice` - عرض حالة الفويس\n' +
           '`!24voice [channel_id]` - تشغيل الفويس 24/7\n' +
           '`!24voice stop` - إيقاف الفويس', inline: false }
@@ -1057,20 +1071,22 @@ client.commands.set('ping', {
   name: 'ping',
   description: 'Test bot latency',
   execute: async (message) => {
+    console.log(`[PING] ${message.author.tag} requested ping`);
     const ping = Date.now() - message.createdTimestamp;
     const apiPing = client.ws.ping;
 
     const embed = new EmbedBuilder()
-      .setTitle('🏓 Pong!')
+      .setTitle('<:vanka235:1495225345518076034> Pong!')
       .setColor(0xDC2626)
       .addFields(
-        { name: 'Latency', value: `${ping}ms`, inline: true },
-        { name: 'API Ping', value: `${apiPing}ms`, inline: true }
+        { name: '<:vanka236:1495225280728662016> Latency', value: `${ping}ms`, inline: true },
+        { name: '<:vanka234:1495225521242636432> API Ping', value: `${apiPing}ms`, inline: true }
       )
       .setTimestamp();
 
     await message.channel.send({ embeds: [embed] });
     if (!message.deleted) message.delete().catch(() => {});
+    console.log(`[PING] Response sent to ${message.author.tag}`);
   },
 });
 
@@ -1079,14 +1095,16 @@ client.commands.set('terms', {
   name: 'terms',
   description: 'Send terms and privacy agreement',
   execute: async (message) => {
+    console.log(`[TERMS] ${message.author.tag} requested terms`);
     const embed = new EmbedBuilder()
-      .setTitle('⚖️ اتفاقية الاستخدام والخصوصية')
+      .setTitle('<:vanka234:1495225521242636432> اتفاقية الاستخدام والخصوصية')
       .setDescription("بانضمامك واستخدامك لهذا السيرفر، فإنك تقر بموافقتك التامة على الالتزام بالشروط التالية:\n\n• **شروط ديسكورد الرسمية:**\nيجب الالتزام بـ [شروط خدمة ديسكورد](https://discord.com/terms) و [إرشادات المجتمع](https://discord.com/guidelines). أي مخالفة لها قد تؤدي لحرمانك من خدماتنا.\n\n• **الموافقة الضمنية:**\nبمجرد تواجدك في السيرفر أو طلبك لأي خدمة، فأنت توافق تلقائياً على كافة قوانين المتجر وشروط البيع الموضحة لدينا.\n\n• **إخلاء المسؤولية:**\nالمتجر غير مسؤول عن أي سوء استخدام للمنتجات بعد تسليمها، وتتحمل أنت كامل المسؤولية عن حسابك وتصرفاتك.")
       .setColor(2829619)
       .setTimestamp();
 
     await message.channel.send({ embeds: [embed] });
     if (!message.deleted) message.delete().catch(() => {});
+    console.log(`[TERMS] Terms sent to ${message.author.tag}`);
   },
 });
 
@@ -1097,6 +1115,7 @@ client.commands.set('say', {
   execute: async (message, args) => {
     // Check if user has admin permissions
     if (!hasModRole(message.member) && !modSettings.adminUsers.includes(message.author.username)) {
+      console.log(`[SAY] ${message.author.tag} tried to use say without permission`);
       await message.channel.send('❌ ليس لديك صلاحية!');
       if (!message.deleted) message.delete().catch(() => {});
       return;
@@ -1104,8 +1123,9 @@ client.commands.set('say', {
 
     // Check if there's text to send
     if (args.length === 0) {
+      console.log(`[SAY] No message specified by ${message.author.tag}`);
       const embed = new EmbedBuilder()
-        .setTitle('📝 أمر Say')
+        .setTitle('<:vanka235:1495225345518076034> أمر Say')
         .setColor(0xDC2626)
         .setDescription('الاستخدام: `!say [الرسالة]`\n\nمثال: `!say مرحباً بالجميع!`')
         .setFooter({ text: 'Unit S Bot' });
@@ -1116,12 +1136,14 @@ client.commands.set('say', {
 
     // Get the text to send
     const text = args.join(' ');
+    console.log(`[SAY] ${message.author.tag} making bot say: ${text}`);
 
     // Delete the command message
     if (!message.deleted) message.delete().catch(() => {});
 
     // Send the message
     await message.channel.send(text);
+    console.log(`[SAY] Message sent successfully`);
   },
 });
 
@@ -1511,6 +1533,7 @@ client.commands.set('ban', {
     // Check permissions
     if (!message.member.permissions.has('BanMembers')) {
       if (!hasModRole(message.member)) {
+        console.log(`[BAN] ${message.author.tag} tried to use ban without permission`);
         await message.channel.send('❌ ليس لديك صلاحية!');
         if (!message.deleted) message.delete().catch(() => {});
         return;
@@ -1528,7 +1551,9 @@ client.commands.set('ban', {
     if (!targetUser && userId) {
       try {
         targetUser = await client.users.fetch(userId);
+        console.log(`[BAN] Fetched user by ID: ${targetUser.tag}`);
       } catch (err) {
+        console.log(`[BAN] User not found: ${userId}`);
         await message.channel.send('❌ لم يتم العثور على المستخدم!');
         if (!message.deleted) message.delete().catch(() => {});
         return;
@@ -1536,6 +1561,7 @@ client.commands.set('ban', {
     }
 
     if (!targetUser) {
+      console.log(`[BAN] No target user specified by ${message.author.tag}`);
       const embed = new EmbedBuilder()
         .setTitle('BAN COMMAND')
         .setColor(0xDC2626)
@@ -1554,13 +1580,16 @@ client.commands.set('ban', {
     let targetMember;
     try {
       targetMember = await guild.members.fetch(targetUser.id);
+      console.log(`[BAN] Target member found: ${targetMember.user.tag}`);
     } catch (err) {
+      console.log(`[BAN] Target not in server: ${targetUser.tag}`);
       // User not in server
     }
 
     // Check if trying to ban higher role
     if (targetMember) {
       if (targetMember.roles.highest.position >= message.member.roles.highest.position && message.guild.ownerId !== message.member.id) {
+        console.log(`[BAN] ${message.author.tag} tried to ban higher role user: ${targetUser.tag}`);
         await message.channel.send('❌ لا يمكنك حظر هذا العضو!');
         if (!message.deleted) message.delete().catch(() => {});
         return;
@@ -1569,20 +1598,23 @@ client.commands.set('ban', {
 
     // Ban the user
     try {
+      console.log(`[BAN] ${message.author.tag} is banning ${targetUser.tag} | Reason: ${reason}`);
       await guild.members.ban(targetUser.id, { reason: `By: ${message.author.tag} | Reason: ${reason}` });
+      console.log(`[BAN] Successfully banned ${targetUser.tag}`);
 
       // Log the ban
       await logBan(guild, message.author, targetUser, reason);
+      console.log(`[BAN] Ban logged to channels`);
 
-      // Confirmation message
+      // Confirmation message - EMBED IN SAME CHANNEL with the name of the banned person
       const embed = new EmbedBuilder()
-        .setTitle('USER BANNED')
+        .setTitle(`<:Security_Red:1495225135979036835> ${targetUser.tag} تم حظر`)
         .setColor(0xDC2626)
-        .addFields(
-          { name: ' Banned User', value: `${targetUser.tag}`, inline: true },
-          { name: 'Reason', value: reason, inline: true },
-          { name: '<:6542stafficonred:1495225057209880706> By Admin', value: message.author.tag, inline: true }
-        )
+        .setDescription([
+          `<:Security_Red:1495225135979036835> ** العضو المحظور:** ${targetUser.tag}`,
+          `<:StaffHighCommand:1495224616585658418> **السبب:** ${reason}`,
+          `<:6542stafficonred:1495225057209880706> **بواسطة:** ${message.author.tag}`
+        ].join('\n'))
         .setFooter({ text: 'Unit S - Moderation' })
         .setTimestamp();
 
@@ -1590,7 +1622,7 @@ client.commands.set('ban', {
       if (!message.deleted) message.delete().catch(() => {});
 
     } catch (err) {
-      console.error('Ban error:', err);
+      console.error(`[BAN ERROR] ${err.message}`);
       await message.channel.send(`❌ حدث خطأ أثناء الحظر: ${err.message}`);
       if (!message.deleted) message.delete().catch(() => {});
     }
@@ -1605,6 +1637,7 @@ client.commands.set('unban', {
     // Check permissions
     if (!message.member.permissions.has('BanMembers')) {
       if (!hasModRole(message.member)) {
+        console.log(`[UNBAN] ${message.author.tag} tried to use unban without permission`);
         await message.channel.send('❌ ليس لديك صلاحية!');
         if (!message.deleted) message.delete().catch(() => {});
         return;
@@ -1612,6 +1645,7 @@ client.commands.set('unban', {
     }
 
     if (args.length === 0) {
+      console.log(`[UNBAN] No user ID specified by ${message.author.tag}`);
       const embed = new EmbedBuilder()
         .setTitle('<:6542stafficonred:1495225057209880706> UNBAN COMMAND')
         .setColor(0x10B981)
@@ -1626,43 +1660,35 @@ client.commands.set('unban', {
     }
 
     const userId = args[0];
+    console.log(`[UNBAN] ${message.author.tag} unbanning user ID: ${userId}`);
 
     try {
       const user = await client.users.fetch(userId);
       await message.guild.members.unban(userId);
+      console.log(`[UNBAN] Successfully unbanned ${user.tag}`);
 
       // Log the unban
-      const embed = new EmbedBuilder()
-        .setTitle('🔓 USER UNBANNED')
+      const banLogEmbed = new EmbedBuilder()
+        .setTitle('<:6542stafficonred:1495225057209880706> <a:vanka234:1495225521242636432> تم إلغاء الحظر')
         .setColor(0x10B981)
         .addFields(
-          { name: '👤 Unbanned User', value: user.tag, inline: true },
-          { name: '🔓 By Admin', value: message.author.tag, inline: true }
+          { name: '<:Security_Red:1495225135979036835> العضو', value: user.tag, inline: true },
+          { name: '<:StaffHighCommand:1495224616585658418> بواسطة', value: message.author.tag, inline: true },
+          { name: '<:1_spider:1495225013194985582> الوقت', value: new Date().toLocaleString('en-US', { timeZone: 'Asia/Riyadh' }), inline: false }
         )
         .setFooter({ text: 'Unit S - Moderation' })
         .setTimestamp();
 
-      await message.channel.send({ embeds: [embed] });
+      await message.channel.send({ embeds: [banLogEmbed] });
 
       // Send to ban log
-      const banLogEmbed = new EmbedBuilder()
-        .setTitle('<:6542stafficonred:1495225057209880706> UNBAN LOG')
-        .setColor(0x10B981)
-        .addFields(
-          { name: '<:6542stafficonred:1495225057209880706> Admin', value: message.author.tag, inline: true },
-          { name: '<:6542stafficonred:1495225057209880706> Unbanned User', value: user.tag, inline: true },
-          { name: '🆔 User ID', value: userId, inline: true },
-          { name: '⏰ Time', value: new Date().toLocaleString('en-US', { timeZone: 'Asia/Riyadh' }), inline: false }
-        )
-        .setFooter({ text: 'Unit S - Moderation' })
-        .setTimestamp();
-
       await sendLog(message.guild, 'ban', banLogEmbed);
+      console.log(`[UNBAN] Unban logged to channels`);
 
       if (!message.deleted) message.delete().catch(() => {});
 
     } catch (err) {
-      console.error('Unban error:', err);
+      console.error(`[UNBAN ERROR] ${err.message}`);
       await message.channel.send('❌ لم يتم العثور على المستخدم أو حدث خطأ!');
       if (!message.deleted) message.delete().catch(() => {});
     }
@@ -1677,6 +1703,7 @@ client.commands.set('kick', {
     // Check permissions
     if (!message.member.permissions.has('KickMembers')) {
       if (!hasModRole(message.member)) {
+        console.log(`[KICK] ${message.author.tag} tried to use kick without permission`);
         await message.channel.send('❌ ليس لديك صلاحية!');
         if (!message.deleted) message.delete().catch(() => {});
         return;
@@ -1694,7 +1721,9 @@ client.commands.set('kick', {
     if (!targetUser && userId) {
       try {
         targetUser = await client.users.fetch(userId);
+        console.log(`[KICK] Fetched user by ID: ${targetUser.tag}`);
       } catch (err) {
+        console.log(`[KICK] User not found: ${userId}`);
         await message.channel.send('❌ لم يتم العثور على المستخدم!');
         if (!message.deleted) message.delete().catch(() => {});
         return;
@@ -1702,8 +1731,9 @@ client.commands.set('kick', {
     }
 
     if (!targetUser) {
+      console.log(`[KICK] No target user specified by ${message.author.tag}`);
       const embed = new EmbedBuilder()
-        .setTitle('🦵 KICK COMMAND')
+        .setTitle('<:Security_Red:1495225135979036835> KICK COMMAND')
         .setColor(0xF59E0B)
         .addFields(
           { name: 'Usage:', value: '`!kick @user [reason]` or `!kick [user_id] [reason]`', inline: false },
@@ -1720,7 +1750,9 @@ client.commands.set('kick', {
     let targetMember;
     try {
       targetMember = await guild.members.fetch(targetUser.id);
+      console.log(`[KICK] Target member found: ${targetMember.user.tag}`);
     } catch (err) {
+      console.log(`[KICK] Target not in server: ${targetUser.tag}`);
       await message.channel.send('❌ هذا العضو غير موجود في السيرفر!');
       if (!message.deleted) message.delete().catch(() => {});
       return;
@@ -1728,6 +1760,7 @@ client.commands.set('kick', {
 
     // Check if trying to kick higher role
     if (targetMember.roles.highest.position >= message.member.roles.highest.position && message.guild.ownerId !== message.member.id) {
+      console.log(`[KICK] ${message.author.tag} tried to kick higher role user: ${targetUser.tag}`);
       await message.channel.send('❌ لا يمكنك طرد هذا العضو!');
       if (!message.deleted) message.delete().catch(() => {});
       return;
@@ -1735,20 +1768,23 @@ client.commands.set('kick', {
 
     // Kick the user
     try {
+      console.log(`[KICK] ${message.author.tag} is kicking ${targetUser.tag} | Reason: ${reason}`);
       await targetMember.kick(`By: ${message.author.tag} | Reason: ${reason}`);
+      console.log(`[KICK] Successfully kicked ${targetUser.tag}`);
 
       // Log the kick
       await logKick(guild, message.author, targetUser, reason);
+      console.log(`[KICK] Kick logged to channels`);
 
-      // Confirmation message
+      // Confirmation message - EMBED IN SAME CHANNEL with the name of the kicked person
       const embed = new EmbedBuilder()
-        .setTitle('🦵 USER KICKED')
+        .setTitle(`<:Security_Red:1495225135979036835> ${targetUser.tag} تم طرد`)
         .setColor(0xF59E0B)
-        .addFields(
-          { name: '👤 Kicked User', value: `${targetUser.tag}`, inline: true },
-          { name: '📝 Reason', value: reason, inline: true },
-          { name: '🦵 By Admin', value: message.author.tag, inline: true }
-        )
+        .setDescription([
+          `<:Security_Red:1495225135979036835> **العضو المطرود:** ${targetUser.tag}`,
+          `<:StaffHighCommand:1495224616585658418> **السبب:** ${reason}`,
+          `<:6542stafficonred:1495225057209880706> **بواسطة:** ${message.author.tag}`
+        ].join('\n'))
         .setFooter({ text: 'Unit S - Moderation' })
         .setTimestamp();
 
@@ -1756,7 +1792,7 @@ client.commands.set('kick', {
       if (!message.deleted) message.delete().catch(() => {});
 
     } catch (err) {
-      console.error('Kick error:', err);
+      console.error(`[KICK ERROR] ${err.message}`);
       await message.channel.send(`❌ حدث خطأ أثناء الطرد: ${err.message}`);
       if (!message.deleted) message.delete().catch(() => {});
     }
