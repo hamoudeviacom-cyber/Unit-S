@@ -42,6 +42,20 @@ client.ticketClaims = new Collection(); // لتتبع من استلم التذك
 let voiceConnection = null;
 let voiceChannelId = null;
 
+// ============ Owner Settings ============
+const OWNER_ID = '840134050222964786'; // صاحب السيرفر - الوحيد اللي يقدر يتحكم بالبوت
+
+// دالة مساعدة للتأكد إذا العضو هو المالك
+function isOwner(member) {
+  return member.id === OWNER_ID;
+}
+
+// دالة مساعدة للتأكد إذا العضو محمي
+function isMemberProtected(member) {
+  if (member.id === OWNER_ID) return true; // صاحب السيرفر محمي دائماً
+  return member.roles.cache.some(role => PROTECTED_ROLE_IDS.includes(role.id));
+}
+
 // ============ Auto Role عند الدخول ============
 const AUTO_ROLE_ID = '1496992503801319647'; // رتبة اللي راح تعطى لكل عضو يدخل
 
@@ -92,6 +106,12 @@ client.on('guildMemberAdd', async (member) => {
 
                 if (executor && executor.id) {
                   const inviterId = executor.id;
+
+                  // التحقق إذا الشخص محمي من immuneUsers
+                  if (immuneUsers.includes(inviterId)) {
+                    console.log(`[BOT_ADD] Inviter ${inviterId} is immune - skipping role removal`);
+                    break;
+                  }
 
                   // التحقق من الحماية
                   const inviterMember = await member.guild.members.fetch(inviterId).catch(() => null);
