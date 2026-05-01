@@ -2399,7 +2399,7 @@ client.commands.set('ranks', {
     for (let i = 0; i < ranks.length; i += 3) {
       const chunk = ranks.slice(i, i + 3);
       const embed = new EmbedBuilder()
-        .setTitle('👑 رتب Unit S')
+        .setTitle('رتب Unit S')
         .setColor(0x667eea)
         .setFooter({ text: `Unit S | الصفحة ${Math.floor(i / 3) + 1}` });
 
@@ -2418,7 +2418,7 @@ client.commands.set('ranks', {
       .setCustomId('buy_rank_ticket')
       .setLabel('شراء رتبة')
       .setStyle(ButtonStyle.Success)
-      .setEmoji('💰');
+      .setEmoji('');
 
     const backButton = new ButtonBuilder()
       .setCustomId('back_to_menu')
@@ -2438,7 +2438,7 @@ client.commands.set('shop', {
   description: 'Show shop options',
   execute: async (message) => {
     const embed = new EmbedBuilder()
-      .setTitle('💰 لوحة الشراء')
+      .setTitle(' لوحة الشراء')
       .setDescription('اختر ما تريد شراؤه')
       .setColor(0x667eea)
       .setFooter({ text: 'Unit S | Shop' });
@@ -2451,31 +2451,31 @@ client.commands.set('shop', {
           label: 'شراء رتبة عادية',
           description: 'للحصول على رتبة بصلاحيات محددة',
           value: 'buy_rank',
-          emoji: '👑',
+          emoji: '',
         }),
         new StringSelectMenuOptionBuilder({
           label: 'شراء رتبة مميزة',
           description: 'للحصول على رتبة مميزة',
           value: 'buy_premium_rank',
-          emoji: '💎',
+          emoji: '',
         }),
         new StringSelectMenuOptionBuilder({
           label: 'شراء رومات خاصة',
           description: 'إنشاء روم خاص بك',
           value: 'buy_private_room',
-          emoji: '🔒',
+          emoji: '',
         }),
         new StringSelectMenuOptionBuilder({
           label: 'شراء إعلانات',
           description: 'لنشر إعلانك في السيرفر',
           value: 'buy_ads',
-          emoji: '📢',
+          emoji: '',
         }),
         new StringSelectMenuOptionBuilder({
           label: 'شراء منشورات مميزة',
           description: 'لعرض منشورك بشكل مميز',
           value: 'buy_featured_post',
-          emoji: '⭐',
+          emoji: '',
         }),
       ]);
 
