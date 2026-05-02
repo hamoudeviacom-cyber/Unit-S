@@ -306,6 +306,44 @@ function saveFreeRankSettings(settings) {
 
 const freeRankSettings = loadFreeRankSettings();
 
+// ============ Ranks Shop Settings ============
+const RANKS_FILE = './ranks_settings.json';
+
+function loadRanksSettings() {
+  try {
+    if (existsSync(RANKS_FILE)) {
+      const data = readFileSync(RANKS_FILE, 'utf8');
+      const parsed = JSON.parse(data);
+      return {
+        ranks: Array.isArray(parsed.ranks) ? parsed.ranks : []
+      };
+    }
+  } catch (err) {
+    console.error('Error loading ranks settings:', err);
+  }
+  return {
+    ranks: [
+      { id: 'rank_coder', name: 'Coder S.', price: 150000, features: ['نشر في رومات محددة', 'إمكانية منشن', 'صلاحيات خاصة'], roleId: null },
+      { id: 'rank_artisan', name: 'Artisan S.', price: 200000, features: ['نشر في رومات معينة', 'نشر صور في رومات محددة', 'إمكانية منشن'], roleId: null },
+      { id: 'rank_novice', name: 'Novice S.', price: 250000, features: ['نشر في جميع الرومات', 'عدم نشر صور', 'إمكانية منشن'], roleId: null },
+      { id: 'rank_elite', name: 'Elite S.', price: 300000, features: ['نشر في جميع الرومات', 'نشر صور', 'عدم المنشن'], roleId: null },
+      { id: 'rank_master', name: 'Master S.', price: 550000, features: ['نشر في جميع الرومات', 'نشر صور في رومات محددة', 'إمكانية منشن'], roleId: null },
+      { id: 'rank_legend', name: 'Legend S.', price: 750000, features: ['نشر في جميع الرومات', 'نشر صور', 'إمكانية منشن'], roleId: null },
+      { id: 'rank_seraph', name: 'Seraph S.', price: 1000000, features: ['جميع الصلاحيات', 'نشر صور في جميع الرومات', 'منشن كامل'], roleId: null }
+    ]
+  };
+}
+
+function saveRanksSettings(settings) {
+  try {
+    writeFileSync(RANKS_FILE, JSON.stringify(settings, null, 2));
+  } catch (err) {
+    console.error('Error saving ranks settings:', err);
+  }
+}
+
+const ranksSettings = loadRanksSettings();
+
 // ============ Log Channels Settings ============
 // IDs اللي أعطيتهم - Audit Log channels
 const logSettings = {
@@ -2276,29 +2314,17 @@ client.commands.set('ticket', {
               options: [
                 {
                   label: 'الـدعـم الـفـنـي',
-                  emoji: {
-                    id: '1495235065440108584',
-                    name: 'vanka237',
-                    animated: false
-                  },
+                  description: 'للمشاكل التقنية والاستفسارات',
                   value: 'ticket_technical'
                 },
                 {
                   label: 'الـشـكـاوي',
-                  emoji: {
-                    id: '1495234630310297671',
-                    name: 'Reprot_Flag',
-                    animated: false
-                  },
+                  description: 'للتقدم بشكوى ضد عضو',
                   value: 'ticket_complaint'
                 },
                 {
                   label: 'إعـادة تعيين الـقـائـمـة',
-                  emoji: {
-                    id: '1495234888931082333',
-                    name: 'vanka239',
-                    animated: false
-                  },
+                  description: 'لإعادة عرض قائمة التذاكر',
                   value: 'ticket_reset'
                 }
               ],
@@ -2385,15 +2411,14 @@ client.commands.set('ranks', {
   name: 'ranks',
   description: 'Show available ranks for purchase',
   execute: async (message) => {
-    const ranks = [
-      { name: 'Coder S.', price: 150000, features: ['نشر في رومات محددة', 'إمكانية منشن', 'صلاحيات خاصة'] },
-      { name: 'Artisan S.', price: 200000, features: ['نشر في رومات معينة', 'نشر صور في رومات محددة', 'إمكانية منشن'] },
-      { name: 'Novice S.', price: 250000, features: ['نشر في جميع الرومات', 'عدم نشر صور', 'إمكانية منشن'] },
-      { name: 'Elite S.', price: 300000, features: ['نشر في جميع الرومات', 'نشر صور', 'عدم المنشن'] },
-      { name: 'Master S.', price: 550000, features: ['نشر في جميع الرومات', 'نشر صور في رومات محددة', 'إمكانية منشن'] },
-      { name: 'Legend S.', price: 750000, features: ['نشر في جميع الرومات', 'نشر صور', 'إمكانية منشن'] },
-      { name: 'Seraph S.', price: 1000000, features: ['جميع الصلاحيات', 'نشر صور في جميع الرومات', 'منشن كامل'] },
-    ];
+    // Use ranks from settings
+    const ranks = ranksSettings.ranks;
+
+    if (ranks.length === 0) {
+      await message.channel.send('❌ لا توجد رتب متاحة حالياً!');
+      if (!message.deleted) message.delete().catch(() => {});
+      return;
+    }
 
     const embeds = [];
     for (let i = 0; i < ranks.length; i += 3) {
@@ -2405,7 +2430,7 @@ client.commands.set('ranks', {
 
       for (const rank of chunk) {
         embed.addFields({
-          name: `${rank.name} - $${rank.price.toLocaleString()}`,
+          name: `${rank.name} - ${rank.price.toLocaleString()}`,
           value: rank.features.map(f => `• ${f}`).join('\n'),
           inline: false
         });
@@ -2418,7 +2443,7 @@ client.commands.set('ranks', {
       .setCustomId('buy_rank_ticket')
       .setLabel('شراء رتبة')
       .setStyle(ButtonStyle.Success)
-      .setEmoji('');
+      .setEmoji('💰');
 
     const backButton = new ButtonBuilder()
       .setCustomId('back_to_menu')
@@ -2438,7 +2463,7 @@ client.commands.set('shop', {
   description: 'Show shop options',
   execute: async (message) => {
     const embed = new EmbedBuilder()
-      .setTitle(' لوحة الشراء')
+      .setTitle('💰 لوحة الشراء')
       .setDescription('اختر ما تريد شراؤه')
       .setColor(0x667eea)
       .setFooter({ text: 'Unit S | Shop' });
@@ -2451,31 +2476,31 @@ client.commands.set('shop', {
           label: 'شراء رتبة عادية',
           description: 'للحصول على رتبة بصلاحيات محددة',
           value: 'buy_rank',
-          emoji: '',
+          emoji: '👑',
         }),
         new StringSelectMenuOptionBuilder({
           label: 'شراء رتبة مميزة',
           description: 'للحصول على رتبة مميزة',
           value: 'buy_premium_rank',
-          emoji: '',
+          emoji: '💎',
         }),
         new StringSelectMenuOptionBuilder({
           label: 'شراء رومات خاصة',
           description: 'إنشاء روم خاص بك',
           value: 'buy_private_room',
-          emoji: '',
+          emoji: '🔒',
         }),
         new StringSelectMenuOptionBuilder({
           label: 'شراء إعلانات',
           description: 'لنشر إعلانك في السيرفر',
           value: 'buy_ads',
-          emoji: '',
+          emoji: '📢',
         }),
         new StringSelectMenuOptionBuilder({
           label: 'شراء منشورات مميزة',
           description: 'لعرض منشورك بشكل مميز',
           value: 'buy_featured_post',
-          emoji: '',
+          emoji: '⭐',
         }),
       ]);
 
@@ -2542,6 +2567,273 @@ client.commands.set('enc', {
     if (!message.deleted) message.delete().catch(() => {});
   },
 });
+
+// ============ RANKS MANAGEMENT COMMANDS ============
+// !rankshop - عرض إعدادات الرتب
+client.commands.set('rankshop', {
+  name: 'rankshop',
+  description: 'إدارة رتب المتجر',
+  execute: async (message, args) => {
+    // Check permissions
+    if (!hasModRole(message.member) && !modSettings.adminUsers.includes(message.author.username)) {
+      await message.channel.send('❌ ليس لديك صلاحية!');
+      if (!message.deleted) message.delete().catch(() => {});
+      return;
+    }
+
+    if (args.length === 0) {
+      const embed = new EmbedBuilder()
+        .setTitle('Unit S | إدارة رتب المتجر')
+        .setColor(0x667eea)
+        .setDescription('أوامر إدارة رتب المتجر:')
+        .addFields(
+          { name: '`!rankshop list`', value: 'عرض جميع الرتب', inline: false },
+          { name: '`!rankshop add [اسم] [السعر] [الميزات]`', value: 'إضافة رتبة جديدة', inline: false },
+          { name: '`!rankshop remove [id]`', value: 'حذف رتبة', inline: false },
+          { name: '`!rankshop price [id] [السعر]`', value: 'تعديل سعر رتبة', inline: false },
+          { name: '`!rankshop name [id] [الاسم الجديد]`', value: 'تعديل اسم رتبة', inline: false },
+          { name: '`!rankshop role [id] [@رول]`', value: 'ربط رتبة بديسكورد رول', inline: false },
+          { name: '`!rankshop features [id] [الميزات]`', value: 'تعديل ميزات رتبة', inline: false }
+        )
+        .setFooter({ text: 'Unit S | Ranks Shop' })
+        .setTimestamp();
+
+      await message.channel.send({ embeds: [embed] });
+      if (!message.deleted) message.delete().catch(() => {});
+      return;
+    }
+
+    const action = args[0].toLowerCase();
+
+    // List all ranks
+    if (action === 'list') {
+      if (ranksSettings.ranks.length === 0) {
+        await message.channel.send('❌ لا توجد رتب مضافة!');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+
+      const embed = new EmbedBuilder()
+        .setTitle('Unit S | قائمة الرتب')
+        .setColor(0x667eea)
+        .setFooter({ text: `عدد الرتب: ${ranksSettings.ranks.length}` })
+        .setTimestamp();
+
+      for (const rank of ranksSettings.ranks) {
+        embed.addFields({
+          name: `${rank.name} - ${rank.price.toLocaleString()}`,
+          value: `ID: \`${rank.id}\`\nالميزات: ${rank.features.join(' | ')}${rank.roleId ? `\nالرول: <@&${rank.roleId}>` : ''}`,
+          inline: false
+        });
+      }
+
+      await message.channel.send({ embeds: [embed] });
+      if (!message.deleted) message.delete().catch(() => {});
+      return;
+    }
+
+    // Add new rank
+    if (action === 'add') {
+      if (args.length < 3) {
+        await message.channel.send('❌ الاستخدام: `!rankshop add [اسم] [السعر] [الميزات...]\`\nمثال: `!rankshop add VIP S. 500000 نشر في جميع الرومات`');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+
+      const rankName = args[1];
+      const price = parseInt(args[2]);
+      const features = args.slice(3);
+
+      if (isNaN(price) || price < 0) {
+        await message.channel.send('❌ السعر يجب أن يكون رقماً!');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+
+      if (features.length === 0) {
+        await message.channel.send('❌ يجب إضافة ميزات للرتب!');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+
+      const rankId = 'rank_' + rankName.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+
+      // Check if rank already exists
+      if (ranksSettings.ranks.some(r => r.id === rankId)) {
+        await message.channel.send('❌ هذه الرتبة موجودة مسبقاً!');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+
+      const newRank = {
+        id: rankId,
+        name: rankName,
+        price: price,
+        features: features,
+        roleId: null
+      };
+
+      ranksSettings.ranks.push(newRank);
+      saveRanksSettings(ranksSettings);
+
+      await message.channel.send(`✅ تم إضافة الرتبة **${rankName}** بسعر **${price.toLocaleString()}**\nID: \`${rankId}\``);
+      if (!message.deleted) message.delete().catch(() => {});
+      return;
+    }
+
+    // Remove rank
+    if (action === 'remove') {
+      if (args.length < 2) {
+        await message.channel.send('❌ الاستخدام: `!rankshop remove [id]`');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+
+      const rankId = args[1];
+      const index = ranksSettings.ranks.findIndex(r => r.id === rankId);
+
+      if (index === -1) {
+        await message.channel.send('❌ لم يتم العثور على رتبة بهذا الـ ID!');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+
+      const removedRank = ranksSettings.ranks.splice(index, 1)[0];
+      saveRanksSettings(ranksSettings);
+
+      await message.channel.send(`✅ تم حذف الرتبة **${removedRank.name}**`);
+      if (!message.deleted) message.delete().catch(() => {});
+      return;
+    }
+
+    // Set price
+    if (action === 'price') {
+      if (args.length < 3) {
+        await message.channel.send('❌ الاستخدام: `!rankshop price [id] [السعر]`');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+
+      const rankId = args[1];
+      const newPrice = parseInt(args[2]);
+
+      if (isNaN(newPrice) || newPrice < 0) {
+        await message.channel.send('❌ السعر يجب أن يكون رقماً!');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+
+      const rank = ranksSettings.ranks.find(r => r.id === rankId);
+      if (!rank) {
+        await message.channel.send('❌ لم يتم العثور على رتبة بهذا الـ ID!');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+
+      const oldPrice = rank.price;
+      rank.price = newPrice;
+      saveRanksSettings(ranksSettings);
+
+      await message.channel.send(`✅ تم تحديث سعر **${rank.name}** من **${oldPrice.toLocaleString()}** إلى **${newPrice.toLocaleString()}**`);
+      if (!message.deleted) message.delete().catch(() => {});
+      return;
+    }
+
+    // Set name
+    if (action === 'name') {
+      if (args.length < 3) {
+        await message.channel.send('❌ الاستخدام: `!rankshop name [id] [الاسم الجديد]`');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+
+      const rankId = args[1];
+      const newName = args.slice(2).join(' ');
+
+      const rank = ranksSettings.ranks.find(r => r.id === rankId);
+      if (!rank) {
+        await message.channel.send('❌ لم يتم العثور على رتبة بهذا الـ ID!');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+
+      const oldName = rank.name;
+      rank.name = newName;
+      saveRanksSettings(ranksSettings);
+
+      await message.channel.send(`✅ تم تحديث اسم **${oldName}** إلى **${newName}**`);
+      if (!message.deleted) message.delete().catch(() => {});
+      return;
+    }
+
+    // Set role
+    if (action === 'role') {
+      if (args.length < 3) {
+        await message.channel.send('❌ الاستخدام: `!rankshop role [id] [@رول]`');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+
+      const rankId = args[1];
+      const role = message.mentions.roles.first();
+
+      if (!role) {
+        await message.channel.send('❌ يجب mention رول!');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+
+      const rank = ranksSettings.ranks.find(r => r.id === rankId);
+      if (!rank) {
+        await message.channel.send('❌ لم يتم العثور على رتبة بهذا الـ ID!');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+
+      rank.roleId = role.id;
+      saveRanksSettings(ranksSettings);
+
+      await message.channel.send(`✅ تم ربط الرتبة **${rank.name}** بالرول ${role.name}`);
+      if (!message.deleted) message.delete().catch(() => {});
+      return;
+    }
+
+    // Set features
+    if (action === 'features') {
+      if (args.length < 3) {
+        await message.channel.send('❌ الاستخدام: `!rankshop features [id] [الميزات...]`');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+
+      const rankId = args[1];
+      const newFeatures = args.slice(2);
+
+      const rank = ranksSettings.ranks.find(r => r.id === rankId);
+      if (!rank) {
+        await message.channel.send('❌ لم يتم العثور على رتبة بهذا الـ ID!');
+        if (!message.deleted) message.delete().catch(() => {});
+        return;
+      }
+
+      rank.features = newFeatures;
+      saveRanksSettings(ranksSettings);
+
+      await message.channel.send(`✅ تم تحديث ميزات **${rank.name}**\nالميزات: ${newFeatures.join(' | ')}`);
+      if (!message.deleted) message.delete().catch(() => {});
+      return;
+    }
+
+    await message.channel.send('❌ أمر غير معروف! استخدم `!rankshop` لعرض الأوامر.');
+    if (!message.deleted) message.delete().catch(() => {});
+  },
+});
+
+// Alias commands for easier access
+client.commands.set('setrankprice', client.commands.get('rankshop'));
+client.commands.set('addrank', client.commands.get('rankshop'));
+client.commands.set('removerank', client.commands.get('rankshop'));
+client.commands.set('editrank', client.commands.get('rankshop'));
 
 // ============ PROTECTION MENU ============
 client.commands.set('protect', {
@@ -3481,59 +3773,28 @@ client.on('interactionCreate', async (interaction) => {
 
         if (purchaseType === 'purchase_auto') {
           const ranksEmbed = new EmbedBuilder()
-            .setTitle('👑 رتب Unit S')
+            .setTitle('رتب Unit S')
             .setColor(0x667eea)
             .addFields(
-              { name: '💎 Coder S.', value: 'السعر: 150,000 | نشر في رومات محددة - إمكانية منشن - صلاحيات خاصة', inline: false },
-              { name: '⚡ Artisan S.', value: 'السعر: 200,000 | نشر في رومات معينة - نشر صور - إمكانية منشن', inline: false },
-              { name: '🎯 Novice S.', value: 'السعر: 250,000 | نشر في جميع الرومات - عدم نشر صور - إمكانية منشن', inline: false },
-              { name: '🔥 Elite S.', value: 'السعر: 300,000 | نشر في جميع الرومات - نشر صور - عدم المنشن', inline: false },
-              { name: '⭐ Master S.', value: 'السعر: 550,000 | نشر في جميع الرومات - نشر صور في رومات محددة - إمكانية منشن', inline: false },
-              { name: '👑 Legend S.', value: 'السعر: 750,000 | نشر في جميع الرومات - نشر صور - إمكانية منشن', inline: false },
-              { name: '🌟 Seraph S.', value: 'السعر: 1,000,000 | جميع الصلاحيات - نشر صور في جميع الرومات - منشن كامل', inline: false }
+              ranksSettings.ranks.map(rank => ({
+                name: rank.name,
+                value: `السعر: ${rank.price.toLocaleString()} | ${rank.features.join(' - ')}`,
+                inline: false
+              }))
             )
             .setFooter({ text: 'Unit S | الرتب' });
 
           const shopSelectMenu = new StringSelectMenuBuilder()
             .setCustomId('shop_ranks_select')
             .setPlaceholder('اختر الرتبة المطلوبة...')
-            .addOptions([
-              new StringSelectMenuOptionBuilder({
-                label: 'Coder S. - 150,000',
-                value: 'rank_coder',
-                emoji: '💎',
-              }),
-              new StringSelectMenuOptionBuilder({
-                label: 'Artisan S. - 200,000',
-                value: 'rank_artisan',
-                emoji: '⚡',
-              }),
-              new StringSelectMenuOptionBuilder({
-                label: 'Novice S. - 250,000',
-                value: 'rank_novice',
-                emoji: '🎯',
-              }),
-              new StringSelectMenuOptionBuilder({
-                label: 'Elite S. - 300,000',
-                value: 'rank_elite',
-                emoji: '🔥',
-              }),
-              new StringSelectMenuOptionBuilder({
-                label: 'Master S. - 550,000',
-                value: 'rank_master',
-                emoji: '⭐',
-              }),
-              new StringSelectMenuOptionBuilder({
-                label: 'Legend S. - 750,000',
-                value: 'rank_legend',
-                emoji: '👑',
-              }),
-              new StringSelectMenuOptionBuilder({
-                label: 'Seraph S. - 1,000,000',
-                value: 'rank_seraph',
-                emoji: '🌟',
-              }),
-            ]);
+            .addOptions(
+              ranksSettings.ranks.map(rank =>
+                new StringSelectMenuOptionBuilder({
+                  label: `${rank.name} - ${rank.price.toLocaleString()}`,
+                  value: rank.id,
+                })
+              )
+            );
 
           const shopRow = new ActionRowBuilder().addComponents(shopSelectMenu);
 
@@ -3569,22 +3830,19 @@ client.on('interactionCreate', async (interaction) => {
       if (interaction.customId === 'shop_ranks_select') {
         const selectedRank = interaction.values[0];
 
-        const rankInfo = {
-          rank_coder: { name: 'Coder S.', price: '150,000' },
-          rank_artisan: { name: 'Artisan S.', price: '200,000' },
-          rank_novice: { name: 'Novice S.', price: '250,000' },
-          rank_elite: { name: 'Elite S.', price: '300,000' },
-          rank_master: { name: 'Master S.', price: '550,000' },
-          rank_legend: { name: 'Legend S.', price: '750,000' },
-          rank_seraph: { name: 'Seraph S.', price: '1,000,000' },
-        };
+        const selected = ranksSettings.ranks.find(r => r.id === selectedRank);
 
-        const selected = rankInfo[selectedRank];
+        if (!selected) {
+          return await interaction.reply({
+            content: '❌ رتبة غير موجودة!',
+            flags: 64
+          });
+        }
 
         const confirmEmbed = new EmbedBuilder()
           .setTitle(`✅ تم اختيار الرتبة: ${selected.name}`)
           .setColor(0x10B981)
-          .setDescription(`تم تحديد رتبة **${selected.name}** بقيمة **${selected.price}**`)
+          .setDescription(`تم تحديد رتبة **${selected.name}** بقيمة **${selected.price.toLocaleString()}**`)
           .addFields(
             { name: '📋 الخطوات التالية:', value: '1. سيتم التواصل معك عبر هذه التذكرة\n2. اتبع تعليمات الدفع\n3. بعد الدفع سيتم تفعيل الرتبة فوراً', inline: false }
           )
@@ -3603,32 +3861,33 @@ client.on('interactionCreate', async (interaction) => {
 
         const guideResponses = {
           buy_normal_rank: {
-            title: 'شراء رتبه عاديه',
-            description: 'مرحباً بك في قسم شراء الرتب العادية!\n\nيرجى تحديد الرتبة المطلوبة من القائمة أدناه:\n\n• **Coder S.** - 150,000\n• **Artisan S.** - 200,000\n• **Novice S.** - 250,000\n• **Elite S.** - 300,000\n• **Master S.** - 550,000',
+            title: 'شراء رتب',
+            description: 'مرحباً بك في قسم شراء الرتب!\n\nيرجى تحديد الرتبة المطلوبة من القائمة أدناه:\n\n' +
+              ranksSettings.ranks.map(r => `• **${r.name}** - ${r.price.toLocaleString()}`).join('\n'),
             color: 0xF59E0B
           },
           buy_premium_rank: {
-            title: 'شراء رتبه مميزه',
+            title: '💎 شراء رتب مميزة',
             description: 'مرحباً بك في قسم الرتب المميزة!\n\nللحصول على رتبة مميزة، يرجى كتابة:\n\n• نوع الرتبة المطلوبة\n• طريقة الدفع المفضلة\n• أي استفسارات إضافية\n\nسيتم التواصل معك قريباً.',
             color: 0x8B5CF6
           },
           buy_private_rooms: {
-            title: 'شراء روم خاص',
+            title: '🔒 شراء رومات خاصة',
             description: 'مرحباً بك في قسم شراء الرومات الخاصة!\n\nلإنشاء روم خاص بك، يرجى تحديد:\n\n• نوع الروم المطلوب\n• عدد الأشخاص المسموح لهم\n• مدة الاشتراك\n\nسيتم التواصل معك لتأكيد التفاصيل.',
             color: 0x3B82F6
           },
           buy_advertisements: {
-            title: 'شراء اعلانات',
+            title: '📢 شراء إعلانات',
             description: 'مرحباً بك في قسم شراء الإعلانات!\n\nلنشر إعلانك في السيرفر، يرجى تحديد:\n\n• نوع الإعلان\n• مدة الإعلان\n• الروم المستهدف\n\nسيتم التواصل معك لتأكيد الطلب.',
             color: 0x10B981
           },
           buy_featured_posts: {
-            title: 'شراء مشنورات مميزه',
+            title: '⭐ شراء منشورات مميزة',
             description: 'مرحباً بك في قسم المنشورات المميزة!\n\nلعرض منشورك بشكل مميز، يرجى تحديد:\n\n• نوع المنشور\n• مدة الظهور\n• أي تفاصيل إضافية\n\nسيتم التواصل معك لتأكيد التفاصيل.',
             color: 0xEC4899
           },
           remove_seller_warnings: {
-            title: 'ازلة تحذيرات البائعين',
+            title: '⚠️ إزالة تحذيرات البائعين',
             description: 'مرحباً بك في قسم إزالة التحذيرات!\n\nلإزالة تحذيرات البائعين، يرجى:\n\n• كتابة اسم حسابك\n• شرح سبب التحذير\n• أي أدلة أو معلومات إضافية\n\nسيتم مراجعة طلبك والتواصل معك قريباً.',
             color: 0xEF4444
           }
