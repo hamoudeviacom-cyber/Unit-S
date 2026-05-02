@@ -2476,31 +2476,26 @@ client.commands.set('shop', {
           label: 'شراء رتبة عادية',
           description: 'للحصول على رتبة بصلاحيات محددة',
           value: 'buy_rank',
-          emoji: '👑',
         }),
         new StringSelectMenuOptionBuilder({
           label: 'شراء رتبة مميزة',
           description: 'للحصول على رتبة مميزة',
           value: 'buy_premium_rank',
-          emoji: '💎',
         }),
         new StringSelectMenuOptionBuilder({
           label: 'شراء رومات خاصة',
           description: 'إنشاء روم خاص بك',
           value: 'buy_private_room',
-          emoji: '🔒',
         }),
         new StringSelectMenuOptionBuilder({
           label: 'شراء إعلانات',
           description: 'لنشر إعلانك في السيرفر',
           value: 'buy_ads',
-          emoji: '📢',
         }),
         new StringSelectMenuOptionBuilder({
           label: 'شراء منشورات مميزة',
           description: 'لعرض منشورك بشكل مميز',
           value: 'buy_featured_post',
-          emoji: '⭐',
         }),
       ]);
 
@@ -3993,12 +3988,32 @@ client.on('interactionCreate', async (interaction) => {
         const guideType = interaction.values[0];
 
         const guideResponses = {
-          buy_normal_rank: {
-            title: 'شراء رتب',
-            description: 'مرحباً بك في قسم شراء الرتب!\n\nيرجى تحديد الرتبة المطلوبة من القائمة أدناه:\n\n' +
-              ranksSettings.ranks.map(r => `• **${r.name}** - ${r.price.toLocaleString()}`).join('\n'),
-            color: 0xF59E0B
-          },
+          buy_normal_rank: (() => {
+            const ranks = [
+              { name: 'Coder S.', price: 150000, features: ['نشر في رومات محددة', 'إمكانية منشن', 'صلاحيات خاصة'] },
+              { name: 'Artisan S.', price: 200000, features: ['نشر في رومات معينة', 'نشر صور في رومات محددة', 'إمكانية منشن'] },
+              { name: 'Novice S.', price: 250000, features: ['نشر في جميع الرومات', 'عدم نشر صور', 'إمكانية منشن'] },
+              { name: 'Elite S.', price: 300000, features: ['نشر في جميع الرومات', 'نشر صور', 'عدم المنشن'] },
+              { name: 'Master S.', price: 550000, features: ['نشر في جميع الرومات', 'نشر صور في رومات محددة', 'إمكانية منشن'] },
+              { name: 'Legend S.', price: 750000, features: ['نشر في جميع الرومات', 'نشر صور', 'إمكانية منشن'] },
+              { name: 'Seraph S.', price: 1000000, features: ['جميع الصلاحيات', 'نشر صور في جميع الرومات', 'منشن كامل'] },
+            ];
+
+            const embed = new EmbedBuilder()
+              .setTitle('رتب Unit S')
+              .setColor(0x667eea)
+              .setFooter({ text: 'Unit S | Ranks' });
+
+            for (const rank of ranks) {
+              embed.addFields({
+                name: `${rank.name} - $${rank.price.toLocaleString()}`,
+                value: rank.features.map(f => `• ${f}`).join('\n'),
+                inline: true
+              });
+            }
+
+            return embed;
+          })(),
           buy_premium_rank: {
             title: '💎 شراء رتب مميزة',
             description: 'مرحباً بك في قسم الرتب المميزة!\n\nللحصول على رتبة مميزة، يرجى كتابة:\n\n• نوع الرتبة المطلوبة\n• طريقة الدفع المفضلة\n• أي استفسارات إضافية\n\nسيتم التواصل معك قريباً.',
@@ -4035,17 +4050,26 @@ client.on('interactionCreate', async (interaction) => {
           });
         }
 
-        const guideEmbed = new EmbedBuilder()
-          .setTitle(response.title)
-          .setColor(response.color)
-          .setDescription(response.description)
-          .setFooter({ text: 'Unit S | Support System' })
-          .setTimestamp();
+        // إذا response هو embed جاهز (object مع setTitle method)
+        if (response && typeof response.setTitle === 'function') {
+          await interaction.reply({
+            embeds: [response],
+            flags: 0
+          });
+        } else {
+          // إذا response هو object عادي (title, description, color)
+          const guideEmbed = new EmbedBuilder()
+            .setTitle(response.title)
+            .setColor(response.color)
+            .setDescription(response.description)
+            .setFooter({ text: 'Unit S | Support System' })
+            .setTimestamp();
 
-        await interaction.reply({
-          embeds: [guideEmbed],
-          flags: 0
-        });
+          await interaction.reply({
+            embeds: [guideEmbed],
+            flags: 0
+          });
+        }
         return;
       }
 
