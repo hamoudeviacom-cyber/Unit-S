@@ -2829,6 +2829,139 @@ client.commands.set('rankshop', {
   },
 });
 
+// ============ EDIT PRICES BUTTONS COMMAND ============
+client.commands.set('editprices', {
+  name: 'editprices',
+  description: 'عرض أزرار تعديل أسعار الرتب',
+  execute: async (message, args) => {
+    // Check permissions
+    if (!hasModRole(message.member) && !modSettings.adminUsers.includes(message.author.username)) {
+      await message.channel.send('❌ ليس لديك صلاحية!');
+      if (!message.deleted) message.delete().catch(() => {});
+      return;
+    }
+
+    if (ranksSettings.ranks.length === 0) {
+      await message.channel.send('❌ لا توجد رتب مضافة!');
+      if (!message.deleted) message.delete().catch(() => {});
+      return;
+    }
+
+    const embed = new EmbedBuilder()
+      .setTitle('Unit S | تعديل أسعار الرتب')
+      .setColor(0x667eea)
+      .setDescription('اضغط على الزر الخاص بالرتبة التي تريد تعديل سعرها')
+      .setFooter({ text: 'Unit S | إدارة الأسعار' })
+      .setTimestamp();
+
+    // Create buttons row (max 5 per row)
+    const rows = [];
+    let currentRow = new ActionRowBuilder();
+
+    for (let i = 0; i < ranksSettings.ranks.length; i++) {
+      const rank = ranksSettings.ranks[i];
+
+      const button = new ButtonBuilder()
+        .setCustomId(`edit_price_${rank.id}`)
+        .setLabel(`${rank.name}`)
+        .setStyle(ButtonStyle.Primary);
+
+      currentRow.addComponents(button);
+
+      // Discord has max 5 buttons per row
+      if ((i + 1) % 5 === 0 || i === ranksSettings.ranks.length - 1) {
+        rows.push(currentRow);
+        currentRow = new ActionRowBuilder();
+      }
+    }
+
+    await message.channel.send({ embeds: [embed], components: rows });
+    if (!message.deleted) message.delete().catch(() => {});
+  },
+});
+
+// ============ INTERACTION HANDLER ============
+client.on('interactionCreate', async (interaction) => {
+  try {
+    // Handle Button Interactions
+    if (interaction.isButton()) {
+      const customId = interaction.customId;
+
+      // Handle edit price buttons
+      if (customId.startsWith('edit_price_')) {
+        const rankId = customId.replace('edit_price_', '');
+        const rank = ranksSettings.ranks.find(r => r.id === rankId);
+
+        if (!rank) {
+          await interaction.reply({ content: '❌ الرتبة غير موجودة!', ephemeral: true });
+          return;
+        }
+
+        // Create modal for price edit
+        const modal = new ModalBuilder()
+          .setCustomId(`price_modal_${rankId}`)
+          .setTitle(`تعديل سعر ${rank.name}`);
+
+        const priceInput = new TextInputBuilder()
+          .setCustomId('new_price')
+          .setLabel(`السعر الجديد (الحالي: ${rank.price.toLocaleString()})`)
+          .setStyle(TextInputStyle.Short)
+          .setPlaceholder('أدخل السعر الجديد')
+          .setRequired(true);
+
+        const actionRow = new ActionRowBuilder().addComponents(priceInput);
+        modal.addComponents(actionRow);
+
+        await interaction.showModal(modal);
+        return;
+      }
+    }
+
+    // Handle Modal submissions
+    if (interaction.isModalSubmit()) {
+      const customId = interaction.customId;
+
+      if (customId.startsWith('price_modal_')) {
+        const rankId = customId.replace('price_modal_', '');
+        const rank = ranksSettings.ranks.find(r => r.id === rankId);
+
+        if (!rank) {
+          await interaction.reply({ content: '❌ الرتبة غير موجودة!', ephemeral: true });
+          return;
+        }
+
+        const newPriceInput = interaction.fields.getTextInputValue('new_price');
+        const newPrice = parseInt(newPriceInput);
+
+        if (isNaN(newPrice) || newPrice < 0) {
+          await interaction.reply({ content: '❌ السعر يجب أن يكون رقماً موجباً!', ephemeral: true });
+          return;
+        }
+
+        const oldPrice = rank.price;
+        rank.price = newPrice;
+        saveRanksSettings(ranksSettings);
+
+        const embed = new EmbedBuilder()
+          .setTitle('✅ تم تحديث السعر بنجاح')
+          .setColor(0x10B981)
+          .addFields(
+            { name: 'الرتبة:', value: rank.name, inline: true },
+            { name: 'السعر القديم:', value: oldPrice.toLocaleString(), inline: true },
+            { name: 'السعر الجديد:', value: newPrice.toLocaleString(), inline: true }
+          )
+          .setFooter({ text: 'Unit S | إدارة الأسعار' })
+          .setTimestamp();
+
+        await interaction.reply({ embeds: [embed], ephemeral: false });
+        return;
+      }
+    }
+  } catch (error) {
+    console.error('Interaction error:', error);
+  }
+});
+
 // Alias commands for easier access
 client.commands.set('setrankprice', client.commands.get('rankshop'));
 client.commands.set('addrank', client.commands.get('rankshop'));
