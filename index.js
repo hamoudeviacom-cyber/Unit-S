@@ -2922,6 +2922,96 @@ client.on('interactionCreate', async (interaction) => {
         await interaction.showModal(modal);
         return;
       }
+
+      // Handle shop buy rank button
+      if (customId === 'shop_buy_rank') {
+        const rankOptions = ranksSettings.ranks.map(rank => {
+          return {
+            label: `${rank.name} - ${rank.price.toLocaleString()}`,
+            description: rank.features.join(' | '),
+            value: `rank_${rank.id}`,
+          };
+        });
+
+        const embed = new EmbedBuilder()
+          .setTitle('اختر الرتبة')
+          .setColor(0x8B5CF6)
+          .setFooter({ text: 'Unit S | Shop' })
+          .setTimestamp();
+
+        const shopMenu = new StringSelectMenuBuilder()
+          .setCustomId('shop_rank_select')
+          .setPlaceholder('اختر الرتبة')
+          .addOptions(rankOptions.map(opt => new StringSelectMenuOptionBuilder(opt)))
+          .setMinValues(1)
+          .setMaxValues(1);
+
+        const menuRow = new ActionRowBuilder().addComponents(shopMenu);
+
+        await interaction.reply({ embeds: [embed], components: [menuRow], ephemeral: true });
+        return;
+      }
+
+      // Handle back to main menu button
+      if (customId === 'shop_back_main') {
+        await interaction.message.delete().catch(() => {});
+
+        const ticketPayload = {
+          content: '_ _',
+          embeds: [
+            {
+              color: 0xff0000,
+              author: {
+                name: 'الـتـذكـرة',
+                icon_url: 'https://media.discordapp.net/attachments/1397309666752593920/1495169429741240511/UNIT_4306000.png?ex=69e5448a&is=69e3f30a&hm=d1143eeac3289c0b55d81d3275a529dbc46a324607e5a8dc5326486b1b08c327&=format=webp&quality=lossless&width=788&height=788'
+              },
+              description: [
+                '**هنا يُمكنك الحصول على المساعدة عن طريق  :<:vanka237:1495225240035262597>**',
+                '',
+                '**__  الـدعـم الـفـنـي__ : شراء رتبة ، استفسار ، إنشاء روم خاص ، منشور بـ <#1495217972896071882> <:6542stafficonred:1495225057209880706>**',
+                '',
+                '** __الـشـكـاوي__ : للبلاغ عن فرد من طاثم الدعم الفني الخاص بـ Unit S <:StaffHighCommand:1495224616585658418>**',
+                '',
+                '__ ـــــــــــــــــــــــــــــــــــــــــــــــــ <a:emrp_warning:1495223911871414403> ـــــــــــــــــــــــــــــــــــــــــــــــــــ __',
+                '',
+                '**يُمنع الازعاج بالمنشن والاسبام داخل التذكرة <:warn:1495225561520541848>**',
+                '',
+                '**يُمنع السب والشتم داخل التذكرة مهما كان السبب <:warn:1495225561520541848>**',
+                '',
+                '**يُمنع فتح التذكرة بدون سبباو للاستهبال <:warn:1495225561520541848>**',
+                '',
+                '**في حال خالفة احد القوانين اعلاه ستتعرض للكتم <:warn:1495225561520541848>**',
+                '',
+                '__ ـــــــــــــــــــــــــــــــــــــــــــــــــ <:vanka237:1495225240035262597> ـــــــــــــــــــــــــــــــــــــــــــــــــــ __'
+              ].join('\n'),
+              image: {
+                url: 'https://cdn.discordapp.net/attachments/1397309666752593920/1495169428738936852/UNIT_406004040.webp?ex=69e5448a&is=69e3f30a&hm=be61008c6e62b1b6783e3af827d9a737804a90f617421c905fa4881c90a03994&'
+              }
+            }
+          ],
+          components: [
+            {
+              type: 1,
+              components: [
+                {
+                  type: 3,
+                  custom_id: 'ticket_main_select',
+                  options: [
+                    { label: 'الـدعـم الـفـنـي', description: 'للمشاكل التقنية والاستفسارات', value: 'ticket_technical' },
+                    { label: 'الـشـكـاوي', description: 'للتقدم بشكوى ضد عضو', value: 'ticket_complaint' },
+                    { label: 'إعـادة تعيين الـقـائـمـة', description: 'لإعادة عرض قائمة التذاكر', value: 'ticket_reset' }
+                  ],
+                  placeholder: 'اختر من القائمة...',
+                  min_values: 1,
+                  max_values: 1
+                }
+              ]
+            }
+          ]
+        };
+        await interaction.channel.send(ticketPayload);
+        return;
+      }
     }
 
     // Handle Modal submissions
