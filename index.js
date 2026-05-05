@@ -4871,6 +4871,135 @@ client.on('interactionCreate', async (interaction) => {
         return;
       }
 
+      // ============ TICKET TECHNICAL TYPE SELECT ============
+      if (interaction.customId === 'ticket_technical_type') {
+        const ticketType = interaction.values[0];
+
+        // For buy_rank - show ranks list with buttons
+        if (ticketType === 'buy_rank') {
+          const ranks = ranksSettings.ranks;
+
+          if (ranks.length === 0) {
+            const noRanksEmbed = new EmbedBuilder()
+              .setTitle('❌ لا توجد رتب متاحة')
+              .setDescription('لا توجد رتب متاحة حالياً للشراء.')
+              .setColor(0xDC2626);
+
+            const resetButton = new ButtonBuilder()
+              .setCustomId('ticket_reset_menu')
+              .setLabel('رجوع')
+              .setStyle(ButtonStyle.Secondary)
+              .setEmoji('🔙');
+
+            const row = new ActionRowBuilder().addComponents(resetButton);
+
+            await interaction.reply({ embeds: [noRanksEmbed], components: [row], flags: 0 });
+            return;
+          }
+
+          const embed = new EmbedBuilder()
+            .setTitle('👑 رتب Unit S - الشراء')
+            .setColor(0x667eea)
+            .setFooter({ text: `عدد الرتب: ${ranks.length}` })
+            .setTimestamp();
+
+          for (const rank of ranks) {
+            embed.addFields({
+              name: `${rank.name} - $${rank.price.toLocaleString()}`,
+              value: rank.features.map(f => `• ${f}`).join('\n'),
+              inline: false
+            });
+          }
+
+          // Add buttons under the ranks message
+          const buyButton = new ButtonBuilder()
+            .setCustomId('shop_buy_rank')
+            .setLabel('شراء رتبة عادية')
+            .setStyle(ButtonStyle.Success)
+            .setEmoji('👑');
+
+          const backButton = new ButtonBuilder()
+            .setCustomId('ticket_reset_menu')
+            .setLabel('رجوع للقائمة الرئيسية')
+            .setStyle(ButtonStyle.Secondary)
+            .setEmoji('🔙');
+
+          const row = new ActionRowBuilder().addComponents(buyButton, backButton);
+
+          await interaction.reply({ embeds: [embed], components: [row], flags: 0 });
+          return;
+        }
+
+        // For ticket_ranks - show ranks display
+        if (ticketType === 'ticket_ranks') {
+          const ranks = ranksSettings.ranks;
+
+          if (ranks.length === 0) {
+            const noRanksEmbed = new EmbedBuilder()
+              .setTitle('❌ لا توجد رتب متاحة')
+              .setDescription('لا توجد رتب متاحة حالياً.')
+              .setColor(0xDC2626);
+
+            await interaction.reply({ embeds: [noRanksEmbed], flags: 0 });
+            return;
+          }
+
+          const embed = new EmbedBuilder()
+            .setTitle('👑 رتب Unit S')
+            .setColor(0x667eea)
+            .setFooter({ text: `عدد الرتب: ${ranks.length}` })
+            .setTimestamp();
+
+          for (const rank of ranks) {
+            embed.addFields({
+              name: `${rank.name} - $${rank.price.toLocaleString()}`,
+              value: rank.features.map(f => `• ${f}`).join('\n'),
+              inline: false
+            });
+          }
+
+          const backButton = new ButtonBuilder()
+            .setCustomId('ticket_reset_menu')
+            .setLabel('رجوع للقائمة الرئيسية')
+            .setStyle(ButtonStyle.Secondary)
+            .setEmoji('🔙');
+
+          const row = new ActionRowBuilder().addComponents(backButton);
+
+          await interaction.reply({ embeds: [embed], components: [row], flags: 0 });
+          return;
+        }
+
+        // For other types - show guide
+        const guideEmbed = new EmbedBuilder()
+          .setTitle('📋 تم استلام طلبك')
+          .setColor(0x667eea)
+          .setFooter({ text: 'Unit S | Support' })
+          .setTimestamp();
+
+        if (ticketType === 'rank_issue') {
+          guideEmbed.setDescription('**الخطوة 1: تم تحديد المشكلة**\nسيقوم فريق الدعم بمراجعة مشكلتك المتعلقة بالرتبة.');
+          guideEmbed.addFields({ name: '📝 الخطوة التالية', value: 'الخطوة 2: انتظر الرد من فريق الدعم', inline: false });
+        } else if (ticketType === 'buy_premium_rank') {
+          guideEmbed.setDescription('**الخطوة 1: تم تحديد طلب رتبة مميزة**\nسيقوم فريق الدعم بمراجعة طلبك.');
+          guideEmbed.addFields({ name: '📝 الخطوة التالية', value: 'الخطوة 2: انتظر الرد من فريق الدعم', inline: false });
+        } else if (ticketType === 'buy_private_room') {
+          guideEmbed.setDescription('**الخطوة 1: تم تحديد طلب روم خاص**\nسيقوم فريق الدعم بمراجعة طلبك.');
+          guideEmbed.addFields({ name: '📝 الخطوة التالية', value: 'الخطوة 2: انتظر الرد من فريق الدعم', inline: false });
+        } else if (ticketType === 'buy_ads') {
+          guideEmbed.setDescription('**الخطوة 1: تم تحديد طلب إعلانات**\nسيقوم فريق الدعم بمراجعة طلبك.');
+          guideEmbed.addFields({ name: '📝 الخطوة التالية', value: 'الخطوة 2: انتظر الرد من فريق الدعم', inline: false });
+        } else if (ticketType === 'buy_featured_post') {
+          guideEmbed.setDescription('**الخطوة 1: تم تحديد طلب منشور مميز**\nسيقوم فريق الدعم بمراجعة طلبك.');
+          guideEmbed.addFields({ name: '📝 الخطوة التالية', value: 'الخطوة 2: انتظر الرد من فريق الدعم', inline: false });
+        }
+
+        guideEmbed.addFields({ name: '⚠️ تنبيه', value: 'يُمنع السب والشتم والمنشن العشوائي. سيتم كتمك تلقائياً في حال المخالفة.' });
+
+        await interaction.reply({ embeds: [guideEmbed], flags: 0 });
+        return;
+      }
+
       // ============ SHOP PURCHASE SELECT (القائمة القديمة) ============
       if (interaction.customId === 'shop_purchase_select') {
         const purchaseType = interaction.values[0];
