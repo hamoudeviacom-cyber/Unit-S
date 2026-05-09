@@ -32,6 +32,17 @@ const client = new Client({
   partials: ['CHANNEL', 'GUILD_MEMBER', 'USER'],
 });
 
+client.on('ready', async () => {
+  console.log(`✅ Bot is online! Logged in as ${client.user.tag}`);
+  console.log(`✅ Bot ID: ${client.user.id}`);
+  client.user.setActivity('Unit S | !help', { type: 'PLAYING' });
+});
+
+// Login to Discord
+client.login(TOKEN)
+  .then(() => console.log('✅ Successfully logged in to Discord!'))
+  .catch(err => console.error('❌ Failed to login:', err));
+
 // Collections
 client.commands = new Collection();
 client.encryptedPosts = new Collection();
