@@ -3747,3 +3747,27 @@ client.commands.set('tmanage', {
   },
 });
 
+
+// ============ MESSAGE COMMAND HANDLER ============
+client.on('messageCreate', async (message) => {
+  // Ignore bots and DMs
+  if (message.author.bot || !message.guild) return;
+  
+  // Check if message starts with prefix
+  if (!message.content.startsWith(PREFIX)) return;
+  
+  // Parse command
+  const args = message.content.slice(PREFIX.length).trim().split(/ +/);
+  const commandName = args.shift().toLowerCase();
+  
+  // Find and execute command
+  const command = client.commands.get(commandName);
+  if (command) {
+    try {
+      await command.execute(message, args);
+    } catch (error) {
+      console.error(`Error executing command ${commandName}:`, error);
+      await message.channel.send('❌ حدث خطأ أثناء تنفيذ الأمر!').catch(() => {});
+    }
+  }
+});
