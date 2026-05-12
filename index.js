@@ -396,6 +396,7 @@ const ticketSettings = {
   mentionRoleId: '1494685856684970014', // رتبة الدعم الفني - سيتم المنشن تلقائياً
   mentionRoleName: null,
   // إعدادات التكت
+  ticketCategoryId: '1494686051716038778', // Category للتذاكر
   ticketPanelTitle: 'Unit S Tickets',
   welcomeTitle: 'Welcome To Unit S support',
   welcomeSubtitle: 'Choose The Ticket That You Want To Open',
@@ -3123,25 +3124,30 @@ client.on('interactionCreate', async (interaction) => {
         }
 
         if (selectedValue === 'ticket_technical') {
-          await interaction.reply({ content: 'جاري إنشاء تذكرة الدعم الفني...', ephemeral: true }).catch(() => {});
+          // تحديث حالة القائمة أولاً - قبل reply
+          try {
+            const row = new ActionRowBuilder().addComponents(
+              new StringSelectMenuBuilder()
+                .setCustomId('ticket_main_select')
+                .setPlaceholder('⏳ جاري المعالجة...')
+                .setOptions([
+                  new StringSelectMenuOptionBuilder({
+                    label: '⏳ جاري المعالجة...',
+                    description: 'يرجى الانتظار',
+                    value: 'loading'
+                  })
+                ])
+                .setDisabled(true)
+            );
 
-          // تحديث حالة القائمة
-          await interaction.message.edit({
-            components: [{
-              type: 1,
-              components: [{
-                type: 3,
-                custom_id: 'ticket_main_select',
-                options: [
-                  { label: '⏳ جاري المعالجة...', description: 'يرجى الانتظار', value: 'loading', default: true }
-                ],
-                placeholder: 'اختر من القائمة...',
-                min_values: 1,
-                max_values: 1,
-                disabled: true
-              }]
-            }]
-          }).catch(() => {});
+            if (interaction.message) {
+              await interaction.message.edit({ components: [row] }).catch(() => {});
+            }
+          } catch (e) {
+            console.log('[TICKET] Could not edit original message');
+          }
+
+          await interaction.reply({ content: 'جاري إنشاء تذكرة الدعم الفني...', ephemeral: true }).catch(() => {});
 
           // إنشاء قناة التذكرة
           try {
@@ -3223,25 +3229,30 @@ client.on('interactionCreate', async (interaction) => {
         }
 
         if (selectedValue === 'ticket_complaint') {
-          await interaction.reply({ content: 'جاري إنشاء تذكرة الشكاوي...', ephemeral: true }).catch(() => {});
+          // تحديث حالة القائمة أولاً - قبل reply
+          try {
+            const row = new ActionRowBuilder().addComponents(
+              new StringSelectMenuBuilder()
+                .setCustomId('ticket_main_select')
+                .setPlaceholder('⏳ جاري المعالجة...')
+                .setOptions([
+                  new StringSelectMenuOptionBuilder({
+                    label: '⏳ جاري المعالجة...',
+                    description: 'يرجى الانتظار',
+                    value: 'loading'
+                  })
+                ])
+                .setDisabled(true)
+            );
 
-          // تحديث حالة القائمة
-          await interaction.message.edit({
-            components: [{
-              type: 1,
-              components: [{
-                type: 3,
-                custom_id: 'ticket_main_select',
-                options: [
-                  { label: '⏳ جاري المعالجة...', description: 'يرجى الانتظار', value: 'loading', default: true }
-                ],
-                placeholder: 'اختر من القائمة...',
-                min_values: 1,
-                max_values: 1,
-                disabled: true
-              }]
-            }]
-          }).catch(() => {});
+            if (interaction.message) {
+              await interaction.message.edit({ components: [row] }).catch(() => {});
+            }
+          } catch (e) {
+            console.log('[TICKET] Could not edit original message');
+          }
+
+          await interaction.reply({ content: 'جاري إنشاء تذكرة الشكاوي...', ephemeral: true }).catch(() => {});
 
           // إنشاء قناة التذكرة
           try {
