@@ -3124,7 +3124,8 @@ client.on('interactionCreate', async (interaction) => {
 
         if (selectedValue === 'ticket_technical') {
           await interaction.reply({ content: 'جاري إنشاء تذكرة الدعم الفني...', ephemeral: true }).catch(() => {});
-          // Call the technical support ticket creation here
+
+          // تحديث حالة القائمة
           await interaction.message.edit({
             components: [{
               type: 1,
@@ -3136,15 +3137,95 @@ client.on('interactionCreate', async (interaction) => {
                 ],
                 placeholder: 'اختر من القائمة...',
                 min_values: 1,
-                max_values: 1
+                max_values: 1,
+                disabled: true
               }]
             }]
-          });
+          }).catch(() => {});
+
+          // إنشاء قناة التذكرة
+          try {
+            const ticketCategoryId = ticketSettings.ticketCategoryId || null;
+            const supportRoleId = ticketSettings.mentionRoleId;
+
+            const channelName = `ticket-${interaction.user.username.toLowerCase().replace(/[^a-z0-9]/g, '')}-${Date.now().toString().slice(-4)}`;
+
+            const ticketChannel = await interaction.guild.channels.create(channelName, {
+              type: 'GUILD_TEXT',
+              parent: ticketCategoryId,
+              topic: `Ticket created by ${interaction.user.tag} | Type: Technical Support`,
+              permissionOverwrites: [
+                { id: interaction.guild.id, deny: ['VIEW_CHANNEL'] },
+                { id: interaction.user.id, allow: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY'] },
+                ...(supportRoleId ? [{ id: supportRoleId, allow: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY'] }] : [])
+              ]
+            });
+
+            // إضافة بيانات التذكرة
+            client.ticketClaims.set(ticketChannel.id, {
+              userId: interaction.user.id,
+              type: 'technical',
+              createdAt: Date.now()
+            });
+
+            // رسالة الترحيب في التذكرة
+            const welcomeEmbed = new EmbedBuilder()
+              .setColor(0x667eea)
+              .setTitle('مرحباً بك في الدعم الفني')
+              .setDescription([
+                `<@${interaction.user.id}> تم فتح تذكرة الدعم الفني الخاصة بك!`,
+                '',
+                'سيتم الرد عليك من قبل فريق الدعم الفني قريباً.',
+                '',
+                'يرجى الانتظار ولا تقم بإزعاج الأدمنز.',
+                '',
+                '⏰ وقت فتح التذكرة: ' + new Date().toLocaleString('ar-SA')
+              ].join('\n'))
+              .setFooter({ text: 'Unit S | Technical Support' })
+              .setTimestamp();
+
+            const claimButton = new ButtonBuilder()
+              .setCustomId('ticket_claim')
+              .setLabel('Claim')
+              .setStyle(ButtonStyle.Secondary);
+
+            const closeButton = new ButtonBuilder()
+              .setCustomId('ticket_close')
+              .setLabel('Close')
+              .setStyle(ButtonStyle.Danger);
+
+            const buttonRow = new ActionRowBuilder().addComponents(claimButton, closeButton);
+
+            await ticketChannel.send({
+              content: supportRoleId ? `<@&${supportRoleId}>` : undefined,
+              embeds: [welcomeEmbed],
+              components: [buttonRow]
+            });
+
+            // Pin the message
+            const pinnedMsg = await ticketChannel.messages.fetch({ limit: 1 }).then(msgs => msgs.first());
+            if (pinnedMsg) await pinnedMsg.pin().catch(() => {});
+
+            // إرسال رسالة للمستخدم
+            await interaction.editReply({
+              content: `✅ تم إنشاء تذكرة الدعم الفني بنجاح!\n${ticketChannel}`,
+              ephemeral: true
+            });
+
+          } catch (err) {
+            console.error('Error creating ticket:', err);
+            await interaction.editReply({
+              content: '❌ حدث خطأ أثناء إنشاء التذكرة. يرجى المحاولة مرة أخرى.',
+              ephemeral: true
+            });
+          }
           return;
         }
 
         if (selectedValue === 'ticket_complaint') {
           await interaction.reply({ content: 'جاري إنشاء تذكرة الشكاوي...', ephemeral: true }).catch(() => {});
+
+          // تحديث حالة القائمة
           await interaction.message.edit({
             components: [{
               type: 1,
@@ -3156,10 +3237,88 @@ client.on('interactionCreate', async (interaction) => {
                 ],
                 placeholder: 'اختر من القائمة...',
                 min_values: 1,
-                max_values: 1
+                max_values: 1,
+                disabled: true
               }]
             }]
-          });
+          }).catch(() => {});
+
+          // إنشاء قناة التذكرة
+          try {
+            const ticketCategoryId = ticketSettings.ticketCategoryId || null;
+            const supportRoleId = ticketSettings.mentionRoleId;
+
+            const channelName = `complaint-${interaction.user.username.toLowerCase().replace(/[^a-z0-9]/g, '')}-${Date.now().toString().slice(-4)}`;
+
+            const ticketChannel = await interaction.guild.channels.create(channelName, {
+              type: 'GUILD_TEXT',
+              parent: ticketCategoryId,
+              topic: `Complaint ticket by ${interaction.user.tag}`,
+              permissionOverwrites: [
+                { id: interaction.guild.id, deny: ['VIEW_CHANNEL'] },
+                { id: interaction.user.id, allow: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY'] },
+                ...(supportRoleId ? [{ id: supportRoleId, allow: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'READ_MESSAGE_HISTORY'] }] : [])
+              ]
+            });
+
+            // إضافة بيانات التذكرة
+            client.ticketClaims.set(ticketChannel.id, {
+              userId: interaction.user.id,
+              type: 'complaint',
+              createdAt: Date.now()
+            });
+
+            // رسالة الترحيب في التذكرة
+            const welcomeEmbed = new EmbedBuilder()
+              .setColor(0xDC2626)
+              .setTitle('مرحباً بك في قسم الشكاوي')
+              .setDescription([
+                `<@${interaction.user.id}> تم فتح تذكرة الشكاوي الخاصة بك!`,
+                '',
+                'يرجى كتابة تفاصيل شكواك بشكل واضح.',
+                '',
+                '⚠️ تنبيه: الشكاوي الكاذبة ستؤدي لإغلاق تذكرتك.',
+                '',
+                '⏰ وقت فتح التذكرة: ' + new Date().toLocaleString('ar-SA')
+              ].join('\n'))
+              .setFooter({ text: 'Unit S | Complaints' })
+              .setTimestamp();
+
+            const claimButton = new ButtonBuilder()
+              .setCustomId('ticket_claim')
+              .setLabel('Claim')
+              .setStyle(ButtonStyle.Secondary);
+
+            const closeButton = new ButtonBuilder()
+              .setCustomId('ticket_close')
+              .setLabel('Close')
+              .setStyle(ButtonStyle.Danger);
+
+            const buttonRow = new ActionRowBuilder().addComponents(claimButton, closeButton);
+
+            await ticketChannel.send({
+              content: supportRoleId ? `<@&${supportRoleId}>` : undefined,
+              embeds: [welcomeEmbed],
+              components: [buttonRow]
+            });
+
+            // Pin the message
+            const pinnedMsg = await ticketChannel.messages.fetch({ limit: 1 }).then(msgs => msgs.first());
+            if (pinnedMsg) await pinnedMsg.pin().catch(() => {});
+
+            // إرسال رسالة للمستخدم
+            await interaction.editReply({
+              content: `✅ تم إنشاء تذكرة الشكاوي بنجاح!\n${ticketChannel}`,
+              ephemeral: true
+            });
+
+          } catch (err) {
+            console.error('Error creating complaint ticket:', err);
+            await interaction.editReply({
+              content: '❌ حدث خطأ أثناء إنشاء التذكرة. يرجى المحاولة مرة أخرى.',
+              ephemeral: true
+            });
+          }
           return;
         }
       }
