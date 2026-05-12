@@ -13,7 +13,7 @@ app.listen(port, () => {
 });
 
 
-import { Client, GatewayIntentBits, Collection, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, ComponentType } from 'discord.js';
+import { Client, GatewayIntentBits, Collection, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, ComponentType, ChannelType } from 'discord.js';
 import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { joinVoiceChannel, createAudioPlayer, createAudioResource, AudioPlayerStatus, entersState, VoiceConnectionStatus, getVoiceConnection } from '@discordjs/voice';
 
@@ -3157,7 +3157,7 @@ client.on('interactionCreate', async (interaction) => {
             const channelName = `ticket-${interaction.user.username.toLowerCase().replace(/[^a-z0-9]/g, '')}-${Date.now().toString().slice(-4)}`;
 
             const ticketChannel = await interaction.guild.channels.create(channelName, {
-              type: 'GUILD_TEXT',
+              type: ChannelType.GuildText,
               parent: ticketCategoryId,
               topic: `Ticket created by ${interaction.user.tag} | Type: Technical Support`,
               permissionOverwrites: [
@@ -3262,7 +3262,7 @@ client.on('interactionCreate', async (interaction) => {
             const channelName = `complaint-${interaction.user.username.toLowerCase().replace(/[^a-z0-9]/g, '')}-${Date.now().toString().slice(-4)}`;
 
             const ticketChannel = await interaction.guild.channels.create(channelName, {
-              type: 'GUILD_TEXT',
+              type: ChannelType.GuildText,
               parent: ticketCategoryId,
               topic: `Complaint ticket by ${interaction.user.tag}`,
               permissionOverwrites: [
