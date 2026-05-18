@@ -2660,6 +2660,7 @@ client.on('interactionCreate', async (interaction) => {
           });
 
           // Update the original message to show purchase completed
+          // Update the original message to show purchase completed
           if (interaction.message && !interaction.message.deleted) {
             await interaction.message.edit({
               components: [{
@@ -2680,6 +2681,24 @@ client.on('interactionCreate', async (interaction) => {
               }]
             }).catch(() => {});
           }
+
+        } catch (err) {
+          console.error('Error creating ticket:', err);
+          await interaction.reply({
+            content: '❌ حدث خطأ أثناء فتح التذكرة!',
+            ephemeral: true
+          });
+        }
+
+        return;
+      }
+
+    }
+
+  } catch (error) {
+    console.error('Interaction error:', error);
+  }
+});
 
         } catch (err) {
           console.error('Error creating ticket:', err);
