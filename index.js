@@ -2688,24 +2688,6 @@ client.on('interactionCreate', async (interaction) => {
         return;
       }
 
-      // Handle cancel buy
-      
-
-      // Handle ticket claim
-      
-
-        // Check if already claimed
-        if (ticketData.claimedBy) {
-          await interaction.reply({ content: `❌ تم استلام هذه التذكرة بواسطة <@${ticketData.claimedBy}>`, ephemeral: true });
-          return;
-        }
-
-        ticketData.claimedBy = interaction.user.id;
-        // set(interaction.channel.id, ticketData);
-
-        await interaction.reply({ content: `✅ تم استلام التذكرة بواسطة <@${interaction.user.id}>` });
-        return;
-      }
 
     }
   } catch (error) {
