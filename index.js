@@ -2643,10 +2643,10 @@ client.on('interactionCreate', async (interaction) => {
 
           // Add to ticket claims
           // set(ticketChannel.id, {
-            userId: interaction.user.id,
-            rankId: rank.id,
-            createdAt: Date.now()
-          });
+          //   userId: interaction.user.id,
+          //   rankId: rank.id,
+          //   createdAt: Date.now()
+          // });
 
           // Pin the message
           await ticketChannel.messages.fetch().then(msgs => {
