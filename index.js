@@ -2687,10 +2687,10 @@ client.on('interactionCreate', async (interaction) => {
 
             // إضافة بيانات التذكرة
             // set(ticketChannel.id, {
-              userId: interaction.user.id,
-              type: 'complaint',
-              createdAt: Date.now()
-            });
+            //   userId: interaction.user.id,
+            //   type: 'complaint',
+            //   createdAt: Date.now()
+            // });
 
             // رسالة الترحيب في التذكرة
             const welcomeEmbed = new EmbedBuilder()
