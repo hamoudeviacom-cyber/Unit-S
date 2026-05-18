@@ -2707,37 +2707,6 @@ client.on('interactionCreate', async (interaction) => {
         return;
       }
 
-      // Handle ticket close
-      
-
-      // Handle ticket manage
-      
-
-        const embed = new EmbedBuilder()
-          .setTitle('إدارة التذكرة')
-          .setColor(0x667eea)
-          .setDescription('اختر الإجراء الذي تريده:')
-          .addFields(
-            { name: 'المستخدم', value: `<@${ticketData?.userId || 'غير معروف'}>`, inline: true },
-            { name: 'الحالة', value: ticketData?.claimedBy ? `تم الاستلام بواسطة <@${ticketData.claimedBy}>` : 'لم يتم الاستلام', inline: true }
-          )
-          .setFooter({ text: 'Unit S | Ticket Management' });
-
-        const addUserButton = new ButtonBuilder()
-          .setCustomId('ticket_add_user')
-          .setLabel('إضافة مستخدم')
-          .setStyle(ButtonStyle.Primary);
-
-        const removeUserButton = new ButtonBuilder()
-          .setCustomId('ticket_remove_user')
-          .setLabel('إزالة مستخدم')
-          .setStyle(ButtonStyle.Danger);
-
-        const buttonRow = new ActionRowBuilder().addComponents(addUserButton, removeUserButton);
-
-        await interaction.reply({ embeds: [embed], components: [buttonRow], ephemeral: true });
-        return;
-      }
     }
   } catch (error) {
     console.error('Interaction error:', error);
