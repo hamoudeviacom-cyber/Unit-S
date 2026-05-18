@@ -2580,7 +2580,8 @@ client.on('interactionCreate', async (interaction) => {
             });
 
             // إضافة بيانات التذكرة
-            // set(ticketChannel.id, {
+            client.ticketData = client.ticketData || new Map();
+            client.ticketData.set(ticketChannel.id, {
               userId: interaction.user.id,
               type: 'technical',
               createdAt: Date.now()
