@@ -1,10 +1,10 @@
 // Ticket Commands
 // أوامر نظام التذاكر
 
-import { EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, ChannelType } from 'discord.js';
-import TICKET_TYPES from '../config/ticketTypes.js';
+const { EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, ChannelType } = require('discord.js');
+const TICKET_TYPES = require('../config/ticketTypes.js');
 
-export default {
+module.exports = {
   name: 'tickets',
   aliases: ['ticket'],
   description: 'Show all ticket commands',
@@ -29,7 +29,7 @@ export default {
 };
 
 // Individual ticket type commands
-export const orderCommand = {
+const orderCommand = {
   name: 'order',
   description: 'فتح لوحة الطلبات',
   execute: async (message) => {
@@ -43,7 +43,7 @@ export const orderCommand = {
         '',
         '- ➡ Open Ticket Here,',
         '',
-        '__ ـــــــــــــــــــــــــــــــــــــــــــــــــ <a:Taj:' + t.emojiId + '> ــــــــــــــــــــــــــــــــــــــــــــــــ\_\_'
+        '__ ـــــــــــــــــــــــــــــــــــــــــــــــــ <a:Taj:' + t.emojiId + '> ــــــــــــــــــــــــــــــــــــــــــــــــ__'
       ].join('\n'))
       .setColor(t.color)
       .setFooter({ text: 'Unit S | Ticketing System' })
@@ -57,7 +57,7 @@ export const orderCommand = {
   }
 };
 
-export const supportCommand = {
+const supportCommand = {
   name: 'support',
   description: 'فتح لوحة الدعم الفني',
   execute: async (message) => {
@@ -71,7 +71,7 @@ export const supportCommand = {
         '',
         '- ➡ Open Ticket Here,',
         '',
-        '__ ـــــــــــــــــــــــــــــــــــــــــــــــــ <a:Taj:' + t.emojiId + '> ــــــــــــــــــــــــــــــــــــــــــــــــ\_\_'
+        '__ ـــــــــــــــــــــــــــــــــــــــــــــــــ <a:Taj:' + t.emojiId + '> ــــــــــــــــــــــــــــــــــــــــــــــــ__'
       ].join('\n'))
       .setColor(t.color)
       .setFooter({ text: 'Unit S | Ticketing System' })
@@ -85,7 +85,7 @@ export const supportCommand = {
   }
 };
 
-export const reportCommand = {
+const reportCommand = {
   name: 'report',
   description: 'فتح لوحة الإبلاغ',
   execute: async (message) => {
@@ -99,7 +99,7 @@ export const reportCommand = {
         '',
         '- ➡ Open Ticket Here,',
         '',
-        '__ ـــــــــــــــــــــــــــــــــــــــــــــــــ <a:Taj:' + t.emojiId + '> ــــــــــــــــــــــــــــــــــــــــــــــــ\_\_'
+        '__ ـــــــــــــــــــــــــــــــــــــــــــــــــ <a:Taj:' + t.emojiId + '> ــــــــــــــــــــــــــــــــــــــــــــــــ__'
       ].join('\n'))
       .setColor(t.color)
       .setFooter({ text: 'Unit S | Ticketing System' })
@@ -113,7 +113,7 @@ export const reportCommand = {
   }
 };
 
-export const applySupportCommand = {
+const applySupportCommand = {
   name: 'applysupport',
   description: 'فتح لوحة التقديم للدعم',
   execute: async (message) => {
@@ -127,7 +127,7 @@ export const applySupportCommand = {
         '',
         '- ➡ Open Ticket Here,',
         '',
-        '__ ـــــــــــــــــــــــــــــــــــــــــــــــــ <a:Taj:' + t.emojiId + '> ــــــــــــــــــــــــــــــــــــــــــــــــ\_\_'
+        '__ ـــــــــــــــــــــــــــــــــــــــــــــــــ <a:Taj:' + t.emojiId + '> ــــــــــــــــــــــــــــــــــــــــــــــــ__'
       ].join('\n'))
       .setColor(t.color)
       .setFooter({ text: 'Unit S | Ticketing System' })
@@ -141,7 +141,7 @@ export const applySupportCommand = {
   }
 };
 
-export const applyTeamCommand = {
+const applyTeamCommand = {
   name: 'applyteam',
   description: 'فتح لوحة التقديم للفريق',
   execute: async (message) => {
@@ -155,7 +155,7 @@ export const applyTeamCommand = {
         '',
         '- ➡ Open Ticket Here,',
         '',
-        '__ ـــــــــــــــــــــــــــــــــــــــــــــــــ <a:Taj:' + t.emojiId + '> ــــــــــــــــــــــــــــــــــــــــــــــــ\_\_'
+        '__ ـــــــــــــــــــــــــــــــــــــــــــــــــ <a:Taj:' + t.emojiId + '> ــــــــــــــــــــــــــــــــــــــــــــــــ__'
       ].join('\n'))
       .setColor(t.color)
       .setFooter({ text: 'Unit S | Ticketing System' })
@@ -168,3 +168,9 @@ export const applyTeamCommand = {
     await message.channel.send({ embeds: [embed], components: [new ActionRowBuilder().addComponents(btn)] });
   }
 };
+
+module.exports.orderCommand = orderCommand;
+module.exports.supportCommand = supportCommand;
+module.exports.reportCommand = reportCommand;
+module.exports.applySupportCommand = applySupportCommand;
+module.exports.applyTeamCommand = applyTeamCommand;

@@ -1,11 +1,11 @@
 // Ban Command
 // أمر الحظر
 
-import { EmbedBuilder } from 'discord.js';
-import { hasModRole } from '../utils/helpers.js';
-import { logBan, sendLog } from '../utils/logging.js';
+const { EmbedBuilder } = require('discord.js');
+const { hasModRole } = require('../utils/helpers.js');
+const { logBan, sendLog } = require('../utils/logging.js');
 
-export default {
+module.exports = {
   name: 'ban',
   description: 'Ban a user from the server',
   execute: async (message, args, client) => {

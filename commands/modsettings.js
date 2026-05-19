@@ -1,11 +1,11 @@
 // Moderation Settings Command
 // أمر إعدادات الأدمن
 
-import { EmbedBuilder } from 'discord.js';
-import { hasModRole } from '../utils/helpers.js';
-import modSettings from '../config/modSettings.js';
+const { EmbedBuilder } = require('discord.js');
+const { hasModRole } = require('../utils/helpers.js');
+const modSettings = require('../config/modSettings.js');
 
-export default {
+module.exports = {
   name: 'modsettings',
   description: 'Manage moderation settings',
   execute: async (message, args, client) => {

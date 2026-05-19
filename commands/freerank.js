@@ -1,11 +1,11 @@
 // Free Rank Command
 // أمر الرتبة المجانية
 
-import { EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder } from 'discord.js';
-import { hasModRole } from '../utils/helpers.js';
-import modSettings from '../config/modSettings.js';
-import { readFileSync, writeFileSync, existsSync } from 'fs';
-import { join } from 'path';
+const { EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder } = require('discord.js');
+const { hasModRole } = require('../utils/helpers.js');
+const modSettings = require('../config/modSettings.js');
+const { readFileSync, writeFileSync, existsSync } = require('fs');
+const { join } = require('path');
 
 const FREE_RANK_FILE = './free_rank_settings.json';
 
@@ -52,7 +52,7 @@ function saveFreeRankSettings(settings) {
   }
 }
 
-export default {
+module.exports = {
   name: 'freerank',
   description: 'Free rank management',
   execute: async (message, args, client) => {

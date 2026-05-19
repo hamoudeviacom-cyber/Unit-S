@@ -1,9 +1,9 @@
 // Terms & Privacy Command
 // أمر اتفاقية الاستخدام والخصوصية
 
-import { EmbedBuilder } from 'discord.js';
+const { EmbedBuilder } = require('discord.js');
 
-export default {
+module.exports = {
   name: 'terms',
   description: 'Send terms and privacy agreement',
   execute: async (message, args, client) => {

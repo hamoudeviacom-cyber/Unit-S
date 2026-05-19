@@ -1,9 +1,9 @@
 // Ping Command
 // أمر ping لاختبار سرعة البوت
 
-import { EmbedBuilder } from 'discord.js';
+const { EmbedBuilder } = require('discord.js');
 
-export default {
+module.exports = {
   name: 'ping',
   description: 'Test bot latency',
   execute: async (message, args, client) => {

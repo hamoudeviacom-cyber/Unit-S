@@ -1,11 +1,11 @@
 // Timeout Command
 // أمر التعطيل المؤقت
 
-import { EmbedBuilder } from 'discord.js';
-import { hasModRole } from '../utils/helpers.js';
-import { logTimeout } from '../utils/logging.js';
+const { EmbedBuilder } = require('discord.js');
+const { hasModRole } = require('../utils/helpers.js');
+const { logTimeout } = require('../utils/logging.js');
 
-export default {
+module.exports = {
   name: 'timeout',
   description: 'Timeout a user from the server',
   execute: async (message, args, client) => {

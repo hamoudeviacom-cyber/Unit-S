@@ -1,10 +1,10 @@
 // 24/7 Voice Command
 // أمر الفويس 24/7
 
-import { EmbedBuilder } from 'discord.js';
-import { joinVoiceChannel, createAudioPlayer, createAudioResource } from '@discordjs/voice';
+const { EmbedBuilder } = require('discord.js');
+const { joinVoiceChannel, createAudioPlayer, createAudioResource } = require('@discordjs/voice');
 
-export default {
+module.exports = {
   name: '24voice',
   aliases: ['joinvoice', 'voice24'],
   description: '24/7 Voice Channel - Join and stay in voice',

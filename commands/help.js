@@ -1,9 +1,9 @@
 // Help Command
 // أمر المساعدة
 
-import { EmbedBuilder } from 'discord.js';
+const { EmbedBuilder } = require('discord.js');
 
-export default {
+module.exports = {
   name: 'help',
   description: 'Show all commands',
   execute: async (message, args, client) => {

@@ -1,11 +1,11 @@
 // Logs Command
 // أمر إدارة قنوات اللوج
 
-import { EmbedBuilder } from 'discord.js';
-import { hasModRole } from '../utils/helpers.js';
-import logSettings from '../config/logSettings.js';
+const { EmbedBuilder } = require('discord.js');
+const { hasModRole } = require('../utils/helpers.js');
+const logSettings = require('../config/logSettings.js');
 
-export default {
+module.exports = {
   name: 'logs',
   description: 'Manage log channels',
   execute: async (message, args, client) => {

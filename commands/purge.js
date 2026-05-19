@@ -1,10 +1,10 @@
 // Purge Command - !حذف
 // أمر حذف الرسائل
 
-import { EmbedBuilder } from 'discord.js';
-import { hasModRole } from '../utils/helpers.js';
+const { EmbedBuilder } = require('discord.js');
+const { hasModRole } = require('../utils/helpers.js');
 
-export default {
+module.exports = {
   name: 'حذف',
   aliases: ['purge', 'delete', 'clean'],
   description: 'Delete messages in bulk',

@@ -1,10 +1,10 @@
 // Encryption Panel Command - شفر منشورك
 // أمر لوحة التشفير
 
-import { EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder } from 'discord.js';
-import { wordDictionary } from '../config/wordDictionary.js';
+const { EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder } = require('discord.js');
+const { wordDictionary } = require('../config/wordDictionary.js');
 
-export default {
+module.exports = {
   name: 'shfr',
   description: 'Open encryption panel',
   execute: async (message, args, client) => {
