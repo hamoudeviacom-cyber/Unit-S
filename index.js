@@ -1,16 +1,12 @@
 // Unit S - Discord Bot
-// نظام التشفير والتذاكر
-
 const express = require('express');
 const { Client, GatewayIntentBits, Collection } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
 
 const app = express();
-const port = process.env.PORT || 8080;
-
 app.get('/', (req, res) => res.send('Unit S is running!'));
-app.listen(port, () => console.log(`Server on port ${port}`));
+app.listen(process.env.PORT || 8080);
 
 const TOKEN = process.env.DISCORD_TOKEN || 'YOUR_BOT_TOKEN';
 const PREFIX = '!';
@@ -29,17 +25,18 @@ const client = new Client({
 client.commands = new Collection();
 client.encryptionUsers = new Map();
 
-// ============ Load Commands ============
+// ============ تسجيل الأوامر ============
 function loadCommands() {
+  const tickets = require('./commands/tickets.js');
+
   // أوامر التذاكر ⭐
   client.commands.set('order', require('./commands/tickets.js'));
-  client.commands.set('support', require('./commands/tickets.js'));
-  client.commands.set('report', require('./commands/tickets.js'));
-  client.commands.set('applysupport', require('./commands/tickets.js'));
-  client.commands.set('applyteam', require('./commands/tickets.js'));
-  client.commands.set('tickets', require('./commands/tickets.js'));
+  client.commands.set('support', tickets.supportCommand);
+  client.commands.set('report', tickets.reportCommand);
+  client.commands.set('applysupport', tickets.applySupportCommand);
+  client.commands.set('applyteam', tickets.applyTeamCommand);
 
-  // أمر التشفير ⭐
+  // أمر التشفير
   client.commands.set('shfr', require('./commands/shfr.js'));
   client.commands.set('تشفير', require('./commands/shfr.js'));
 
@@ -48,34 +45,28 @@ function loadCommands() {
   client.commands.set('ping', require('./commands/ping.js'));
   client.commands.set('freerank', require('./commands/freerank.js'));
 
-  console.log(`✅ Loaded ${client.commands.size} commands`);
+  console.log(`✅ ${client.commands.size} commands loaded`);
 }
 
-// ============ Load Events ============
+// ============ تحميل Events ============
 function loadEvents() {
   // ⭐ التشفير التلقائي
-  client.on('messageCreate', async (message) => {
-    const event = require('./events/messageCreate.js');
-    await event.execute(client, message);
-  });
+  client.on('messageCreate', (msg) => require('./events/messageCreate.js').execute(client, msg));
 
-  // ⭐ الأزرار والتفاعلات
-  client.on('interactionCreate', async (interaction) => {
-    const event = require('./events/interactionCreate.js');
-    await event.execute(client, interaction);
-  });
+  // الأزرار
+  client.on('interactionCreate', (interaction) => require('./events/interactionCreate.js').execute(client, interaction));
 
   console.log('✅ Events loaded');
 }
 
 // ============ Bot Ready ============
-client.on('ready', async () => {
+client.on('ready', () => {
   console.log(`✅ Bot online: ${client.user.tag}`);
   loadEvents();
   loadCommands();
 });
 
-// ============ Message Handler ============
+// ============ Command Handler ============
 client.on('messageCreate', async (message) => {
   if (message.author.bot) return;
   if (!message.content.startsWith(PREFIX)) return;
@@ -90,13 +81,9 @@ client.on('messageCreate', async (message) => {
     await command.execute(message, args, client);
   } catch (error) {
     console.error(`[CMD] ${commandName}:`, error);
-    await message.channel.send('❌ حدث خطأ!');
   }
 });
 
 // ============ Login ============
-client.login(TOKEN)
-  .then(() => console.log('✅ Logged in!'))
-  .catch(err => console.error('❌ Error:', err));
-
+client.login(TOKEN).then(() => console.log('✅ Logged in!')).catch(console.error);
 module.exports = { client, PREFIX };
