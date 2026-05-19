@@ -1,6 +1,8 @@
 // Unit S - Discord Bot
+// نظام التشفير والتذاكر
+
 const express = require('express');
-const { Client, GatewayIntentBits, Collection, REST, Routes } = require('discord.js');
+const { Client, GatewayIntentBits, Collection } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
 
@@ -11,7 +13,6 @@ app.get('/', (req, res) => res.send('Unit S is running!'));
 app.listen(port, () => console.log(`Server on port ${port}`));
 
 const TOKEN = process.env.DISCORD_TOKEN || 'YOUR_BOT_TOKEN';
-const CLIENT_ID = process.env.CLIENT_ID || 'YOUR_CLIENT_ID';
 const PREFIX = '!';
 
 const client = new Client({
@@ -26,26 +27,31 @@ const client = new Client({
 });
 
 client.commands = new Collection();
-client.slashCommands = new Collection();
 client.encryptionUsers = new Map();
 
+// ============ Load Commands ============
 function loadCommands() {
-  const commandsPath = path.join(__dirname, 'commands');
-  const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
+  // أوامر التذاكر ⭐
+  client.commands.set('order', require('./commands/tickets.js'));
+  client.commands.set('support', require('./commands/tickets.js'));
+  client.commands.set('report', require('./commands/tickets.js'));
+  client.commands.set('applysupport', require('./commands/tickets.js'));
+  client.commands.set('applyteam', require('./commands/tickets.js'));
+  client.commands.set('tickets', require('./commands/tickets.js'));
 
-  for (const file of commandFiles) {
-    const filePath = path.join(commandsPath, file);
-    const command = require(filePath);
+  // أمر التشفير ⭐
+  client.commands.set('shfr', require('./commands/shfr.js'));
+  client.commands.set('تشفير', require('./commands/shfr.js'));
 
-    if (command.data && command.data.toJSON) {
-      client.slashCommands.set(command.data.name, command);
-    } else {
-      client.commands.set(command.name, command);
-    }
-  }
-  console.log(`✅ Loaded ${client.commands.size + client.slashCommands.size} commands`);
+  // أوامر عامة
+  client.commands.set('help', require('./commands/help.js'));
+  client.commands.set('ping', require('./commands/ping.js'));
+  client.commands.set('freerank', require('./commands/freerank.js'));
+
+  console.log(`✅ Loaded ${client.commands.size} commands`);
 }
 
+// ============ Load Events ============
 function loadEvents() {
   // ⭐ التشفير التلقائي
   client.on('messageCreate', async (message) => {
@@ -53,20 +59,23 @@ function loadEvents() {
     await event.execute(client, message);
   });
 
-  // الأزرار
+  // ⭐ الأزرار والتفاعلات
   client.on('interactionCreate', async (interaction) => {
     const event = require('./events/interactionCreate.js');
     await event.execute(client, interaction);
   });
+
   console.log('✅ Events loaded');
 }
 
+// ============ Bot Ready ============
 client.on('ready', async () => {
   console.log(`✅ Bot online: ${client.user.tag}`);
   loadEvents();
   loadCommands();
 });
 
+// ============ Message Handler ============
 client.on('messageCreate', async (message) => {
   if (message.author.bot) return;
   if (!message.content.startsWith(PREFIX)) return;
@@ -74,15 +83,18 @@ client.on('messageCreate', async (message) => {
   const args = message.content.slice(PREFIX.length).trim().split(/ +/);
   const commandName = args.shift().toLowerCase();
   const command = client.commands.get(commandName);
+
   if (!command) return;
 
   try {
     await command.execute(message, args, client);
   } catch (error) {
     console.error(`[CMD] ${commandName}:`, error);
+    await message.channel.send('❌ حدث خطأ!');
   }
 });
 
+// ============ Login ============
 client.login(TOKEN)
   .then(() => console.log('✅ Logged in!'))
   .catch(err => console.error('❌ Error:', err));
