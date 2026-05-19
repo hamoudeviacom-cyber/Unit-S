@@ -2386,7 +2386,8 @@ client.commands.set('enc', {
 // ============ INTERACTION HANDLER ============
 client.on('interactionCreate', async (interaction) => {
   try {
-    // Handle Button Interactions
+
+    // ── Button Interactions ──────────────────────────────────────────
     if (interaction.isButton()) {
       const customId = interaction.customId;
 
@@ -2450,9 +2451,78 @@ client.on('interactionCreate', async (interaction) => {
 
       // Handle back to menu button (from !rank command)
       if (customId === 'back_to_menu') { return; }
+
+      // Handle back to main menu button
+      if (customId === 'back_to_main_menu') { return; }
+
+      // Handle cancel buy button
+      if (customId === 'cancel_buy') {
+        await interaction.reply({ content: '❌ تم إلغاء الشراء.', ephemeral: true });
+        return;
+      }
+
+      // Handle confirm buy rank button
+      if (customId.startsWith('confirm_buy_rank_')) {
+        const rankId = customId.replace('confirm_buy_rank_', '');
+        const rank = ranksSettings.ranks.find(r => r.id === rankId);
+
+        if (!rank) {
+          await interaction.reply({ content: '❌ الرتبة غير موجودة!', ephemeral: true });
+          return;
+        }
+
+        try {
+          const channelName = `purchase-${rank.name.toLowerCase().replace(/\s+/g, '-')}-${interaction.user.username}`;
+          const ticketChannel = await interaction.guild.channels.create({
+            name: channelName,
+            type: ChannelType.GuildText,
+            parent: TICKET_CATEGORY_ID,
+            permissionOverwrites: [
+              { id: interaction.guild.id, deny: ['ViewChannel'] },
+              { id: interaction.user.id, allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory'] },
+              { id: SUPPORT_ROLE_ID, allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory', 'ManageMessages'] }
+            ]
+          });
+
+          const ticketEmbed = new EmbedBuilder()
+            .setTitle('مرحباً بك في تذكرة الشراء')
+            .setColor(0x667eea)
+            .setDescription([
+              `<@${interaction.user.id}> تم فتح تذكرة خاصة بك للرتبة: **${rank.name}**`,
+              '',
+              `السعر: **${rank.price.toLocaleString()}**`,
+              '',
+              '**الميزات:**',
+              rank.features.map(f => `• ${f}`).join('\n'),
+              '',
+              'يرجى الانتظار حتى يتم الرد عليك من فريق الدعم.'
+            ].join('\n'))
+            .setFooter({ text: 'Unit S | Purchase Ticket' })
+            .setTimestamp();
+
+          const claimBtn = new ButtonBuilder()
+            .setCustomId('ticket_claim')
+            .setLabel('Claim')
+            .setStyle(ButtonStyle.Secondary);
+
+          const closeBtn = new ButtonBuilder()
+            .setCustomId('ticket_close')
+            .setLabel('Close')
+            .setStyle(ButtonStyle.Danger);
+
+          const btnRow = new ActionRowBuilder().addComponents(claimBtn, closeBtn);
+          await ticketChannel.send({ content: `<@${interaction.user.id}> <@&${SUPPORT_ROLE_ID}>`, embeds: [ticketEmbed], components: [btnRow] });
+          await interaction.reply({ content: `✅ تم فتح تذكرة خاصة بك: ${ticketChannel}`, ephemeral: true });
+
+        } catch (err) {
+          console.error('Error creating purchase ticket:', err);
+          await interaction.reply({ content: '❌ حدث خطأ أثناء فتح التذكرة!', ephemeral: true });
+        }
+        return;
+      }
     }
 
-    // Handle Modal submissions
+    // ── Modal Submissions ────────────────────────────────────────────
     if (interaction.isModalSubmit()) {
       const customId = interaction.customId;
 
@@ -2491,19 +2561,21 @@ client.on('interactionCreate', async (interaction) => {
         await interaction.reply({ embeds: [embed], ephemeral: false });
         return;
       }
-
-      // Handle buy rank modal submission
-      
     }
 
-    // Handle Select Menu interactions
+    // ── Select Menu Interactions ─────────────────────────────────────
     if (interaction.isStringSelectMenu()) {
       const customId = interaction.customId;
 
-      
+      if (customId === 'shop_rank_select') {
+        const selectedValue = interaction.values[0];
+        const rankId = selectedValue.replace('rank_', '');
+        const rank = ranksSettings.ranks.find(r => r.id === rankId);
 
-        // Store selected rank in cache for later use
-        client.selectedRank = rank;
+        if (!rank) {
+          await interaction.reply({ content: '❌ الرتبة غير موجودة!', ephemeral: true });
+          return;
+        }
 
         const embed = new EmbedBuilder()
           .setTitle(`✅ تم اختيار: ${rank.name}`)
@@ -2516,7 +2588,6 @@ client.on('interactionCreate', async (interaction) => {
           .setFooter({ text: 'Unit S | Shop' })
           .setTimestamp();
 
-        // Create buy button with selected rank info
         const buyButton = new ButtonBuilder()
           .setCustomId(`confirm_buy_rank_${rank.id}`)
           .setLabel('تأكيد الشراء')
@@ -2528,170 +2599,11 @@ client.on('interactionCreate', async (interaction) => {
           .setStyle(ButtonStyle.Danger);
 
         const row = new ActionRowBuilder().addComponents(buyButton, cancelButton);
-
         await interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
         return;
       }
-
-
-    // Handle Button interactions for shop
-    if (interaction.isButton()) {
-      const customId = interaction.customId;
-
-      // Handle buy rank button
-      if (customId === 'buy_rank_button') {
-        const embed = new EmbedBuilder()
-          .setTitle('شراء رتبة')
-          .setDescription('اختر الرتبة من القائمة أعلاه ثم اضغط على زر التأكيد')
-          .setColor(0x667eea)
-          .setFooter({ text: 'Unit S | Shop' });
-
-        await interaction.reply({ embeds: [embed], ephemeral: true });
-        return;
-      }
-
-      // Handle back to main menu button
-      if (customId === 'back_to_main_menu') {
-        // Ticket system disabled
-        return;
-      }
-
-      // Handle new buy rank button from ranks list
-      if (customId === 'shop_buy_rank') {
-        const rankOptions = ranksSettings.ranks.map(rank => {
-          return {
-            label: `${rank.name} - ${rank.price.toLocaleString()}`,
-            description: rank.features.join(' | '),
-            value: `rank_${rank.id}`,
-          };
-        });
-
-        const embed = new EmbedBuilder()
-          .setTitle('اختر الرتبة')
-          .setColor(0x8B5CF6)
-          .setFooter({ text: 'Unit S | Shop' })
-          .setTimestamp();
-
-        const shopMenu = new StringSelectMenuBuilder()
-          .setCustomId('shop_rank_select')
-          .setPlaceholder('اختر الرتبة')
-          .addOptions(rankOptions.map(opt => new StringSelectMenuOptionBuilder(opt)))
-          .setMinValues(1)
-          .setMaxValues(1);
-
-        const menuRow = new ActionRowBuilder().addComponents(shopMenu);
-
-        await interaction.reply({ embeds: [embed], components: [menuRow], ephemeral: true });
-        return;
-      }
-
-      // Handle new back to main menu button
-      
-
-      // Handle confirm buy rank
-      
-
-        // Create a ticket for this purchase
-        const ticketCategoryId = null || null;
-
-        try {
-          // Create private channel for ticket
-          const channelName = `purchase-${rank.name.toLowerCase().replace(/\s+/g, '-')}-${interaction.user.username}`;
-          const ticketChannel = await interaction.guild.channels.create({
-            name: channelName,
-            type: ChannelType.GuildText,
-            parent: ticketCategoryId,
-            permissionOverwrites: [
-              { id: interaction.guild.id, deny: ['ViewChannel'] },
-              { id: interaction.user.id, allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory'] }
-            ]
-          });
-
-          // Send ticket message
-          const ticketEmbed = new EmbedBuilder()
-            .setTitle('مرحباً بك في تذكرة الشراء')
-            .setColor(0x667eea)
-            .setDescription([
-              `<@${interaction.user.id}> تم فتح تذكرة خاصة بك للرتبة: **${rank.name}**`,
-              '',
-              `السعر: **${rank.price.toLocaleString()}**`,
-              '',
-              '**الميزات:**',
-              rank.features.map(f => `• ${f}`).join('\n'),
-              '',
-              'يرجى الانتظار حتى يتم الرد عليك من فريق الدعم.'
-            ].join('\n'))
-            .setFooter({ text: 'Unit S | Purchase Ticket' })
-            .setTimestamp();
-
-          const claimButton = new ButtonBuilder()
-            .setCustomId('ticket_claim')
-            .setLabel('Claim')
-            .setStyle(ButtonStyle.Secondary);
-
-          const manageButton = new ButtonBuilder()
-            .setCustomId('ticket_manage')
-            .setLabel('Manage Ticket')
-            .setStyle(ButtonStyle.Secondary);
-
-          const closeButton = new ButtonBuilder()
-            .setCustomId('ticket_close')
-            .setLabel('Close')
-            .setStyle(ButtonStyle.Danger);
-
-          const buttonRow = new ActionRowBuilder().addComponents(claimButton, manageButton, closeButton);
-
-          await ticketChannel.send({ content: `<@${interaction.user.id}>`, embeds: [ticketEmbed], components: [buttonRow] });
-
-          // Add to ticket claims
-          // set(ticketChannel.id, {
-          //   userId: interaction.user.id,
-          //   rankId: rank.id,
-          //   createdAt: Date.now()
-          // });
-
-          // Pin the message
-          await ticketChannel.messages.fetch().then(msgs => {
-            const pinnedMsg = msgs.first();
-            if (pinnedMsg) pinnedMsg.pin().catch(() => {});
-          });
-
-          await interaction.reply({
-            content: `✅ تم فتح تذكرة خاصة بك: ${ticketChannel}`,
-            ephemeral: true
-          });
-
-          // Update the original message to show purchase completed
-          if (interaction.message && !interaction.message.deleted) {
-            await interaction.message.edit({
-              components: [{
-                type: 1,
-                components: [{
-                  type: 3,
-                  custom_id: 'shop_rank_select',
-                  options: [{
-                    label: `✅ تم الشراء: ${rank.name}`,
-                    description: 'تم فتح التذكرة',
-                    value: 'completed'
-                  }],
-                  placeholder: 'تم الشراء',
-                  min_values: 1,
-                  max_values: 1,
-                  disabled: true
-                }]
-              }]
-            }).catch(() => {});
-          }
-
-        } catch (err) {
-          console.error('Error creating ticket:', err);
-          await interaction.reply({ content: '❌ حدث خطأ أثناء فتح التذكرة!', ephemeral: true });
-        }
-        return;
-      }
-
-
     }
+
   } catch (error) {
     console.error('Interaction error:', error);
   }
@@ -2796,8 +2708,6 @@ client.commands.set('protect_toggle', {
 });
 
 // ============ TICKET COMMANDS - UNIT S ============
-const TICKET_CATEGORY_ID = '1494686051716038778'; // Category للتذاكر
-const SUPPORT_ROLE_ID = '1494685856684970014'; // رتبة الدعم الفني
 
 // ===== Panel 1: الدعم الفني =====
 client.commands.set('support', {
