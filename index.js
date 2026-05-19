@@ -3,7 +3,9 @@
 
 // ============ Package Imports ============
 const express = require('express');
-const { Client, GatewayIntentBits, Collection } = require('discord.js');
+const { Client, GatewayIntentBits, Collection, REST, Routes } = require('discord.js');
+const fs = require('fs');
+const path = require('path');
 
 // ============ Express Server ============
 const app = express();
@@ -19,6 +21,7 @@ app.listen(port, () => {
 
 // ============ Bot Configuration ============
 const TOKEN = process.env.DISCORD_TOKEN || 'YOUR_BOT_TOKEN';
+const CLIENT_ID = process.env.CLIENT_ID || 'YOUR_CLIENT_ID';
 const PREFIX = '!';
 
 // ============ Initialize Discord Client ============
@@ -35,82 +38,37 @@ const client = new Client({
 
 // ============ Collections ============
 client.commands = new Collection();
-client.encryptedPosts = new Collection();
-
-// ============ 24/7 Voice Settings ============
-client.voiceConnection = null;
-client.voiceChannelId = null;
-
-// ============ Bot Ready Event ============
-client.on('ready', async () => {
-  console.log(`✅ Bot is online! Logged in as ${client.user.tag}`);
-  console.log(`✅ Bot ID: ${client.user.id}`);
-  client.user.setActivity('Unit S | !help', { type: 'PLAYING' });
-
-  // Load all commands
-  loadCommands();
-
-  // Load all events
-  loadEvents();
-});
+client.slashCommands = new Collection();
+client.encryptionUsers = new Map();
 
 // ============ Load Commands ============
 function loadCommands() {
-  // Admin Commands
-  client.commands.set('ban', require('./commands/ban.js'));
-  client.commands.set('unban', require('./commands/unban.js'));
-  client.commands.set('kick', require('./commands/kick.js'));
-  client.commands.set('timeout', require('./commands/timeout.js'));
-  client.commands.set('حذف', require('./commands/purge.js'));
-  client.commands.set('logs', require('./commands/logs.js'));
-  client.commands.set('modsettings', require('./commands/modsettings.js'));
-  client.commands.set('24voice', require('./commands/24voice.js'));
-  client.commands.set('joinvoice', require('./commands/24voice.js'));
-  client.commands.set('voice24', require('./commands/24voice.js'));
+  const commandsPath = path.join(__dirname, 'commands');
+  const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
 
-  // General Commands
-  client.commands.set('help', require('./commands/help.js'));
-  client.commands.set('ping', require('./commands/ping.js'));
-  client.commands.set('say', require('./commands/say.js'));
-  client.commands.set('terms', require('./commands/terms.js'));
+  for (const file of commandFiles) {
+    const filePath = path.join(commandsPath, file);
+    const command = require(filePath);
 
-  // Free Rank
-  client.commands.set('freerank', require('./commands/freerank.js'));
+    if (command.data && command.data.toJSON) {
+      client.slashCommands.set(command.data.name, command);
+    } else {
+      client.commands.set(command.name, command);
+    }
+  }
 
-  // Encryption
-  client.commands.set('shfr', require('./commands/shfr.js'));
-
-  // Tickets
-  const ticketsModule = require('./commands/tickets.js');
-  client.commands.set('ticket', ticketsModule);
-  client.commands.set('tickets', ticketsModule);
-  client.commands.set('order', ticketsModule.orderCommand);
-  client.commands.set('support', ticketsModule.supportCommand);
-  client.commands.set('report', ticketsModule.reportCommand);
-  client.commands.set('applysupport', ticketsModule.applySupportCommand);
-  client.commands.set('applyteam', ticketsModule.applyTeamCommand);
-
-  console.log(`✅ Loaded ${client.commands.size} commands`);
+  console.log(`✅ Loaded ${client.commands.size + client.slashCommands.size} commands`);
 }
 
 // ============ Load Events ============
 function loadEvents() {
-  // Member events
-  client.on('guildMemberAdd', async (member) => {
-    const event = require('./events/guildMemberAdd.js');
-    await event.execute(client, member);
+  // Message Create Event (للتشفير التلقائي) ⭐
+  client.on('messageCreate', async (message) => {
+    const event = require('./events/messageCreate.js');
+    await event.execute(client, message);
   });
 
-  client.on('guildMemberUpdate', async (oldMember, newMember) => {
-    const event = require('./events/guildMemberUpdate.js');
-    await event.execute(client, oldMember, newMember);
-  });
-
-  client.on('roleUpdate', async (oldRole, newRole) => {
-    const event = require('./events/roleUpdate.js');
-    await event.execute(client, oldRole, newRole);
-  });
-
+  // Interaction Create Event
   client.on('interactionCreate', async (interaction) => {
     const event = require('./events/interactionCreate.js');
     await event.execute(client, interaction);
@@ -119,23 +77,52 @@ function loadEvents() {
   console.log('✅ Events loaded');
 }
 
+// ============ Load Slash Commands ============
+async function loadSlashCommands() {
+  if (client.slashCommands.size === 0) return;
+
+  const commands = [];
+  for (const command of client.slashCommands.values()) {
+    if (command.data && command.data.toJSON) {
+      commands.push(command.data.toJSON());
+    }
+  }
+
+  const rest = new REST({ version: '10' }).setToken(TOKEN);
+
+  try {
+    await rest.put(Routes.applicationCommands(CLIENT_ID), { body: commands });
+    console.log('✅ Slash commands registered');
+  } catch (error) {
+    console.error('❌ Error registering slash commands:', error);
+  }
+}
+
+// ============ Bot Ready Event ============
+client.on('ready', async () => {
+  console.log(`✅ Bot is online! Logged in as ${client.user.tag}`);
+
+  // Load events first ⭐
+  loadEvents();
+
+  // Load commands
+  loadCommands();
+
+  // Register slash commands
+  await loadSlashCommands();
+});
+
 // ============ Message Event - Command Handler ============
 client.on('messageCreate', async (message) => {
-  // Ignore bots
   if (message.author.bot) return;
-
-  // Check if message starts with prefix
   if (!message.content.startsWith(PREFIX)) return;
 
-  // Parse command and arguments
   const args = message.content.slice(PREFIX.length).trim().split(/ +/);
   const commandName = args.shift().toLowerCase();
 
-  // Find command
   const command = client.commands.get(commandName);
   if (!command) return;
 
-  // Execute command
   try {
     await command.execute(message, args, client);
   } catch (error) {
@@ -149,5 +136,4 @@ client.login(TOKEN)
   .then(() => console.log('✅ Successfully logged in to Discord!'))
   .catch(err => console.error('❌ Failed to login:', err));
 
-// ============ Export for other modules ============
 module.exports = { client, PREFIX };
