@@ -6,6 +6,7 @@ const { hasModRole, hasTicketAdminRole } = require('../utils/helpers.js');
 const TICKET_TYPES = require('../config/ticketTypes.js');
 const config = require('../config/index.js');
 const { logTicketTranscript } = require('../utils/logging.js');
+const wordDictionary = require('../config/wordDictionary.js');
 
 // Create ticket function
 async function createTicket(interaction, ticketType) {
@@ -202,8 +203,62 @@ module.exports = {
       // Free rank claim button
       if (customId === 'free_rank_claim') {
         await interaction.deferReply({ ephemeral: true });
-        // Add your free rank claim logic here
         await interaction.editReply({ content: '✅ تم استلام الرتبة المجانية!' });
+        return;
+      }
+
+      // ✨ ENCRYPTION BUTTON ✨
+      if (customId === 'shfr_post') {
+        await interaction.deferReply({ ephemeral: true });
+
+        // Initialize encryption users map if not exists
+        if (!client.encryptionUsers) {
+          client.encryptionUsers = new Map();
+        }
+
+        // Toggle encryption mode
+        const isEnabled = client.encryptionUsers.get(interaction.user.id);
+
+        if (isEnabled) {
+          // Disable encryption
+          client.encryptionUsers.delete(interaction.user.id);
+
+          const disabledEmbed = new EmbedBuilder()
+            .setTitle('🔓 Unit S | إلغاء التشفير')
+            .setColor(0xFF0000)
+            .setDescription([
+              '❌ تم إيقاف التشفير!',
+              '',
+              'لن يتم تشفير رسائلك بعد الآن.'
+            ].join('\n'))
+            .setFooter({ text: 'Unit S | Encryption System' })
+            .setTimestamp();
+
+          await interaction.editReply({ embeds: [disabledEmbed] });
+        } else {
+          // Enable encryption
+          client.encryptionUsers.set(interaction.user.id, true);
+
+          const enabledEmbed = new EmbedBuilder()
+            .setTitle('🔐 Unit S | التشفير')
+            .setColor(0x00FF00)
+            .setDescription([
+              '✅ تم تفعيل التشفير!',
+              '',
+              'اكتب رسالتك وسأقوم بتشفيرها تلقائياً.',
+              '',
+              '**طريقة الاستخدام:**',
+              '1️⃣ اضغط على زر التشفير',
+              '2️⃣ اكتب أي كلمة أو جملة',
+              '3️⃣ سأقوم بتشفير الكلمات المحظورة فوراً',
+              '',
+              '**لإيقاف:** اضغط على الزر مرة أخرى'
+            ].join('\n'))
+            .setFooter({ text: 'Unit S | Encryption System' })
+            .setTimestamp();
+
+          await interaction.editReply({ embeds: [enabledEmbed] });
+        }
         return;
       }
 
