@@ -1,11 +1,21 @@
 {
   "name": "unit-s-bot",
   "version": "1.0.0",
+  "description": "Unit S - Discord Bot with Protection, Encryption and Ticketing System",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
     "dev": "node --watch index.js"
   },
+  "keywords": [
+    "discord",
+    "bot",
+    "discord.js",
+    "protection",
+    "ticketing"
+  ],
+  "author": "",
+  "license": "MIT",
   "dependencies": {
     "discord.js": "^14.14.1",
     "@discordjs/voice": "^0.17.0",
