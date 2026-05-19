@@ -6,7 +6,6 @@ const { hasModRole, hasTicketAdminRole } = require('../utils/helpers.js');
 const TICKET_TYPES = require('../config/ticketTypes.js');
 const config = require('../config/index.js');
 const { logTicketTranscript } = require('../utils/logging.js');
-const wordDictionary = require('../config/wordDictionary.js');
 
 // Create ticket function
 async function createTicket(interaction, ticketType) {
@@ -17,7 +16,6 @@ async function createTicket(interaction, ticketType) {
   }
 
   try {
-    // Check if user already has a ticket open
     const existingChannel = interaction.guild.channels.cache.find(ch =>
       ch.name.startsWith(ticketConfig.categoryPrefix + '-') &&
       ch.topic &&
@@ -29,15 +27,13 @@ async function createTicket(interaction, ticketType) {
       return;
     }
 
-    // Create channel name
     const channelName = ticketConfig.categoryPrefix + '-' +
       interaction.user.username.toLowerCase().replace(/[^a-z0-9]/g, '') +
       '-' + Date.now().toString().slice(-4);
 
-    // Create the ticket channel
     const ticketChannel = await interaction.guild.channels.create({
       name: channelName,
-      type: 0, // GuildText
+      type: 0,
       parent: config.TICKET_CATEGORY_ID,
       topic: 'Ticket by ' + interaction.user.tag + ' | Type: ' + ticketConfig.name + ' | User ID: ' + interaction.user.id,
       permissionOverwrites: [
@@ -47,7 +43,6 @@ async function createTicket(interaction, ticketType) {
       ]
     });
 
-    // Welcome embed
     const welcomeEmbed = new EmbedBuilder()
       .setColor(ticketConfig.color)
       .setTitle(ticketConfig.icon + ' ' + ticketConfig.name)
@@ -61,7 +56,6 @@ async function createTicket(interaction, ticketType) {
       .setFooter({ text: 'Unit S - Ticketing without clutter' })
       .setTimestamp();
 
-    // Close button
     const closeBtn = new ButtonBuilder()
       .setCustomId('ticket_close')
       .setLabel('Close')
@@ -74,7 +68,6 @@ async function createTicket(interaction, ticketType) {
       components: [new ActionRowBuilder().addComponents(closeBtn)]
     });
 
-    // System embed with questions
     const systemEmbed = new EmbedBuilder()
       .setAuthor({ name: 'Unit S | System' })
       .setColor(ticketConfig.color)
@@ -90,7 +83,6 @@ async function createTicket(interaction, ticketType) {
       .setFooter({ text: 'يرجى من المسؤول الضغط على الزر لاستلام التذكرة' })
       .setTimestamp();
 
-    // Claim button
     const claimBtn = new ButtonBuilder()
       .setCustomId('ticket_claim')
       .setLabel('Claim')
@@ -101,7 +93,6 @@ async function createTicket(interaction, ticketType) {
       components: [new ActionRowBuilder().addComponents(claimBtn)]
     });
 
-    // Send questions if available
     if (ticketConfig.questions && ticketConfig.questions.length > 0) {
       const questionsEmbed = new EmbedBuilder()
         .setColor(ticketConfig.color)
@@ -113,7 +104,6 @@ async function createTicket(interaction, ticketType) {
       await ticketChannel.send({ embeds: [questionsEmbed] });
     }
 
-    // Pin the welcome message
     const pinnedMsg = await ticketChannel.messages.fetch({ limit: 1 }).then(msgs => msgs.first());
     if (pinnedMsg) await pinnedMsg.pin().catch(() => {});
 
@@ -134,7 +124,7 @@ module.exports = {
     const customId = interaction.customId;
 
     try {
-      // Ticket type buttons
+      // ============ TICKET BUTTONS ============
       if (customId === 'ticket_order') {
         await interaction.deferReply({ ephemeral: true });
         await createTicket(interaction, 'order');
@@ -161,7 +151,7 @@ module.exports = {
         return;
       }
 
-      // Ticket claim button
+      // ============ TICKET MANAGEMENT ============
       if (customId === 'ticket_claim') {
         await interaction.deferReply({ ephemeral: true });
         if (!hasModRole(interaction.member)) {
@@ -179,13 +169,11 @@ module.exports = {
         return;
       }
 
-      // Ticket close button
       if (customId === 'ticket_close') {
         await interaction.deferReply({ ephemeral: true });
         const channel = interaction.channel;
         const topic = channel.topic;
 
-        // Extract user ID from topic
         const userIdMatch = topic && topic.match(/User ID: (\d+)/);
         const userId = userIdMatch ? userIdMatch[1] : null;
 
@@ -194,29 +182,27 @@ module.exports = {
           return;
         }
 
-        // Log transcript and delete channel
         await logTicketTranscript(channel, interaction.user, 'User closed ticket');
         await channel.delete('Ticket closed by user');
         return;
       }
 
-      // Free rank claim button
+      // ============ FREE RANK ============
       if (customId === 'free_rank_claim') {
         await interaction.deferReply({ ephemeral: true });
         await interaction.editReply({ content: '✅ تم استلام الرتبة المجانية!' });
         return;
       }
 
-      // ✨ ENCRYPTION BUTTON ✨
-      if (customId === 'shfr_post') {
+      // ============ ENCRYPTION - START ============
+      if (customId === 'shfr_start') {
         await interaction.deferReply({ ephemeral: true });
 
-        // Initialize encryption users map if not exists
+        // Initialize encryption map
         if (!client.encryptionUsers) {
           client.encryptionUsers = new Map();
         }
 
-        // Toggle encryption mode
         const isEnabled = client.encryptionUsers.get(interaction.user.id);
 
         if (isEnabled) {
@@ -245,12 +231,11 @@ module.exports = {
             .setDescription([
               '✅ تم تفعيل التشفير!',
               '',
-              'اكتب رسالتك وسأقوم بتشفيرها تلقائياً.',
+              'اكتب منشورك وسأشفر الكلمات المحظورة فوراً.',
               '',
               '**طريقة الاستخدام:**',
-              '1️⃣ اضغط على زر التشفير',
-              '2️⃣ اكتب أي كلمة أو جملة',
-              '3️⃣ سأقوم بتشفير الكلمات المحظورة فوراً',
+              '1️⃣ اكتب أي كلمة أو جملة',
+              '2️⃣ سأقوم بتشفير الكلمات المحظورة تلقائياً',
               '',
               '**لإيقاف:** اضغط على الزر مرة أخرى'
             ].join('\n'))
