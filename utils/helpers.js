@@ -1,12 +1,12 @@
 // Helper Functions
 // دوال مساعدة
 
-import modSettings from '../config/modSettings.js';
-import immuneUsers from '../config/immuneUsers.js';
-import config from '../config/index.js';
+const modSettings = require('../config/modSettings.js');
+const immuneUsers = require('../config/immuneUsers.js');
+const config = require('../config/index.js');
 
 // Check if member has mod role
-export function hasModRole(member) {
+function hasModRole(member) {
   if (!member) return false;
 
   // Check moderation permissions
@@ -42,7 +42,7 @@ export function hasModRole(member) {
 }
 
 // Check if member is immune (protected)
-export function isImmune(member) {
+function isImmune(member) {
   if (!member) return false;
 
   // Check immune users list by ID
@@ -55,13 +55,13 @@ export function isImmune(member) {
 }
 
 // Check if member is protected
-export function isMemberProtected(member) {
+function isMemberProtected(member) {
   if (member.id === config.OWNER_ID) return true; // Owner is always protected
   return member.roles.cache.some(role => config.PROTECTED_ROLE_IDS.includes(role.id));
 }
 
 // Check if member has ticket admin role
-export function hasTicketAdminRole(member) {
+function hasTicketAdminRole(member) {
   if (!member) return false;
 
   // Check ManageChannels permission
@@ -71,9 +71,30 @@ export function hasTicketAdminRole(member) {
 }
 
 // Check if member has allowed role for tickets
-export function hasAllowedRole(member) {
+function hasAllowedRole(member) {
   if (!member) return false;
 
   // Everyone is allowed to open tickets
   return true;
 }
+
+// Format date function
+function formatDate(date) {
+  const d = new Date(date);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  const hours = String(d.getHours()).padStart(2, '0');
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+  const seconds = String(d.getSeconds()).padStart(2, '0');
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+}
+
+module.exports = {
+  hasModRole,
+  isImmune,
+  isMemberProtected,
+  hasTicketAdminRole,
+  hasAllowedRole,
+  formatDate
+};

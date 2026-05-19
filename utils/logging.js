@@ -1,12 +1,12 @@
 // Logging Functions
 // دوال اللوج والتسجيل
 
-import { EmbedBuilder } from 'discord.js';
-import logSettings from '../config/logSettings.js';
-import { formatDate } from './helpers.js';
+const { EmbedBuilder, Collection } = require('discord.js');
+const logSettings = require('../config/logSettings.js');
+const { formatDate } = require('./helpers.js');
 
 // Send log to specific channel
-export async function sendLog(guild, logType, embed) {
+async function sendLog(guild, logType, embed) {
   console.log(`[LOG] Sending ${logType} log to channels`);
   const channelMap = {
     all: logSettings.allLog,
@@ -39,7 +39,7 @@ export async function sendLog(guild, logType, embed) {
 }
 
 // Log ban action
-export async function logBan(guild, moderator, target, reason) {
+async function logBan(guild, moderator, target, reason) {
   console.log(`[BAN_LOG] Creating ban log for ${target.tag} | By: ${moderator.tag} | Reason: ${reason}`);
   const embed = new EmbedBuilder()
     .setTitle('<:Security_Red:1495225135979036835> BAN LOG')
@@ -59,7 +59,7 @@ export async function logBan(guild, moderator, target, reason) {
 }
 
 // Log kick action
-export async function logKick(guild, moderator, target, reason) {
+async function logKick(guild, moderator, target, reason) {
   console.log(`[KICK_LOG] Creating kick log for ${target.tag} | By: ${moderator.tag} | Reason: ${reason}`);
   const embed = new EmbedBuilder()
     .setTitle('<:Security_Red:1495225135979036835> KICK LOG')
@@ -79,7 +79,7 @@ export async function logKick(guild, moderator, target, reason) {
 }
 
 // Log timeout action
-export async function logTimeout(guild, moderator, target, duration, reason) {
+async function logTimeout(guild, moderator, target, duration, reason) {
   console.log(`[TIMEOUT_LOG] Creating timeout log for ${target.tag} | By: ${moderator.tag} | Duration: ${duration}`);
   const embed = new EmbedBuilder()
     .setTitle('<:emrp_online:1495223740596879492> TIMEOUT LOG')
@@ -100,7 +100,7 @@ export async function logTimeout(guild, moderator, target, duration, reason) {
 }
 
 // Log member join
-export async function logMemberJoin(guild, member) {
+async function logMemberJoin(guild, member) {
   console.log(`[JOIN_LOG] Member joined: ${member.user.tag}`);
   const embed = new EmbedBuilder()
     .setTitle('<:emrp_online:1495223740596879492> MEMBER JOINED')
@@ -119,7 +119,7 @@ export async function logMemberJoin(guild, member) {
 }
 
 // Log member leave
-export async function logMemberLeave(guild, member, kicker) {
+async function logMemberLeave(guild, member, kicker) {
   console.log(`[LEAVE_LOG] Member left: ${member.user.tag} | Kicked by: ${kicker?.tag || 'Left voluntarily'}`);
   const embed = new EmbedBuilder()
     .setTitle('<:emrp_offline:1495223788139446463> MEMBER LEFT')
@@ -138,7 +138,7 @@ export async function logMemberLeave(guild, member, kicker) {
 }
 
 // Log ticket transcript
-export async function logTicketTranscript(channel, closedBy, reason = 'لم يذكر') {
+async function logTicketTranscript(channel, closedBy, reason = 'لم يذكر') {
   try {
     const messages = await channel.messages.fetch({ limit: 100 }).catch(() => new Collection());
 
@@ -172,3 +172,13 @@ export async function logTicketTranscript(channel, closedBy, reason = 'لم يذ
     return false;
   }
 }
+
+module.exports = {
+  sendLog,
+  logBan,
+  logKick,
+  logTimeout,
+  logMemberJoin,
+  logMemberLeave,
+  logTicketTranscript
+};
