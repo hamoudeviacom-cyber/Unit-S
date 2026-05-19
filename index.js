@@ -2183,146 +2183,143 @@ client.commands.set('modsettings', {
   },
 });
 
+
 // ============ TICKET SYSTEM - UNIT S ============
 const TICKET_CATEGORY_ID = '1494686051716038778'; // Category للتذاكر
 const SUPPORT_ROLE_ID = '1494685856684970014'; // رتبة الدعم الفني
 
-// ============ TICKET COMMAND ============
-client.commands.set('ticket', {
-  name: 'ticket',
-  description: 'Open ticket menu',
-  execute: async (message) => {
-    const embed = new EmbedBuilder()
-      .setTitle('|| • Support • الدعم • الفني')
-      .setDescription('**# If You Want Our Support For Anything..!!**\n\n- ➡ Open Ticket Here,\n\n__ ـــــــــــــــــــــــــــــــــــــــــــــــــ <:vanka237:1495225240035262597> ــــــــــــــــــــــــــــــــــــــــــــــــ\_\_')
-      .setColor(0x3ba55c) // Green color
-      .setFooter({ text: 'Unit S | Ticketing System' })
-      .setImage('https://cdn.discordapp.com/attachments/1397309666752593920/1495169428738936852/UNIT_406004040.webp?ex=69e5448a&is=69e3f30a&hm=be61008c6e62b1b6783e3af827d9a737804a90f617421c905fa4881c90a03994&');
+// ============ TICKET TYPES CONFIGURATION ============
+const TICKET_TYPES = {
+  order: { name: 'الطلبات', nameAr: 'الطلبات', nameEn: 'Order', categoryPrefix: 'order', color: 0x10B981, icon: '📦', emojiId: '1495224006947639377', description: 'يرجى منك كتابة كل التفاصيل اللازمة لطلبك', questions: ['ما المنتج أو الخدمة المطلوبة؟', 'ما التفاصيل المطلوبة؟', 'هل لديك ميزانية محددة؟'] },
+  support: { name: 'الدعم الفني', nameAr: 'الدعم الفني', nameEn: 'Support', categoryPrefix: 'support', color: 0x3B82F6, icon: '🔧', emojiId: '1495224006947639377', description: 'يرجى توضيح مشكلتك بالكامل لكي يمكنني مساعدتك', questions: ['ما المشكلة التي تواجهك؟', 'ما تفاصيل المشكلة؟', 'هل لديك صور أو لقطات للمشكلة؟'] },
+  report: { name: 'الإبلاغ', nameAr: 'الإبلاغ', nameEn: 'Report', categoryPrefix: 'report', color: 0xDC2626, icon: '🚨', emojiId: '1495224006947639377', description: 'يرجى ذكر الشخص المخالف مع تفاصيل المخالفة', questions: ['من الشخص المخالف؟ (يوزر/أيدي)', 'ما المخالفة التي قام بها؟', 'ما الدليل على المخالفة؟ (صور/رسائل)'] },
+  applysupport: { name: 'التقديم للدعم', nameAr: 'التقديم للدعم', nameEn: 'Apply Support', categoryPrefix: 'applysupport', color: 0xF59E0B, icon: '📝', emojiId: '1495224006947639377', description: 'يرجى ملء البيانات التالية للانضمام لفريق الدعم', questions: ['ما اسمك الحقيقي؟', 'ما خبراتك في مجال الدعم الفني؟', 'كم ساعة تستطيع التفرغ يومياً؟', 'ما أفضل وقت للتواصل معك؟'] },
+  applyteam: { name: 'التقديم للفريق', nameAr: 'التقديم للفريق', nameEn: 'Apply Team', categoryPrefix: 'applyteam', color: 0x8B5CF6, icon: '👥', emojiId: '1495224006947639377', description: 'يرجى ملء البيانات التالية للانضمام لفريق العمل', questions: ['ما اسمك الحقيقي؟', 'ما مهاراتك؟ (تصميم/برمجة/تسويق...)', 'ما الذي يميزك عن غيرك؟', 'ما هدفك من الانضمام لفريقنا؟'] }
+};
 
-    const openTicketButton = new ButtonBuilder()
-      .setCustomId('open_ticket_btn')
-      .setLabel('Open Ticket SupporT')
-      .setStyle(ButtonStyle.Success)
-      .setEmoji({ name: '🎫' });
-
-    const row = new ActionRowBuilder().addComponents(openTicketButton);
-
-    await message.channel.send({ embeds: [embed], components: [row] });
+// ============ TICKET COMMANDS ============
+client.commands.set('order', { name: 'order', description: 'فتح لوحة الطلبات', execute: async (message) => {
+    console.log('[ORDER] ' + message.author.tag + ' opened order panel');
     if (!message.deleted) message.delete().catch(() => {});
-  },
-});
+    const t = TICKET_TYPES.order;
+    const embed = new EmbedBuilder().setTitle(t.icon + ' || • ' + t.nameEn + ' • ' + t.nameAr).setDescription(['**# If You Want Order Anything..!!**', '', '- ➡ Open Ticket Here,', '', '__ ـــــــــــــــــــــــــــــــــــــــــــــــــ <a:Taj:' + t.emojiId + '> ــــــــــــــــــــــــــــــــــــــــــــــــ\_\_'].join('\n')).setColor(t.color).setFooter({ text: 'Unit S | Ticketing System' }).setImage('https://cdn.discordapp.net/attachments/1397309666752593920/1495169428738936852/UNIT_406004040.webp');
+    const btn = new ButtonBuilder().setCustomId('ticket_order').setLabel('Open Ticket Order').setStyle(ButtonStyle.Success).setEmoji({ name: '🎫' });
+    await message.channel.send({ embeds: [embed], components: [new ActionRowBuilder().addComponents(btn)] });
+}});
+
+client.commands.set('support', { name: 'support', description: 'فتح لوحة الدعم الفني', execute: async (message) => {
+    console.log('[SUPPORT] ' + message.author.tag + ' opened support panel');
+    if (!message.deleted) message.delete().catch(() => {});
+    const t = TICKET_TYPES.support;
+    const embed = new EmbedBuilder().setTitle(t.icon + ' || • ' + t.nameEn + ' • ' + t.nameAr).setDescription(['**# If You Want Our Support For Anything..!!**', '', '- ➡ Open Ticket Here,', '', '__ ـــــــــــــــــــــــــــــــــــــــــــــــــ <a:Taj:' + t.emojiId + '> ــــــــــــــــــــــــــــــــــــــــــــــــ\_\_'].join('\n')).setColor(t.color).setFooter({ text: 'Unit S | Ticketing System' }).setImage('https://cdn.discordapp.net/attachments/1397309666752593920/1495169428738936852/UNIT_406004040.webp');
+    const btn = new ButtonBuilder().setCustomId('ticket_support').setLabel('Open Ticket SupporT').setStyle(ButtonStyle.Success).setEmoji({ name: '🎫' });
+    await message.channel.send({ embeds: [embed], components: [new ActionRowBuilder().addComponents(btn)] });
+}});
+
+client.commands.set('report', { name: 'report', description: 'فتح لوحة الإبلاغ', execute: async (message) => {
+    console.log('[REPORT] ' + message.author.tag + ' opened report panel');
+    if (!message.deleted) message.delete().catch(() => {});
+    const t = TICKET_TYPES.report;
+    const embed = new EmbedBuilder().setTitle(t.icon + ' || • ' + t.nameEn + ' • ' + t.nameAr).setDescription(['**# If You Want To Report Someone..!!**', '', '- ➡ Open Ticket Here,', '', '__ ـــــــــــــــــــــــــــــــــــــــــــــــــ <a:Taj:' + t.emojiId + '> ــــــــــــــــــــــــــــــــــــــــــــــــ\_\_'].join('\n')).setColor(t.color).setFooter({ text: 'Unit S | Ticketing System' }).setImage('https://cdn.discordapp.net/attachments/1397309666752593920/1495169428738936852/UNIT_406004040.webp');
+    const btn = new ButtonBuilder().setCustomId('ticket_report').setLabel('Open Ticket RepoRT').setStyle(ButtonStyle.Danger).setEmoji({ name: '🎫' });
+    await message.channel.send({ embeds: [embed], components: [new ActionRowBuilder().addComponents(btn)] });
+}});
+
+client.commands.set('applysupport', { name: 'applysupport', description: 'فتح لوحة التقديم للدعم', execute: async (message) => {
+    console.log('[APPLYSUPPORT] ' + message.author.tag + ' opened apply support panel');
+    if (!message.deleted) message.delete().catch(() => {});
+    const t = TICKET_TYPES.applysupport;
+    const embed = new EmbedBuilder().setTitle(t.icon + ' || • ' + t.nameEn + ' • ' + t.nameAr).setDescription(['**# If You Want To Join Our Staff..!!**', '', '- ➡ Open Ticket Here,', '', '__ ـــــــــــــــــــــــــــــــــــــــــــــــــ <a:Taj:' + t.emojiId + '> ــــــــــــــــــــــــــــــــــــــــــــــــ\_\_'].join('\n')).setColor(t.color).setFooter({ text: 'Unit S | Ticketing System' }).setImage('https://cdn.discordapp.net/attachments/1397309666752593920/1495169428738936852/UNIT_406004040.webp');
+    const btn = new ButtonBuilder().setCustomId('ticket_applysupport').setLabel('Open Apply SupporT').setStyle(ButtonStyle.Primary).setEmoji({ name: '🎫' });
+    await message.channel.send({ embeds: [embed], components: [new ActionRowBuilder().addComponents(btn)] });
+}});
+
+client.commands.set('applyteam', { name: 'applyteam', description: 'فتح لوحة التقديم للفريق', execute: async (message) => {
+    console.log('[APPLYTEAM] ' + message.author.tag + ' opened apply team panel');
+    if (!message.deleted) message.delete().catch(() => {});
+    const t = TICKET_TYPES.applyteam;
+    const embed = new EmbedBuilder().setTitle(t.icon + ' || • ' + t.nameEn + ' • ' + t.nameAr).setDescription(['**# If You Want To Join Our Team..!!**', '', '- ➡ Open Ticket Here,', '', '__ ـــــــــــــــــــــــــــــــــــــــــــــــــ <a:Taj:' + t.emojiId + '> ــــــــــــــــــــــــــــــــــــــــــــــــ\_\_'].join('\n')).setColor(t.color).setFooter({ text: 'Unit S | Ticketing System' }).setImage('https://cdn.discordapp.net/attachments/1397309666752593920/1495169428738936852/UNIT_406004040.webp');
+    const btn = new ButtonBuilder().setCustomId('ticket_applyteam').setLabel('Open Apply Team').setStyle(ButtonStyle.Primary).setEmoji({ name: '🎫' });
+    await message.channel.send({ embeds: [embed], components: [new ActionRowBuilder().addComponents(btn)] });
+}});
+
+client.commands.set('tickets', { name: 'tickets', description: 'عرض جميع أوامر التذاكر', execute: async (message) => {
+    console.log('[TICKETS] ' + message.author.tag + ' requested tickets help');
+    if (!message.deleted) message.delete().catch(() => {});
+    const embed = new EmbedBuilder().setTitle('🎫 Unit S | نظام التذاكر').setColor(0x3ba55c).setDescription('مرحباً بك في نظام التذاكر!\nاختر نوع التذكرة المناسب لك:').addFields(
+        { name: '📦 !order', value: 'للطلب منتج أو خدمة', inline: false },
+        { name: '🔧 !support', value: 'للدعم الفني والمساعدة', inline: false },
+        { name: '🚨 !report', value: 'للإبلاغ عن شخص مخالف', inline: false },
+        { name: '📝 !applysupport', value: 'للانضمام لفريق الدعم الفني', inline: false },
+        { name: '👥 !applyteam', value: 'للانضمام لفريق العمل', inline: false }
+    ).setFooter({ text: 'Unit S | Ticketing System' }).setTimestamp();
+    await message.channel.send({ embeds: [embed] });
+}});
+
+// ============ CREATE TICKET FUNCTION ============
+async function createTicket(interaction, ticketType) {
+  const config = TICKET_TYPES[ticketType];
+  if (!config) { await interaction.editReply({ content: '❌ نوع التذكرة غير موجود!' }); return; }
+  try {
+    const existingChannel = interaction.guild.channels.cache.find(ch => ch.name.startsWith(config.categoryPrefix + '-') && ch.topic && ch.topic.includes(interaction.user.id));
+    if (existingChannel) { await interaction.editReply({ content: '⚠️ لديك تذكرة مفتوحة بالفعل!\n' + existingChannel }); return; }
+    const channelName = config.categoryPrefix + '-' + interaction.user.username.toLowerCase().replace(/[^a-z0-9]/g, '') + '-' + Date.now().toString().slice(-4);
+    const ticketChannel = await interaction.guild.channels.create({
+      name: channelName, type: ChannelType.GuildText, parent: TICKET_CATEGORY_ID,
+      topic: 'Ticket by ' + interaction.user.tag + ' | Type: ' + config.name + ' | User ID: ' + interaction.user.id,
+      permissionOverwrites: [
+        { id: interaction.guild.id, deny: ['ViewChannel'] },
+        { id: interaction.user.id, allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory', 'AttachFiles'] },
+        { id: SUPPORT_ROLE_ID, allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory', 'ManageMessages'] }
+      ]
+    });
+    const welcomeEmbed = new EmbedBuilder().setColor(config.color).setTitle(config.icon + ' ' + config.name).setDescription(['Hey <@' + interaction.user.id + '> Welcome to Unit S', '', 'Please Wait The Support To Answer ✅', '', '<@&' + SUPPORT_ROLE_ID + '> ⚒️'].join('\n')).setFooter({ text: 'Unit S - Ticketing without clutter' }).setTimestamp();
+    const closeBtn = new ButtonBuilder().setCustomId('ticket_close').setLabel('Close').setStyle(ButtonStyle.Secondary).setEmoji('🔓');
+    await ticketChannel.send({ content: '<@' + interaction.user.id + '>', embeds: [welcomeEmbed], components: [new ActionRowBuilder().addComponents(closeBtn)] });
+    const systemEmbed = new EmbedBuilder().setAuthor({ name: 'Unit S | System' }).setColor(config.color).setDescription(['السلام عليكم ورحمة الله وبركاته ..', '', 'معك طاقم Unit S في تذكرة ' + config.name + ' !', '', config.description, '', 'يرجى توضيح مشكلتك بالكامل لكي يمكنني مساعدتك'].join('\n')).setFooter({ text: 'يرجى من المسؤول الضغط على الزر لاستلام التذكرة' }).setTimestamp();
+    const claimBtn = new ButtonBuilder().setCustomId('ticket_claim').setLabel('Claim').setStyle(ButtonStyle.Primary);
+    await ticketChannel.send({ embeds: [systemEmbed], components: [new ActionRowBuilder().addComponents(claimBtn)] });
+    if (config.questions && config.questions.length > 0) {
+      const questionsEmbed = new EmbedBuilder().setColor(config.color).setTitle(config.icon + ' أسئلة للتذكرة').setDescription(config.questions.map((q, i) => (i + 1) + '. ' + q).join('\n')).setFooter({ text: 'Unit S | Ticket System' }).setTimestamp();
+      await ticketChannel.send({ embeds: [questionsEmbed] });
+    }
+    const pinnedMsg = await ticketChannel.messages.fetch({ limit: 1 }).then(msgs => msgs.first());
+    if (pinnedMsg) await pinnedMsg.pin().catch(() => {});
+    await interaction.editReply({ content: '✅ تم إنشاء تذكرتك بنجاح!\n' + ticketChannel });
+  } catch (err) { console.error('[' + ticketType.toUpperCase() + '] Error:', err); await interaction.editReply({ content: '❌ حدث خطأ أثناء إنشاء التذكرة.' }); }
+}
 
 // ============ INTERACTION HANDLER ============
 client.on('interactionCreate', async (interaction) => {
+  if (!interaction.isButton()) return;
+  const customId = interaction.customId;
   try {
-    // Handle Button Interactions
-    if (interaction.isButton()) {
-      const customId = interaction.customId;
-
-      // Open Ticket Button
-      if (customId === 'open_ticket_btn') {
-        await interaction.reply({ content: 'جاري إنشاء التذكرة...', ephemeral: true }).catch(() => {});
-
-        try {
-          const channelName = `ticket-${interaction.user.username.toLowerCase().replace(/[^a-z0-9]/g, '')}-${Date.now().toString().slice(-4)}`;
-
-          const ticketChannel = await interaction.guild.channels.create({
-            name: channelName,
-            type: ChannelType.GuildText,
-            parent: TICKET_CATEGORY_ID,
-            topic: `Ticket created by ${interaction.user.tag}`,
-            permissionOverwrites: [
-              { id: interaction.guild.id, deny: ['ViewChannel'] },
-              { id: interaction.user.id, allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory'] },
-              { id: SUPPORT_ROLE_ID, allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory'] }
-            ]
-          });
-
-          // Welcome Embed
-          const welcomeEmbed = new EmbedBuilder()
-            .setTitle('|| • Support • الدعم • الفني')
-            .setDescription(`Welcome <@${interaction.user.id}> To\n**Unit S**\n\nWait Our Team\n\n<@&${SUPPORT_ROLE_ID}>\n\nSupport will be with you shortly.\nTo close this press the close button`)
-            .setColor(0x3ba55c)
-            .setFooter({ text: 'Unit S | Ticketing System' });
-
-          // Close Button
-          const closeButton = new ButtonBuilder()
-            .setCustomId('close_ticket')
-            .setLabel('Close')
-            .setStyle(ButtonStyle.Secondary)
-            .setEmoji({ name: '🔒' });
-
-          const closeRow = new ActionRowBuilder().addComponents(closeButton);
-
-          await ticketChannel.send({ content: `<@${interaction.user.id}> <@&${SUPPORT_ROLE_ID}>`, embeds: [welcomeEmbed], components: [closeRow] });
-
-          // System Embed with Claim
-          const systemEmbed = new EmbedBuilder()
-            .setAuthor({ name: 'Unit S | System' })
-            .setDescription('السلام عليكم ورحمة الله وبركاته ..\n\nمعك طاقم Unit S في تذكرة الدعم الفني !\n\nيرجى توضيح مشكلتك بالكامل لكي يمكنني مساعدتك ، سوف يتم الرد عليك من قبل فريق الدعم الفني قريباً')
-            .setColor(0x5865F2)
-            .setFooter({ text: 'يرجى من المسؤول الضغط على الزر لاستلام التذكرة' })
-            .setImage('https://cdn.discordapp.com/attachments/1397309666752593920/1495169428738936852/UNIT_406004040.webp?ex=69e5448a&is=69e3f30a&hm=be61008c6e62b1b6783e3af827d9a737804a90f617421c905fa4881c90a03994&');
-
-          const claimButton = new ButtonBuilder()
-            .setCustomId('claim_ticket')
-            .setLabel('Claim')
-            .setStyle(ButtonStyle.Primary);
-
-          const claimRow = new ActionRowBuilder().addComponents(claimButton);
-
-          await ticketChannel.send({ embeds: [systemEmbed], components: [claimRow] });
-
-          await interaction.editReply({ content: `✅ تم إنشاء تذكرتك بنجاح!\n${ticketChannel}`, ephemeral: true });
-
-        } catch (err) {
-          console.error('Error creating ticket:', err);
-          await interaction.editReply({ content: '❌ حدث خطأ أثناء إنشاء التذكرة!', ephemeral: true });
-        }
-        return;
-      }
-
-      // Claim Ticket Button
-      if (customId === 'claim_ticket') {
-        const channelName = interaction.channel.name;
-        if (!channelName.startsWith('ticket-')) {
-          await interaction.reply({ content: '❌ هذا الأمر لا يمكن استخدامه إلا داخل التذاكر!', ephemeral: true });
-          return;
-        }
-
-        await interaction.reply({ content: `✅ تم استلام التذكرة بواسطة <@${interaction.user.id}>` });
-        return;
-      }
-
-      // Close Ticket Button
-      if (customId === 'close_ticket') {
-        const channelName = interaction.channel.name;
-        if (!channelName.startsWith('ticket-')) {
-          await interaction.reply({ content: '❌ هذا الأمر لا يمكن استخدامه إلا داخل التذاكر!', ephemeral: true });
-          return;
-        }
-
-        await interaction.reply({ content: 'هل أنت متأكد من إغلاق التذكرة؟ رد بـ "نعم" لإغلاق.' });
-
-        const filter = (m) => m.content.toLowerCase() === 'نعم' && m.author.id === interaction.user.id;
-        const collector = interaction.channel.createMessageCollector({ filter, time: 30000, max: 1 });
-
-        collector.on('collect', async (m) => {
-          await interaction.channel.send('🔒 جاري إغلاق التذكرة...');
-          setTimeout(() => interaction.channel.delete(), 1000);
-        });
-
-        collector.on('end', (collected) => {
-          if (collected.size === 0) {
-            interaction.editReply({ content: '❌ تم إلغاء الأمر.' }).catch(() => {});
-          }
-        });
-        return;
-      }
+    if (customId === 'ticket_order') { await interaction.deferReply({ ephemeral: true }); await createTicket(interaction, 'order'); return; }
+    if (customId === 'ticket_support') { await interaction.deferReply({ ephemeral: true }); await createTicket(interaction, 'support'); return; }
+    if (customId === 'ticket_report') { await interaction.deferReply({ ephemeral: true }); await createTicket(interaction, 'report'); return; }
+    if (customId === 'ticket_applysupport') { await interaction.deferReply({ ephemeral: true }); await createTicket(interaction, 'applysupport'); return; }
+    if (customId === 'ticket_applyteam') { await interaction.deferReply({ ephemeral: true }); await createTicket(interaction, 'applyteam'); return; }
+    if (customId === 'ticket_claim') {
+      await interaction.deferReply({ ephemeral: true });
+      if (!hasModRole(interaction.member)) { await interaction.editReply({ content: '❌ ليس لديك صلاحية لاستلام التذكرة!' }); return; }
+      const channel = interaction.channel;
+      if (!channel.name.startsWith('👤')) await channel.setName('👤-' + channel.name);
+      await channel.send('👤 تم استلام التذكرة بواسطة <@' + interaction.user.id + '>');
+      await interaction.editReply({ content: '✅ تم استلام التذكرة بنجاح!' });
+      return;
     }
-  } catch (error) {
-    console.error('Interaction error:', error);
-  }
+    if (customId === 'ticket_close') {
+      await interaction.deferReply({ ephemeral: true });
+      const channel = interaction.channel;
+      const topic = channel.topic;
+      const userIdMatch = topic && topic.match(/User ID: (\d+)/);
+      const userId = userIdMatch ? userIdMatch[1] : null;
+      if (userId !== interaction.user.id && !hasModRole(interaction.member)) { await interaction.editReply({ content: '❌ ليس لديك صلاحية لإغلاق هذه التذكرة!' }); return; }
+      await logTicketTranscript(channel, interaction.user, 'User closed ticket');
+      await channel.delete('Ticket closed by user');
+      return;
+    }
+  } catch (err) { console.error('[INTERACTION] Error:', err); }
 });
 
 // ============ ENCRYPT PANEL COMMAND ============
@@ -2354,947 +2351,3 @@ client.commands.set('shfr', {
     }
   },
 });
-
-// ============ ENCRYPT COMMAND ============
-client.commands.set('enc', {
-  name: 'enc',
-  description: 'Encrypt text directly',
-  execute: async (message, args) => {
-    if (args.length === 0) {
-      await message.channel.send('❌ استخدم: `!enc [النص]`');
-      if (!message.deleted) message.delete().catch(() => {});
-      return;
-    }
-
-    const text = args.join(' ');
-    const encrypted = encryptText(text);
-
-    const embed = new EmbedBuilder()
-      .setTitle(' تم تشفير النص!')
-      .setColor(0xDC2626)
-      .addFields(
-        { name: 'النص الأصلي:', value: `\`\`\`\n${text}\n\`\`\`` },
-        { name: 'النص المشفر:', value: `\`\`\`\n${encrypted}\n\`\`\`` }
-      )
-      .setFooter({ text: 'Unit S | التشفير' });
-
-    await message.channel.send({ embeds: [embed] });
-    if (!message.deleted) message.delete().catch(() => {});
-  },
-});
-
-// ============ INTERACTION HANDLER ============
-client.on('interactionCreate', async (interaction) => {
-  try {
-
-    // ── Button Interactions ──────────────────────────────────────────
-    if (interaction.isButton()) {
-      const customId = interaction.customId;
-
-      // Handle edit price buttons
-      if (customId.startsWith('edit_price_')) {
-        const rankId = customId.replace('edit_price_', '');
-        const rank = ranksSettings.ranks.find(r => r.id === rankId);
-
-        if (!rank) {
-          await interaction.reply({ content: '❌ الرتبة غير موجودة!', ephemeral: true });
-          return;
-        }
-
-        // Create modal for price edit
-        const modal = new ModalBuilder()
-          .setCustomId(`price_modal_${rankId}`)
-          .setTitle(`تعديل سعر ${rank.name}`);
-
-        const priceInput = new TextInputBuilder()
-          .setCustomId('new_price')
-          .setLabel(`السعر الجديد (الحالي: ${rank.price.toLocaleString()})`)
-          .setStyle(TextInputStyle.Short)
-          .setPlaceholder('أدخل السعر الجديد')
-          .setRequired(true);
-
-        const actionRow = new ActionRowBuilder().addComponents(priceInput);
-        modal.addComponents(actionRow);
-
-        await interaction.showModal(modal);
-        return;
-      }
-
-      // Handle shop buy rank button
-      if (customId === 'shop_buy_rank') {
-        const rankOptions = ranksSettings.ranks.map(rank => {
-          return {
-            label: `${rank.name} - ${rank.price.toLocaleString()}`,
-            description: rank.features.join(' | '),
-            value: `rank_${rank.id}`,
-          };
-        });
-
-        const embed = new EmbedBuilder()
-          .setTitle('اختر الرتبة')
-          .setColor(0x8B5CF6)
-          .setFooter({ text: 'Unit S | Shop' })
-          .setTimestamp();
-
-        const shopMenu = new StringSelectMenuBuilder()
-          .setCustomId('shop_rank_select')
-          .setPlaceholder('اختر الرتبة')
-          .addOptions(rankOptions.map(opt => new StringSelectMenuOptionBuilder(opt)))
-          .setMinValues(1)
-          .setMaxValues(1);
-
-        const menuRow = new ActionRowBuilder().addComponents(shopMenu);
-
-        await interaction.reply({ embeds: [embed], components: [menuRow], ephemeral: true });
-        return;
-      }
-
-      // Handle back to menu button (from !rank command)
-      if (customId === 'back_to_menu') { return; }
-
-      // Handle back to main menu button
-      if (customId === 'back_to_main_menu') { return; }
-
-      // Handle cancel buy button
-      if (customId === 'cancel_buy') {
-        await interaction.reply({ content: '❌ تم إلغاء الشراء.', ephemeral: true });
-        return;
-      }
-
-      // Handle confirm buy rank button
-      if (customId.startsWith('confirm_buy_rank_')) {
-        const rankId = customId.replace('confirm_buy_rank_', '');
-        const rank = ranksSettings.ranks.find(r => r.id === rankId);
-
-        if (!rank) {
-          await interaction.reply({ content: '❌ الرتبة غير موجودة!', ephemeral: true });
-          return;
-        }
-
-        try {
-          const channelName = `purchase-${rank.name.toLowerCase().replace(/\s+/g, '-')}-${interaction.user.username}`;
-          const ticketChannel = await interaction.guild.channels.create({
-            name: channelName,
-            type: ChannelType.GuildText,
-            parent: TICKET_CATEGORY_ID,
-            permissionOverwrites: [
-              { id: interaction.guild.id, deny: ['ViewChannel'] },
-              { id: interaction.user.id, allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory'] },
-              { id: SUPPORT_ROLE_ID, allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory', 'ManageMessages'] }
-            ]
-          });
-
-          const ticketEmbed = new EmbedBuilder()
-            .setTitle('مرحباً بك في تذكرة الشراء')
-            .setColor(0x667eea)
-            .setDescription([
-              `<@${interaction.user.id}> تم فتح تذكرة خاصة بك للرتبة: **${rank.name}**`,
-              '',
-              `السعر: **${rank.price.toLocaleString()}**`,
-              '',
-              '**الميزات:**',
-              rank.features.map(f => `• ${f}`).join('\n'),
-              '',
-              'يرجى الانتظار حتى يتم الرد عليك من فريق الدعم.'
-            ].join('\n'))
-            .setFooter({ text: 'Unit S | Purchase Ticket' })
-            .setTimestamp();
-
-          const claimBtn = new ButtonBuilder()
-            .setCustomId('ticket_claim')
-            .setLabel('Claim')
-            .setStyle(ButtonStyle.Secondary);
-
-          const closeBtn = new ButtonBuilder()
-            .setCustomId('ticket_close')
-            .setLabel('Close')
-            .setStyle(ButtonStyle.Danger);
-
-          const btnRow = new ActionRowBuilder().addComponents(claimBtn, closeBtn);
-          await ticketChannel.send({ content: `<@${interaction.user.id}> <@&${SUPPORT_ROLE_ID}>`, embeds: [ticketEmbed], components: [btnRow] });
-          await interaction.reply({ content: `✅ تم فتح تذكرة خاصة بك: ${ticketChannel}`, ephemeral: true });
-
-        } catch (err) {
-          console.error('Error creating purchase ticket:', err);
-          await interaction.reply({ content: '❌ حدث خطأ أثناء فتح التذكرة!', ephemeral: true });
-        }
-        return;
-      }
-    }
-
-    // ── Modal Submissions ────────────────────────────────────────────
-    if (interaction.isModalSubmit()) {
-      const customId = interaction.customId;
-
-      if (customId.startsWith('price_modal_')) {
-        const rankId = customId.replace('price_modal_', '');
-        const rank = ranksSettings.ranks.find(r => r.id === rankId);
-
-        if (!rank) {
-          await interaction.reply({ content: '❌ الرتبة غير موجودة!', ephemeral: true });
-          return;
-        }
-
-        const newPriceInput = interaction.fields.getTextInputValue('new_price');
-        const newPrice = parseInt(newPriceInput);
-
-        if (isNaN(newPrice) || newPrice < 0) {
-          await interaction.reply({ content: '❌ السعر يجب أن يكون رقماً موجباً!', ephemeral: true });
-          return;
-        }
-
-        const oldPrice = rank.price;
-        rank.price = newPrice;
-        saveRanksSettings(ranksSettings);
-
-        const embed = new EmbedBuilder()
-          .setTitle('✅ تم تحديث السعر بنجاح')
-          .setColor(0x10B981)
-          .addFields(
-            { name: 'الرتبة:', value: rank.name, inline: true },
-            { name: 'السعر القديم:', value: oldPrice.toLocaleString(), inline: true },
-            { name: 'السعر الجديد:', value: newPrice.toLocaleString(), inline: true }
-          )
-          .setFooter({ text: 'Unit S | إدارة الأسعار' })
-          .setTimestamp();
-
-        await interaction.reply({ embeds: [embed], ephemeral: false });
-        return;
-      }
-    }
-
-    // ── Select Menu Interactions ─────────────────────────────────────
-    if (interaction.isStringSelectMenu()) {
-      const customId = interaction.customId;
-
-      if (customId === 'shop_rank_select') {
-        const selectedValue = interaction.values[0];
-        const rankId = selectedValue.replace('rank_', '');
-        const rank = ranksSettings.ranks.find(r => r.id === rankId);
-
-        if (!rank) {
-          await interaction.reply({ content: '❌ الرتبة غير موجودة!', ephemeral: true });
-          return;
-        }
-
-        const embed = new EmbedBuilder()
-          .setTitle(`✅ تم اختيار: ${rank.name}`)
-          .setColor(0x10B981)
-          .addFields(
-            { name: 'الرتبة:', value: rank.name, inline: true },
-            { name: 'السعر:', value: rank.price.toLocaleString(), inline: true },
-            { name: 'الميزات:', value: rank.features.map(f => `• ${f}`).join('\n'), inline: false }
-          )
-          .setFooter({ text: 'Unit S | Shop' })
-          .setTimestamp();
-
-        const buyButton = new ButtonBuilder()
-          .setCustomId(`confirm_buy_rank_${rank.id}`)
-          .setLabel('تأكيد الشراء')
-          .setStyle(ButtonStyle.Success);
-
-        const cancelButton = new ButtonBuilder()
-          .setCustomId('cancel_buy')
-          .setLabel('إلغاء')
-          .setStyle(ButtonStyle.Danger);
-
-        const row = new ActionRowBuilder().addComponents(buyButton, cancelButton);
-        await interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
-        return;
-      }
-    }
-
-  } catch (error) {
-    console.error('Interaction error:', error);
-  }
-});
-
-// Alias commands for easier access
-
-// ============ PROTECTION MENU ============
-client.commands.set('protect', {
-  name: 'protect',
-  description: 'Protection control panel',
-  execute: async (message) => {
-    if (!message.member.permissions.has('ManageMessages')) {
-      await message.channel.send('❌ ليس لديك صلاحية!');
-      if (!message.deleted) message.delete().catch(() => {});
-      return;
-    }
-
-    const wordFilterStatus = protectionSettings.wordFilter.enabled ? '✅ مفعّل' : '❌ معطّل';
-    const antiSpamStatus = protectionSettings.antiSpam.enabled ? '✅ مفعّل' : '❌ معطّل';
-    const antiLinkStatus = protectionSettings.antiLink.enabled ? '✅ مفعّل' : '❌ معطّل';
-
-    const embed = new EmbedBuilder()
-      .setTitle(' لوحة التحكم - الحماية')
-      .setColor(0xDC2626)
-      .addFields(
-        { name: 'حالة الحماية:', value: '━━━━━━━━━━━━━━━', inline: false },
-        { name: '🔤 فلتر الكلمات:', value: wordFilterStatus, inline: true },
-        { name: '🛑 مضاد السبام:', value: antiSpamStatus, inline: true },
-        { name: '🔗 منع الروابط:', value: antiLinkStatus, inline: true },
-        { name: '\n📝 الأوامر:', value: '━━━━━━━━━━━━━━━', inline: false },
-        { name: '', value: '`!protect on filter` - تفعيل فلتر الكلمات\n`!protect off filter` - تعطيل فلتر الكلمات\n`!protect on spam` - تفعيل مضاد السبام\n`!protect off spam` - تعطيل مضاد السبام\n`!protect on link` - تفعيل منع الروابط\n`!protect off link` - تعطيل منع الروابط', inline: false }
-      )
-      .setFooter({ text: 'Unit S | الإدارة' })
-      .setTimestamp();
-
-    await message.channel.send({ embeds: [embed] });
-    if (!message.deleted) message.delete().catch(() => {});
-  },
-});
-
-// ============ PROTECTION TOGGLE COMMAND ============
-client.commands.set('protect_toggle', {
-  name: 'protect',
-  aliases: ['p'],
-  execute: async (message, args) => {
-    if (!message.member.permissions.has('ManageMessages')) {
-      await message.channel.send('❌ ليس لديك صلاحية!');
-      if (!message.deleted) message.delete().catch(() => {});
-      return;
-    }
-
-    if (args.length < 2) {
-      await message.channel.send('❌ استخدم: `!protect on/off [filter/spam/link]`');
-      if (!message.deleted) message.delete().catch(() => {});
-      return;
-    }
-
-    const action = args[0].toLowerCase();
-    const type = args[1].toLowerCase();
-
-    if (!['on', 'off'].includes(action)) {
-      await message.channel.send('❌ استخدم: `!protect on/off [filter/spam/link]`');
-      if (!message.deleted) message.delete().catch(() => {});
-      return;
-    }
-
-    const enable = action === 'on';
-    let updated = false;
-    let featureName = '';
-
-    switch (type) {
-      case 'filter':
-      case 'word':
-        protectionSettings.wordFilter.enabled = enable;
-        updated = true;
-        featureName = 'فلتر الكلمات';
-        break;
-      case 'spam':
-      case 'antispam':
-        protectionSettings.antiSpam.enabled = enable;
-        updated = true;
-        featureName = 'مضاد السبام';
-        break;
-      case 'link':
-      case 'antilink':
-        protectionSettings.antiLink.enabled = enable;
-        updated = true;
-        featureName = 'منع الروابط';
-        break;
-      default:
-        await message.channel.send('❌ نوع غير صالح! استخدم: `filter`, `spam`, `link`');
-        if (!message.deleted) message.delete().catch(() => {});
-        return;
-    }
-
-    if (updated) {
-      await message.channel.send(`🛡️ تم ${enable ? 'تفعيل' : 'تعطيل'} ${featureName}!`);
-      if (!message.deleted) message.delete().catch(() => {});
-    }
-  },
-});
-
-// ============ TICKET COMMANDS - UNIT S ============
-
-// ===== Panel 1: الدعم الفني =====
-client.commands.set('support', {
-  name: 'support',
-  description: 'لوحة الدعم الفني',
-  execute: async (message) => {
-    console.log(`[SUPPORT] ${message.author.tag} opened support panel`);
-    if (!message.deleted) message.delete().catch(() => {});
-
-    const supportEmbed = new EmbedBuilder()
-      .setTitle('🔧 الدعم الفني')
-      .setColor(0x10B981)
-      .setDescription('هل تحتاج مساعدة تقنية؟\nاضغط على الزر لفتح تذكرة.')
-      .setFooter({ text: 'Unit S | Ticket System' })
-      .setTimestamp();
-
-    const supportBtn = new ButtonBuilder()
-      .setCustomId('ticket_support')
-      .setLabel('فتح تذكرة')
-      .setStyle(ButtonStyle.Success)
-      .setEmoji('🔧');
-
-    const supportRow = new ActionRowBuilder().addComponents(supportBtn);
-    await message.channel.send({ embeds: [supportEmbed], components: [supportRow] });
-  },
-});
-
-// Ticket button handler - Support
-const ticketSupportHandler = async (interaction) => {
-  if (!interaction.isButton() || interaction.customId !== 'ticket_support') return;
-
-  try {
-    await interaction.deferReply({ ephemeral: true });
-    // Check for existing ticket
-    const existingChannel = interaction.guild.channels.cache.find(ch =>
-      ch.name.startsWith('support-') &&
-      ch.topic?.includes(interaction.user.id)
-    );
-
-    if (existingChannel) {
-      await interaction.editReply({ content: `⚠️ لديك تذكرة مفتوحة بالفعل!\n${existingChannel}` });
-      return;
-    }
-
-    // Create ticket channel
-    const channelName = `support-${interaction.user.username.toLowerCase().replace(/[^a-z0-9]/g, '')}-${Date.now().toString().slice(-4)}`;
-
-    const ticketChannel = await interaction.guild.channels.create({
-      name: channelName,
-      type: ChannelType.GuildText,
-      parent: TICKET_CATEGORY_ID,
-      topic: `Ticket by ${interaction.user.tag} | Type: Support | User ID: ${interaction.user.id}`,
-      permissionOverwrites: [
-        { id: interaction.guild.id, deny: ['ViewChannel'] },
-        { id: interaction.user.id, allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory', 'AttachFiles'] },
-        { id: SUPPORT_ROLE_ID, allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory', 'ManageMessages'] }
-      ]
-    });
-
-    // === Message 1: Welcome Embed (Green) ===
-    const welcomeEmbed = new EmbedBuilder()
-      .setColor(0x10B981)
-      .setTitle('🎫 نظام التذاكر')
-      .setDescription([
-        `🌀 | Hey <@${interaction.user.id}> Welcome to Unit S`,
-        `Please Wait The Support To Answer ✅`,
-        ``,
-        `🌀 | <@&${SUPPORT_ROLE_ID}> ⚒️`
-      ].join('\n'))
-      .setFooter({ text: 'Unit S - Ticketing without clutter' })
-      .setTimestamp();
-
-    const closeBtn = new ButtonBuilder()
-      .setCustomId('ticket_close')
-      .setLabel('Close')
-      .setStyle(ButtonStyle.Secondary)
-      .setEmoji('🔓');
-
-    const welcomeRow = new ActionRowBuilder().addComponents(closeBtn);
-
-    await ticketChannel.send({ content: `<@${interaction.user.id}>`, embeds: [welcomeEmbed], components: [welcomeRow] });
-
-    // === Message 2: Claim Message (Blue) ===
-    const claimEmbed = new EmbedBuilder()
-      .setColor(0x3B82F6)
-      .setDescription('يرجى من المسؤول الضغط على الزر لاستلام التذكرة')
-      .setFooter({ text: 'Unit S | Ticket System ⚒️' })
-      .setTimestamp();
-
-    const claimBtn = new ButtonBuilder()
-      .setCustomId('ticket_claim')
-      .setLabel('Claim')
-      .setStyle(ButtonStyle.Primary);
-
-    const claimRow = new ActionRowBuilder().addComponents(claimBtn);
-
-    await ticketChannel.send({ embeds: [claimEmbed], components: [claimRow] });
-
-    // === Message 3: Reason Select Menu ===
-    const reasonEmbed = new EmbedBuilder()
-      .setColor(0x3B82F6)
-      .setTitle('⚒️ Support')
-      .setDescription([
-        'سبب فتحك لتيكت الدعم',
-        'يرجى اختيار السبب من القائمة أدناه:'
-      ].join('\n'))
-      .setFooter({ text: 'Unit S | Ticket System ⚒️' })
-      .setTimestamp();
-
-    const reasonSelect = new StringSelectMenuBuilder()
-      .setCustomId('support_reason_select')
-      .setPlaceholder('اختر السبب')
-      .addOptions([
-        { label: 'بلاغ على شخص', value: 'report', description: 'الإبلاغ عن شخص مخالف' },
-        { label: 'استرجاع رتب', value: 'recover', description: 'استرجاع الرتب المفقودة' },
-        { label: 'سبب اخر', value: 'other', description: 'سبب آخر غير mentioned' }
-      ]);
-
-    const reasonRow = new ActionRowBuilder().addComponents(reasonSelect);
-
-    await ticketChannel.send({ embeds: [reasonEmbed], components: [reasonRow] });
-
-    // Pin first message
-    const pinnedMsg = await ticketChannel.messages.fetch({ limit: 1 }).then(msgs => msgs.first());
-    if (pinnedMsg) await pinnedMsg.pin().catch(() => {});
-
-    // Notify user
-    await interaction.editReply({ content: `✅ تم إنشاء تذكرتك بنجاح!\n${ticketChannel}` });
-
-  } catch (err) {
-    console.error('[SUPPORT] Error creating ticket:', err);
-    await interaction.editReply({ content: '❌ حدث خطأ أثناء إنشاء التذكرة.' });
-  }
-};
-
-// ===== Panel 2: الطلبات =====
-client.commands.set('order', {
-  name: 'order',
-  description: 'لوحة الطلبات',
-  execute: async (message) => {
-    console.log(`[ORDER] ${message.author.tag} opened order panel`);
-    if (!message.deleted) message.delete().catch(() => {});
-
-    const orderEmbed = new EmbedBuilder()
-      .setTitle('📦 الطلبات')
-      .setColor(0x10B981)
-      .setDescription('لطلب منتج أو خدمة؟\nاضغط على الزر لفتح تذكرة.')
-      .setFooter({ text: 'Unit S | Ticket System' })
-      .setTimestamp();
-
-    const orderBtn = new ButtonBuilder()
-      .setCustomId('ticket_order')
-      .setLabel('فتح تذكرة')
-      .setStyle(ButtonStyle.Success)
-      .setEmoji('📦');
-
-    const orderRow = new ActionRowBuilder().addComponents(orderBtn);
-    await message.channel.send({ embeds: [orderEmbed], components: [orderRow] });
-  },
-});
-
-// ===== Panel 3: التقديم =====
-client.commands.set('apply', {
-  name: 'apply',
-  description: 'لوحة التقديم',
-  execute: async (message) => {
-    console.log(`[APPLY] ${message.author.tag} opened apply panel`);
-    if (!message.deleted) message.delete().catch(() => {});
-
-    const applyEmbed = new EmbedBuilder()
-      .setTitle('📝 التقديم')
-      .setColor(0xF59E0B)
-      .setDescription('للتدقيق على فريقنا أو للدعم الفني؟\nاضغط على الزر لفتح تذكرة.')
-      .setFooter({ text: 'Unit S | Ticket System' })
-      .setTimestamp();
-
-    const applyBtn = new ButtonBuilder()
-      .setCustomId('ticket_apply')
-      .setLabel('فتح تذكرة')
-      .setStyle(ButtonStyle.Secondary)
-      .setEmoji('📝');
-
-    const applyRow = new ActionRowBuilder().addComponents(applyBtn);
-    await message.channel.send({ embeds: [applyEmbed], components: [applyRow] });
-  },
-});
-
-// ===== Panel 4: الفريق =====
-client.commands.set('team', {
-  name: 'team',
-  description: 'لوحة الفريق',
-  execute: async (message) => {
-    console.log(`[TEAM] ${message.author.tag} opened team panel`);
-    if (!message.deleted) message.delete().catch(() => {});
-
-    const teamEmbed = new EmbedBuilder()
-      .setTitle('👥 الفريق')
-      .setColor(0x8B5CF6)
-      .setDescription('للانضمام لفريقنا؟\nاضغط على الزر لفتح تذكرة.')
-      .setFooter({ text: 'Unit S | Ticket System' })
-      .setTimestamp();
-
-    const teamBtn = new ButtonBuilder()
-      .setCustomId('ticket_team')
-      .setLabel('فتح تذكرة')
-      .setStyle(ButtonStyle.Primary)
-      .setEmoji('👥');
-
-    const teamRow = new ActionRowBuilder().addComponents(teamBtn);
-    await message.channel.send({ embeds: [teamEmbed], components: [teamRow] });
-  },
-});
-
-// ===== Panel 5: الوسيط =====
-client.commands.set('mediator', {
-  name: 'mediator',
-  description: 'لوحة الوسيط',
-  execute: async (message) => {
-    console.log(`[MEDIATOR] ${message.author.tag} opened mediator panel`);
-    if (!message.deleted) message.delete().catch(() => {});
-
-    const mediatorEmbed = new EmbedBuilder()
-      .setTitle('⚖️ الوسيط')
-      .setColor(0x3B82F6)
-      .setDescription('للمساعدة في حل مشكلة؟\nاضغط على الزر لفتح تذكرة.')
-      .setFooter({ text: 'Unit S | Ticket System' })
-      .setTimestamp();
-
-    const mediatorBtn = new ButtonBuilder()
-      .setCustomId('ticket_mediator')
-      .setLabel('فتح تذكرة')
-      .setStyle(ButtonStyle.Primary)
-      .setEmoji('⚖️');
-
-    const mediatorRow = new ActionRowBuilder().addComponents(mediatorBtn);
-    await message.channel.send({ embeds: [mediatorEmbed], components: [mediatorRow] });
-  },
-});
-
-// ============ TICKET INTERACTION HANDLER ============
-client.on('interactionCreate', async (interaction) => {
-  // Handle Support ticket button
-  if (interaction.isButton() && interaction.customId === 'ticket_support') {
-    await ticketSupportHandler(interaction);
-    return;
-  }
-
-  // Handle other ticket buttons and general interactions
-  if (!interaction.isButton()) return;
-
-  const customId = interaction.customId;
-
-  // Check if it's a ticket button (but not support which is handled above)
-  if (!customId.startsWith('ticket_') || customId === 'ticket_support') return;
-
-  try {
-    // Defer the reply immediately
-    await interaction.deferReply({ ephemeral: true });
-
-    // Get ticket type from button
-    const ticketType = customId.replace('ticket_', '');
-
-    // Ticket type configurations
-    const ticketConfig = {
-      order: {
-        name: 'الطلبات',
-        color: 0x10B981, // Green
-        topic: 'Order Ticket',
-        icon: '📦'
-      },
-      apply: {
-        name: 'التقديم',
-        color: 0xF59E0B, // Yellow
-        topic: 'Application Ticket',
-        icon: '📝'
-      },
-      team: {
-        name: 'الفريق',
-        color: 0x8B5CF6, // Purple
-        topic: 'Team Ticket',
-        icon: '👥'
-      },
-      mediator: {
-        name: 'الوسيط',
-        color: 0x3B82F6, // Blue
-        topic: 'Mediator Ticket',
-        icon: '⚖️'
-      }
-    };
-
-    const config = ticketConfig[ticketType];
-    if (!config) {
-      await interaction.editReply({ content: '❌ نوع التذكرة غير معروف!' });
-      return;
-    }
-
-    // Check for existing open ticket
-    const existingChannel = interaction.guild.channels.cache.find(ch =>
-      ch.name.startsWith(`${ticketType}-`) &&
-      ch.topic?.includes(interaction.user.id)
-    );
-
-    if (existingChannel) {
-      await interaction.editReply({
-        content: `⚠️ لديك تذكرة مفتوحة بالفعل!\n${existingChannel}`
-      });
-      return;
-    }
-
-    // Create ticket channel
-    const channelName = `${ticketType}-${interaction.user.username.toLowerCase().replace(/[^a-z0-9]/g, '')}-${Date.now().toString().slice(-4)}`;
-
-    const ticketChannel = await interaction.guild.channels.create({
-      name: channelName,
-      type: ChannelType.GuildText,
-      parent: TICKET_CATEGORY_ID,
-      topic: `Ticket by ${interaction.user.tag} | Type: ${config.topic} | User ID: ${interaction.user.id}`,
-      permissionOverwrites: [
-        { id: interaction.guild.id, deny: ['ViewChannel'] },
-        { id: interaction.user.id, allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory', 'AttachFiles'] },
-        { id: SUPPORT_ROLE_ID, allow: ['ViewChannel', 'SendMessages', 'ReadMessageHistory', 'ManageMessages'] }
-      ]
-    });
-
-    // Create welcome embed
-    const welcomeEmbed = new EmbedBuilder()
-      .setColor(config.color)
-      .setTitle(`${config.icon} تذكرة ${config.name}`)
-      .setDescription([
-        `<@${interaction.user.id}> مرحباً بك!`,
-        '',
-        `تم فتح تذكرة **${config.name}**`,
-        '',
-        'يرجى الانتظار حتى يتم الرد عليك.',
-        '',
-        '⏰ وقت فتح التذكرة: ' + new Date().toLocaleString('ar-SA')
-      ].join('\n'))
-      .setFooter({ text: 'Unit S | Ticket System' })
-      .setTimestamp();
-
-    // Create buttons for the ticket channel
-    const closeBtn = new ButtonBuilder()
-      .setCustomId('ticket_close')
-      .setLabel('إغلاق التذكرة')
-      .setStyle(ButtonStyle.Danger);
-
-    const lockBtn = new ButtonBuilder()
-      .setCustomId('ticket_lock')
-      .setLabel('قفل التذكرة')
-      .setStyle(ButtonStyle.Secondary);
-
-    const row = new ActionRowBuilder().addComponents(closeBtn, lockBtn);
-
-    await ticketChannel.send({
-      content: `<@${interaction.user.id}>`,
-      embeds: [welcomeEmbed],
-      components: [row]
-    });
-
-    // Pin the message
-    const pinnedMsg = await ticketChannel.messages.fetch({ limit: 1 }).then(msgs => msgs.first());
-    if (pinnedMsg) await pinnedMsg.pin().catch(() => {});
-
-    // Notify user
-    await interaction.editReply({
-      content: `✅ تم إنشاء تذكرتك بنجاح!\n${ticketChannel}`
-    });
-
-  } catch (err) {
-    console.error('[TICKET] Error creating ticket:', err);
-    await interaction.editReply({ content: '❌ حدث خطأ أثناء إنشاء التذكرة. يرجى المحاولة مرة أخرى.' });
-  }
-});
-
-// ============ SELECT MENU HANDLER ============
-client.on('interactionCreate', async (interaction) => {
-  if (!interaction.isStringSelectMenu()) return;
-
-  const customId = interaction.customId;
-
-  // Handle support reason select
-  if (customId === 'support_reason_select') {
-    await interaction.deferReply({ ephemeral: true });
-
-    const selectedValue = interaction.values[0];
-    const reasonLabels = {
-      'report': 'بلاغ على شخص',
-      'recover': 'استرجاع رتب',
-      'other': 'سبب اخر'
-    };
-
-    const reasonLabel = reasonLabels[selectedValue] || selectedValue;
-
-    const confirmEmbed = new EmbedBuilder()
-      .setColor(0x10B981)
-      .setTitle('✅ تم اختيار السبب')
-      .setDescription(`تم تسجيل سبب التذكرة: **${reasonLabel}**\nيرجى كتابة تفاصيل مشكلتك في القناة.`)
-      .setFooter({ text: 'Unit S | Ticket System' })
-      .setTimestamp();
-
-    await interaction.editReply({ embeds: [confirmEmbed] });
-    return;
-  }
-});
-
-// ============ CLOSE & LOCK TICKET HANDLER ============
-client.on('interactionCreate', async (interaction) => {
-  if (!interaction.isButton()) return;
-
-  const customId = interaction.customId;
-
-  // Handle ticket close
-  if (customId === 'ticket_close') {
-    try {
-      await interaction.deferReply({ ephemeral: true });
-      const channel = interaction.channel;
-      const topic = channel.topic;
-
-      // Check if user is ticket owner or has admin role
-      const userIdMatch = topic?.match(/User ID: (\d+)/);
-      const userId = userIdMatch ? userIdMatch[1] : null;
-
-      if (userId !== interaction.user.id && !hasModRole(interaction.member)) {
-        await interaction.editReply({ content: '❌ ليس لديك صلاحية لإغلاق هذه التذكرة!' });
-        return;
-      }
-
-      // Log transcript before closing
-      await logTicketTranscript(channel, interaction.user, 'User closed ticket');
-
-      // Delete channel
-      await channel.delete('Ticket closed by user');
-
-    } catch (err) {
-      console.error('[TICKET] Error closing ticket:', err);
-      await interaction.editReply({ content: '❌ حدث خطأ أثناء إغلاق التذكرة!' });
-    }
-    return;
-  }
-
-  // Handle ticket lock
-  if (customId === 'ticket_lock') {
-    try {
-      await interaction.deferReply({ ephemeral: true });
-      const channel = interaction.channel;
-
-      if (!hasModRole(interaction.member)) {
-        await interaction.editReply({ content: '❌ ليس لديك صلاحية لقفل هذه التذكرة!' });
-        return;
-      }
-
-      // Remove user's access to the channel
-      const topic = channel.topic;
-      const userIdMatch = topic?.match(/User ID: (\d+)/);
-      const userId = userIdMatch ? userIdMatch[1] : null;
-
-      if (userId) {
-        await channel.permissionOverwrites.edit(userId, {
-          SendMessages: false
-        });
-      }
-
-      // Add 🔒 emoji to channel name
-      if (!channel.name.startsWith('🔒')) {
-        await channel.setName('🔒-' + channel.name);
-      }
-
-      // Send locked message
-      await channel.send('🔒 تم قفل هذه التذكرة. لن يتمكن صاحب التذكرة من إرسال رسائل.');
-
-      await interaction.editReply({ content: '🔒 تم قفل التذكرة بنجاح!' });
-
-    } catch (err) {
-      console.error('[TICKET] Error locking ticket:', err);
-      await interaction.editReply({ content: '❌ حدث خطأ أثناء قفل التذكرة!' });
-    }
-    return;
-  }
-
-  // Handle ticket claim
-  if (customId === 'ticket_claim') {
-    try {
-      await interaction.deferReply({ ephemeral: true });
-      if (!hasModRole(interaction.member)) {
-        await interaction.editReply({ content: '❌ ليس لديك صلاحية لاستلام التذكرة!' });
-        return;
-      }
-
-      const channel = interaction.channel;
-      const topic = channel.topic;
-
-      // Update channel name to show it's claimed
-      if (!channel.name.startsWith('👤')) {
-        await channel.setName('👤-' + channel.name);
-      }
-
-      // Notify in channel
-      await channel.send(`👤 تم استلام التذكرة بواسطة <@${interaction.user.id}>`);
-
-      await interaction.editReply({ content: '✅ تم استلام التذكرة بنجاح!' });
-
-    } catch (err) {
-      console.error('[TICKET] Error claiming ticket:', err);
-      await interaction.editReply({ content: '❌ حدث خطأ أثناء استلام التذكرة!' });
-    }
-    return;
-  }
-});
-
-// ============ AUTO ENCRYPT IN TICKETS ============
-// دالة تشفير الكلمات من القاموس
-function encryptMessage(text) {
-  if (!text || !wordDictionary) return text;
-
-  let encryptedText = text;
-  const words = Object.keys(wordDictionary);
-
-  for (const word of words) {
-    const regex = new RegExp(word, 'gi');
-    encryptedText = encryptedText.replace(regex, wordDictionary[word]);
-  }
-
-  return encryptedText;
-}
-
-// التحقق إذا القناة تذكرة
-function isTicketChannel(channel) {
-  if (!channel || !channel.name) return false;
-  return channel.name.startsWith('support-') ||
-         channel.name.startsWith('order-') ||
-         channel.name.startsWith('apply-') ||
-         channel.name.startsWith('team-') ||
-         channel.name.startsWith('mediator-');
-}
-
-// التحقق إذا الرسالة فيها كلمات للتشفير
-function containsEncryptableWords(text) {
-  if (!text || !wordDictionary) return false;
-  const words = Object.keys(wordDictionary);
-  for (const word of words) {
-    if (text.toLowerCase().includes(word.toLowerCase())) {
-      return true;
-    }
-  }
-  return false;
-}
-
-// ============ MESSAGE CREATE - AUTO ENCRYPT IN TICKETS ============
-client.on('messageCreate', async (message) => {
-  // تجاهل رسائل البوت
-  if (message.author.bot) return;
-  // تجاهل إذا ما في محتوى
-  if (!message.content) return;
-  // تجاهل إذا القناة مش تذكرة
-  if (!isTicketChannel(message.channel)) return;
-  // تجاهل إذا ما في كلمات للتشفير
-  if (!containsEncryptableWords(message.content)) return;
-
-  try {
-    // تشفير الرسالة
-    const encryptedText = encryptMessage(message.content);
-
-    // إذا ما صار شي تغيير، تجاهل
-    if (encryptedText === message.content) return;
-
-    // حفظ الرسالة الأصلية
-    const originalMessage = message.content;
-
-    // حذف رسالة المستخدم الأصلية
-    await message.delete();
-
-    // إرسال الرسالة المشفرة مع اقتباس الرسالة الأصلية
-    const embed = new EmbedBuilder()
-      .setColor(0xDC2626)
-      .setAuthor({ name: message.author.username, iconURL: message.author.displayAvatarURL() })
-      .setDescription(encryptedText)
-      .setFooter({ text: 'Unit S | التشفير التلقائي' })
-      .setTimestamp();
-
-    await message.channel.send({
-      content: `> ${originalMessage}\n\n`,
-      embeds: [embed]
-    });
-
-    console.log(`[ENCRYPT] Encrypted message in ticket ${message.channel.name}`);
-  } catch (err) {
-    console.error('[ENCRYPT] Error encrypting message:', err);
-  }
-});
-
