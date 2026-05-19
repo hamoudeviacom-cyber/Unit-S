@@ -2,11 +2,8 @@
 // نظام الحماية والتشفير وتذكرة بانيل
 
 // ============ Package Imports ============
-import express from 'express';
-import { Client, GatewayIntentBits, Collection } from 'discord.js';
-import { readFileSync, writeFileSync, existsSync } from 'fs';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
+const express = require('express');
+const { Client, GatewayIntentBits, Collection } = require('discord.js');
 
 // ============ Express Server ============
 const app = express();
@@ -58,35 +55,35 @@ client.on('ready', async () => {
 });
 
 // ============ Load Commands ============
-async function loadCommands() {
+function loadCommands() {
   // Admin Commands
-  client.commands.set('ban', require('./commands/ban.js').default);
-  client.commands.set('unban', require('./commands/unban.js').default);
-  client.commands.set('kick', require('./commands/kick.js').default);
-  client.commands.set('timeout', require('./commands/timeout.js').default);
-  client.commands.set('حذف', require('./commands/purge.js').default);
-  client.commands.set('logs', require('./commands/logs.js').default);
-  client.commands.set('modsettings', require('./commands/modsettings.js').default);
-  client.commands.set('24voice', require('./commands/24voice.js').default);
-  client.commands.set('joinvoice', require('./commands/24voice.js').default);
-  client.commands.set('voice24', require('./commands/24voice.js').default);
+  client.commands.set('ban', require('./commands/ban.js'));
+  client.commands.set('unban', require('./commands/unban.js'));
+  client.commands.set('kick', require('./commands/kick.js'));
+  client.commands.set('timeout', require('./commands/timeout.js'));
+  client.commands.set('حذف', require('./commands/purge.js'));
+  client.commands.set('logs', require('./commands/logs.js'));
+  client.commands.set('modsettings', require('./commands/modsettings.js'));
+  client.commands.set('24voice', require('./commands/24voice.js'));
+  client.commands.set('joinvoice', require('./commands/24voice.js'));
+  client.commands.set('voice24', require('./commands/24voice.js'));
 
   // General Commands
-  client.commands.set('help', require('./commands/help.js').default);
-  client.commands.set('ping', require('./commands/ping.js').default);
-  client.commands.set('say', require('./commands/say.js').default);
-  client.commands.set('terms', require('./commands/terms.js').default);
+  client.commands.set('help', require('./commands/help.js'));
+  client.commands.set('ping', require('./commands/ping.js'));
+  client.commands.set('say', require('./commands/say.js'));
+  client.commands.set('terms', require('./commands/terms.js'));
 
   // Free Rank
-  client.commands.set('freerank', require('./commands/freerank.js').default);
+  client.commands.set('freerank', require('./commands/freerank.js'));
 
   // Encryption
-  client.commands.set('shfr', require('./commands/shfr.js').default);
+  client.commands.set('shfr', require('./commands/shfr.js'));
 
   // Tickets
   const ticketsModule = require('./commands/tickets.js');
-  client.commands.set('ticket', ticketsModule.default);
-  client.commands.set('tickets', ticketsModule.default);
+  client.commands.set('ticket', ticketsModule);
+  client.commands.set('tickets', ticketsModule);
   client.commands.set('order', ticketsModule.orderCommand);
   client.commands.set('support', ticketsModule.supportCommand);
   client.commands.set('report', ticketsModule.reportCommand);
@@ -97,25 +94,25 @@ async function loadCommands() {
 }
 
 // ============ Load Events ============
-async function loadEvents() {
+function loadEvents() {
   // Member events
   client.on('guildMemberAdd', async (member) => {
-    const event = require('./events/guildMemberAdd.js').default;
+    const event = require('./events/guildMemberAdd.js');
     await event.execute(client, member);
   });
 
   client.on('guildMemberUpdate', async (oldMember, newMember) => {
-    const event = require('./events/guildMemberUpdate.js').default;
+    const event = require('./events/guildMemberUpdate.js');
     await event.execute(client, oldMember, newMember);
   });
 
   client.on('roleUpdate', async (oldRole, newRole) => {
-    const event = require('./events/roleUpdate.js').default;
+    const event = require('./events/roleUpdate.js');
     await event.execute(client, oldRole, newRole);
   });
 
   client.on('interactionCreate', async (interaction) => {
-    const event = require('./events/interactionCreate.js').default;
+    const event = require('./events/interactionCreate.js');
     await event.execute(client, interaction);
   });
 
@@ -153,4 +150,4 @@ client.login(TOKEN)
   .catch(err => console.error('❌ Failed to login:', err));
 
 // ============ Export for other modules ============
-export { client, PREFIX };
+module.exports = { client, PREFIX };
