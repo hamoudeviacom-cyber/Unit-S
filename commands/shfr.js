@@ -1,34 +1,31 @@
-// Encryption Panel Command - شفر منشورك
-// أمر لوحة التشفير
-
 const { EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder } = require('discord.js');
-const { wordDictionary } = require('../config/wordDictionary.js');
 
 module.exports = {
   name: 'shfr',
-  description: 'Open encryption panel',
-  execute: async (message, args, client) => {
-    try {
-      const embed = new EmbedBuilder()
-        .setTitle(' Unit S | التشفير')
-        .setDescription('لتشفير منشورك، اضغط على الزر أدناه')
-        .setColor(0xDC2626)
-        .addFields(
-          { name: ' المميزات:', value: '• تشفير الكلمات المحظورة\n• يعمل بكفاءة عالية\n• آمن وسريع', inline: false }
-        )
-        .setFooter({ text: 'Unit S | للتشفير اضغط الزر' })
-        .setTimestamp();
+  aliases: ['shfr', 'تشفير'],
+  description: 'تشفير المنشور',
+  async execute(message, args, client) {
+    const encryptEmbed = new EmbedBuilder()
+      .setAuthor({ name: 'Unit S | التشفير', iconURL: client.user.displayAvatarURL() })
+      .setColor(0xDC2626)
+      .setDescription([
+        'لتشفير منشورك يرجى الضغط على زر **"شفر منشورك"** بالأسفل',
+        '',
+        'التشفير يعمل بكفاءة عالية ✅',
+        '',
+        '⚠️ ملاحظة: التشفير يخفي الكلمات المحظورة فقط'
+      ].join('\n'))
+      .setFooter({ text: 'Unit S | System Bot' })
+      .setTimestamp();
 
-      const encryptButton = new ButtonBuilder()
-        .setCustomId('shfr_post')
-        .setLabel('شفر منشورك')
-        .setStyle(ButtonStyle.Success);
+    const encryptButton = new ButtonBuilder()
+      .setCustomId('shfr_start')
+      .setLabel('شفر منشورك')
+      .setStyle(ButtonStyle.Secondary);
 
-      const row = new ActionRowBuilder().addComponents(encryptButton);
-      await message.channel.send({ embeds: [embed], components: [row] });
-      if (!message.deleted) message.delete().catch(() => {});
-    } catch (error) {
-      console.error('shfr command error:', error);
-    }
-  },
+    const row = new ActionRowBuilder().addComponents(encryptButton);
+
+    await message.channel.send({ embeds: [encryptEmbed], components: [row] });
+    if (!message.deleted) message.delete().catch(() => {});
+  }
 };
