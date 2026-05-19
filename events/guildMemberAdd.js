@@ -1,11 +1,11 @@
 // Guild Member Add Event
 // حدث عند دخول عضو للسيرفر
 
-import config from '../config/index.js';
-import { isMemberProtected } from '../utils/helpers.js';
-import immuneUsers from '../config/immuneUsers.js';
+const config = require('../config/index.js');
+const { isMemberProtected } = require('../utils/helpers.js');
+const immuneUsers = require('../config/immuneUsers.js');
 
-export default {
+module.exports = {
   name: 'guildMemberAdd',
   once: false,
   execute: async (client, member) => {

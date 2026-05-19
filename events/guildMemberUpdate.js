@@ -1,49 +1,51 @@
 // Guild Member Update Event
 // حدث عند تحديث عضو - حماية الرولات
 
-import config from '../config/index.js';
-import { isMemberProtected } from '../utils/helpers.js';
+const config = require('../config/index.js');
 
-export default {
-  name: 'guildMemberUpdate',
-  once: false,
-  execute: async (client, oldMember, newMember) => {
-    try {
-      // تحقق إذا شخص أعطى رول أو سحب رول من شخص
-      const auditLogs = await newMember.guild.fetchAuditLogs({
-        limit: 5,
-        type: 'MEMBER_ROLE_UPDATE'
-      }).catch(() => null);
+function isMemberProtected(member) {
+  if (member.id === config.OWNER_ID) return true; // Owner is always protected
+  return member.roles.cache.some(role => config.PROTECTED_ROLE_IDS.includes(role.id));
+}
 
-      if (!auditLogs?.entries) return;
+async function execute(client, oldMember, newMember) {
+  try {
+    // تحقق إذا شخص أعطى رول أو سحب رول من شخص
+    const auditLogs = await newMember.guild.fetchAuditLogs({
+      limit: 5,
+      type: 'MEMBER_ROLE_UPDATE'
+    }).catch(() => null);
 
-      const roleUpdateEntry = auditLogs.entries.find(e =>
-        e.target?.id === newMember.id &&
-        e.executor?.id !== client.user.id
-      );
+    if (!auditLogs?.entries) return;
 
-      if (!roleUpdateEntry || !roleUpdateEntry.executor) return;
+    const roleUpdateEntry = auditLogs.entries.find(e =>
+      e.target?.id === newMember.id &&
+      e.executor?.id !== client.user.id
+    );
 
-      const admin = roleUpdateEntry.executor;
+    if (!roleUpdateEntry || !roleUpdateEntry.executor) return;
 
-      // نتحقق إذا الشخص اللي عدل الرول عنده رتبة محمية
-      const adminMember = await newMember.guild.members.fetch(admin.id).catch(() => null);
-      if (adminMember && isMemberProtected(adminMember)) {
-        // محمي - لا نسحب رولاته
-      } else if (adminMember) {
-        // سحب كل رولاته
-        const rolesToRemove = adminMember.roles.cache.filter(role => role.id !== newMember.guild.id);
-        if (rolesToRemove.size > 0) {
-          await adminMember.roles.remove(rolesToRemove);
-        }
-        // إعطاء الرتبة الأساسية فقط
-        const baseRole = newMember.guild.roles.cache.get(config.AUTO_ROLE_ID);
-        if (baseRole) {
-          await adminMember.roles.add(baseRole);
-        }
+    const admin = roleUpdateEntry.executor;
+
+    // نتحقق إذا الشخص اللي عدل الرول عنده رتبة محمية
+    const adminMember = await newMember.guild.members.fetch(admin.id).catch(() => null);
+    if (adminMember && isMemberProtected(adminMember)) {
+      // محمي - لا نسحب رولاته
+    } else if (adminMember) {
+      // سحب كل رولاته
+      const rolesToRemove = adminMember.roles.cache.filter(role => role.id !== newMember.guild.id);
+      if (rolesToRemove.size > 0) {
+        await adminMember.roles.remove(rolesToRemove);
       }
-    } catch (error) {
-      // لا تطبع شي
+      // إعطاء الرتبة الأساسية فقط
+      const baseRole = newMember.guild.roles.cache.get(config.AUTO_ROLE_ID);
+      if (baseRole) {
+        await adminMember.roles.add(baseRole);
+      }
     }
+  } catch (error) {
+    // لا تطبع شي
   }
-};
+}
+
+module.exports = { name: 'guildMemberUpdate', execute };

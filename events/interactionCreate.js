@@ -1,11 +1,11 @@
 // Interaction Create Event
 // حدث التفاعلات - الأزرار والمنيو
 
-import { ButtonBuilder, ButtonStyle, ActionRowBuilder, EmbedBuilder } from 'discord.js';
-import { hasModRole, hasTicketAdminRole } from '../utils/helpers.js';
-import TICKET_TYPES from '../config/ticketTypes.js';
-import config from '../config/index.js';
-import { logTicketTranscript } from '../utils/logging.js';
+const { ButtonBuilder, ButtonStyle, ActionRowBuilder, EmbedBuilder } = require('discord.js');
+const { hasModRole, hasTicketAdminRole } = require('../utils/helpers.js');
+const TICKET_TYPES = require('../config/ticketTypes.js');
+const config = require('../config/index.js');
+const { logTicketTranscript } = require('../utils/logging.js');
 
 // Create ticket function
 async function createTicket(interaction, ticketType) {
@@ -124,7 +124,7 @@ async function createTicket(interaction, ticketType) {
   }
 }
 
-export default {
+module.exports = {
   name: 'interactionCreate',
   once: false,
   execute: async (client, interaction) => {
