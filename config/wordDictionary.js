@@ -1,7 +1,7 @@
 // Word Encryption Dictionary
 // قاموس تشفير الكلمات
 
-export const wordDictionary = {
+const wordDictionary = {
   // حروف مفردة
   "جيميلات": "جيـmـيلات",
   "جيميل": "جيـmـيل",
@@ -96,4 +96,4 @@ export const wordDictionary = {
   "خاص": "خ1ص"
 };
 
-export default wordDictionary;
+module.exports = wordDictionary;

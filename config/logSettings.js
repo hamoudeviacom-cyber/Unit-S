@@ -1,7 +1,7 @@
 // Log Channels Configuration
 // إعدادات قنوات اللوج
 
-export const logSettings = {
+const logSettings = {
   allLog: '1494686253675839598',      // # all-log
   banLog: '1494686254866890832',       // # ban-log
   kickLog: '1494686256087695460',      // # kick-log
@@ -12,4 +12,4 @@ export const logSettings = {
   rolesLog: '1494686265235214347',     // # roles-log
 };
 
-export default logSettings;
+module.exports = logSettings;

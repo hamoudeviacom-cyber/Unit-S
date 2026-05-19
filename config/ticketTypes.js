@@ -1,7 +1,7 @@
 // Ticket Types Configuration
 // إعدادات أنواع التذاكر
 
-export const TICKET_TYPES = {
+const TICKET_TYPES = {
   order: {
     name: 'الطلبات',
     nameAr: 'الطلبات',
@@ -81,4 +81,4 @@ export const TICKET_TYPES = {
   }
 };
 
-export default TICKET_TYPES;
+module.exports = TICKET_TYPES;

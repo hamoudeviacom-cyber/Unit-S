@@ -1,7 +1,7 @@
 // Protection Settings
 // إعدادات الحماية والفلترة
 
-export const protectionSettings = {
+const protectionSettings = {
   wordFilter: {
     enabled: true,
     words: [
@@ -250,4 +250,4 @@ export const protectionSettings = {
   },
 };
 
-export default protectionSettings;
+module.exports = protectionSettings;

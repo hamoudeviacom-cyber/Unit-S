@@ -1,7 +1,7 @@
 // Moderation Settings
 // إعدادات الأدمن والمودريشن
 
-export const modSettings = {
+const modSettings = {
   // Admin Roles - الرولات المسموح لها بالحظر والطرد
   adminRoles: [],
 
@@ -12,4 +12,4 @@ export const modSettings = {
   adminUsers: ['l59g']
 };
 
-export default modSettings;
+module.exports = modSettings;

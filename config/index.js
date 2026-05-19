@@ -1,7 +1,7 @@
 // Configuration File
 // إعدادات البوت الأساسية
 
-export const config = {
+const config = {
   // Bot Token - الحصول من Discord Developer Portal
   TOKEN: process.env.DISCORD_TOKEN || 'YOUR_BOT_TOKEN',
 
@@ -35,4 +35,4 @@ export const config = {
   PROTECTED_ROLE_ID: '1493346333170340003'
 };
 
-export default config;
+module.exports = config;
