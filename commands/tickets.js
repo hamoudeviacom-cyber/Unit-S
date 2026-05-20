@@ -2,25 +2,28 @@
 const { EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder } = require('discord.js');
 const TICKET_TYPES = require('../config/ticketTypes.js');
 
-// ===== أمر order =====
+// ===== أمر order ⭐ (محدث) =====
 const orderCommand = {
   name: 'order',
   execute: async (message) => {
     if (!message.deleted) message.delete().catch(() => {});
-    const t = TICKET_TYPES.order;
+
     const embed = new EmbedBuilder()
-      .setTitle(t.icon + ' || • ' + t.nameEn + ' • ' + t.nameAr)
+      .setColor(0xDC2626)
       .setDescription([
-        '**# If You Want Order Anything..!!**',
+        '<:Rox_pin:1495225600258998313> If you want to order anything !',
         '',
-        '- ➡ Open Ticket Here,',
-        '',
-        '__ ـــــــــــــــــــــــــــــــــــــــــــــــــ <a:Taj:' + t.emojiId + '> ــــــــــــــــــــــــــــــــــــــــــــــــ__'
+        '<:vanka237:1495225240035262597> Click the button below to open your ticket'
       ].join('\n'))
-      .setColor(t.color)
-      .setFooter({ text: 'Unit S | Ticketing System' })
-      .setImage('https://cdn.discordapp.net/attachments/1397309666752593920/1495169428738936852/UNIT_406004040.webp');
-    const btn = new ButtonBuilder().setCustomId('ticket_order').setLabel('Open Ticket Order').setStyle(ButtonStyle.Success).setEmoji({ name: '🎫' });
+      .setFooter({ text: 'UNIT S | Order System' })
+      .setTimestamp();
+
+    const btn = new ButtonBuilder()
+      .setCustomId('ticket_order')
+      .setLabel('Open Ticket')
+      .setStyle(ButtonStyle.Success)
+      .setEmoji('🎫');
+
     await message.channel.send({ embeds: [embed], components: [new ActionRowBuilder().addComponents(btn)] });
   }
 };
