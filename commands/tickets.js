@@ -2,7 +2,7 @@
 const { EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder } = require('discord.js');
 const TICKET_TYPES = require('../config/ticketTypes.js');
 
-// ===== أمر order ⭐ (محدث) =====
+// ===== أمر order ⭐ =====
 const orderCommand = {
   name: 'order',
   execute: async (message) => {
@@ -11,9 +11,9 @@ const orderCommand = {
     const embed = new EmbedBuilder()
       .setColor(0xDC2626)
       .setDescription([
-        '**If you want to order anything !**',
+        '<:Rox_pin:1495225600258998313> If you want to order anything !',
         '',
-        '**Click the button below to open your ticket**'
+        '<:vanka237:1495225240035262597> Click the button below to open your ticket'
       ].join('\n'))
       .setFooter({ text: 'UNIT S | Order System' })
       .setTimestamp();
@@ -23,11 +23,7 @@ const orderCommand = {
       .setLabel('Open Ticket Order')
       .setStyle(ButtonStyle.Danger);
 
-    await message.channel.send({
-      content: '<:Rox_pin:1495225600258998313>\n<:vanka237:1495225240035262597>',
-      embeds: [embed],
-      components: [new ActionRowBuilder().addComponents(btn)]
-    });
+    await message.channel.send({ embeds: [embed], components: [new ActionRowBuilder().addComponents(btn)] });
   }
 };
 
